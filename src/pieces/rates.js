@@ -9,6 +9,7 @@ import { bankModel } from './fx.js';
           'few'  business is hard, they leave → the rent falls
           'cut'  降息: the central bank pushes the rent down directly → borrowing is cheaper, some come back
           'rrr'  降准: the bank gets back part of the money it must park at the central bank → more to lend
+                 (not in the script since the 50-page cut; kept so the page can come back)
           'stuck' why the rent cannot go back up: it is already low and still almost nobody borrows; whenever it
                  tries to rise, one of the few borrowers backs away (and those already in debt could not pay)
    All schematic: no rates are read off the gauge. */
@@ -95,10 +96,12 @@ export class Rates extends Piece {
     vault.position.set(0, 0.24 + 0.65 + 0.01, P_VAULT.z - P_CB.z);
     vault.renderOrder = 5;
     this.cb.add(vault);
+    this.vaultParts = [vault];
     for (let i = 0; i < 6; i++) {
       const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.3, 8), this.m(new THREE.MeshStandardMaterial({ color: 0x9aa0aa, metalness: 1, roughness: 0.3 })));
       bar.position.set(-1.35 + i * 0.54, 0.24 + 0.66, P_VAULT.z - P_CB.z + 0.86);
       this.cb.add(bar);
+      this.vaultParts.push(bar);
     }
 
     // money: vault bundles 0..7, flows 8..
@@ -204,10 +207,11 @@ export class Rates extends Piece {
     const kcb = cbOn ? (st === 'cut' ? eOut(seg(t, 0.2, 1.0)) : 1) : 0;
     this.cb.scale.setScalar(Math.max(0.001, kcb));
     this.cb.visible = kcb > 0.01;
+    for (const v of this.vaultParts) v.visible = st === 'rrr'; // the reserve vault is only explained by the 降准 step
     // vault bundles; in 'rrr' three of them go back to the bank
     for (let i = 0; i < this.NV; i++) {
       const v = this.vslot[i];
-      if (!cbOn || kcb < 0.98) {
+      if (st !== 'rrr' || kcb < 0.98) {
         this.bills.hide(i);
         continue;
       }
