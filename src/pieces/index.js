@@ -11,6 +11,7 @@ import { GoldFiat, GoldHistory } from './goldx.js';
 import { Coaster, Stampede, Discount, Premium } from './act5.js';
 import { Glasses } from './act6.js';
 import { Paths } from './act7.js';
+import { Rates } from './rates.js';
 import { FxFlow } from './fx.js';
 import { Turkey, Horizon, Withdraw } from './swan.js';
 
@@ -20,11 +21,12 @@ export function buildPieces(app) {
     new Bundles(app, 'cover', [0, 0, 0], 'cover'),
     // 1 大环境
     new Scale(app, 'scale', [200, 0, 0]),
-    new Stairs(app, 'stairs', [262, 0, 0]),
-    new MoneyStack(app, 'money', [324, 0, 0]),
-    new Dilute(app, 'dilute', [386, 0, 0]),
-    new Tank(app, 'tank', [448, 0, 0]),
-    new Seesaw(app, 'seesaw', [512, 0, 0]),
+    new Rates(app, 'rates', [255, 0, 0]),
+    new Stairs(app, 'stairs', [300, 0, 0]),
+    new MoneyStack(app, 'money', [345, 0, 0]),
+    new Dilute(app, 'dilute', [400, 0, 0]),
+    new Tank(app, 'tank', [455, 0, 0]),
+    new Seesaw(app, 'seesaw', [515, 0, 0]),
     // 2 汇率
     new Tug(app, 'tug', [700, 0, 0]),
     new FxFlow(app, 'fx', [765, 0, 0]),

@@ -66,7 +66,7 @@ export class Turkey extends Piece {
     this.lFed = this.label('<span class="t">天天有人喂</span><span class="c">一天比一天放心</span>', [X(430), Y(val(430)) + 0.55, 0]);
     this.lTop = this.label('<span class="t">第 1000 天</span><span class="c">最放心的时候</span>', [top.x - 0.6, top.y + 0.5, 0]);
     this.lDrop = this.label('<span class="t red">第 1001 天：感恩节</span><span class="c">（美国人这天吃火鸡）</span>', [top.x + 0.55, Y(0.5), 0.2], 'right');
-    this.lMoral = this.label('<span class="t gold">预测不了，但迟早会来</span>', [top.x - 1.4, top.y + 0.5, 0]);
+    this.lMoral = this.label('<span class="t gold">过去越平稳，越以为不会出事</span>', [top.x - 2.0, top.y + 0.5, 0]);
     this.cHead = hdr(0xffe3b0, 2.0);
     this.cRed = hdr(COL.risk, 2.2);
     this.shook = false;
@@ -146,7 +146,7 @@ export class Horizon extends Piece {
       this.add(tk);
       return this.label(`<span class="c">${y === 0 ? '0' : y + ' 年'}</span>`, [HX(y), Y0 - 0.2, 0], 'down');
     });
-    this.lCap = this.label('<span class="c">买在最高点，到涨回这个高点用了多久（标普 500 点位）</span>', [HX(13), Y0 - 0.95, 0.3], 'down');
+    this.lCap = this.label('<span class="c">买在最高点 → 涨回这个高点（标普 500 点位）</span>', [HX(19), row(6) + 0.5, 0.2]);
     // the withdrawal date: a glowing line that moves right
     this.marker = new THREE.Mesh(new THREE.BoxGeometry(0.07, row(0) - Y0 + 0.9, 0.07), this.m(new THREE.MeshBasicMaterial({ color: hdr(COL.gold, 2.0) })));
     this.markerY = (row(0) + 0.9 + Y0) / 2;

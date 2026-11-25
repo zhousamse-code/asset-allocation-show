@@ -29,6 +29,33 @@ const flowU = (tau, speed, k, n) => {
   return v < 0 ? -1 : v % 1;
 };
 
+/* a small classical bank: body, four columns, slab and pediment; sits on y = 0 */
+export function bankModel(piece, stone) {
+  const bank = new THREE.Group();
+  const body = new THREE.Mesh(rbox(3.0, 1.7, 1.5, 0.04), stone);
+  body.position.set(0, 0.85, -0.35);
+  bank.add(body);
+  for (let i = 0; i < 4; i++) {
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 1.7, 16), stone);
+    c.position.set(-1.15 + i * 0.77, 0.85, 0.75);
+    bank.add(c);
+  }
+  const slab = new THREE.Mesh(rbox(3.6, 0.22, 2.3, 0.04), stone);
+  slab.position.set(0, 1.81, 0.05);
+  bank.add(slab);
+  const tri = new THREE.Shape();
+  tri.moveTo(-1.85, 0);
+  tri.lineTo(1.85, 0);
+  tri.lineTo(0, 0.7);
+  tri.closePath();
+  const pg = new THREE.ExtrudeGeometry(tri, { depth: 2.2, bevelEnabled: false });
+  pg.translate(0, 0, -1.05);
+  const ped = new THREE.Mesh(pg, stone);
+  ped.position.y = 1.92;
+  bank.add(ped);
+  return bank;
+}
+
 export class FxFlow extends Piece {
   constructor(app, name, origin) {
     super(app, name, origin, { spot: [-1.5, 0, 17, 1.0] });
@@ -54,32 +81,11 @@ export class FxFlow extends Piece {
       this.add(h);
     });
 
-    // the bank: steps, columns, pediment
+    // the bank
     pad(P_BANK, 4.4, 3.2, 0x9aa0aa);
-    const bank = new THREE.Group();
+    const bank = bankModel(this, stone);
     bank.position.set(P_BANK.x, 0.24, P_BANK.z);
     this.add(bank);
-    const body = new THREE.Mesh(rbox(3.0, 1.7, 1.5, 0.04), stone);
-    body.position.set(0, 0.85, -0.35);
-    bank.add(body);
-    for (let i = 0; i < 4; i++) {
-      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 1.7, 16), stone);
-      c.position.set(-1.15 + i * 0.77, 0.85, 0.75);
-      bank.add(c);
-    }
-    const slab = new THREE.Mesh(rbox(3.6, 0.22, 2.3, 0.04), stone);
-    slab.position.set(0, 1.81, 0.05);
-    bank.add(slab);
-    const tri = new THREE.Shape();
-    tri.moveTo(-1.85, 0);
-    tri.lineTo(1.85, 0);
-    tri.lineTo(0, 0.7);
-    tri.closePath();
-    const pg = new THREE.ExtrudeGeometry(tri, { depth: 2.2, bevelEnabled: false });
-    pg.translate(0, 0, -1.05);
-    const ped = new THREE.Mesh(pg, stone);
-    ped.position.y = 1.92;
-    bank.add(ped);
 
     // exporter: the factory
     pad(P_FAC, 4.4, 3.2, COL.rmb);

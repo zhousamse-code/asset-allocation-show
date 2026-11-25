@@ -847,7 +847,7 @@ body {
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module">
 // src/main.js
-import * as THREE19 from "three";
+import * as THREE20 from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -2057,7 +2057,7 @@ var Seesaw = class extends Piece {
 };
 
 // src/pieces/macro.js
-import * as THREE6 from "three";
+import * as THREE7 from "three";
 
 // src/pieces/kit.js
 import * as THREE5 from "three";
@@ -2134,626 +2134,8 @@ function glowTower(piece, color, { w = 1.3, d = 1.3, em = 0.35 } = {}) {
   return t;
 }
 
-// src/pieces/macro.js
-var RED = new THREE6.Color(11739178);
-var Scale = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 11, 1.1] });
-    const metal = this.m(new THREE6.MeshStandardMaterial({ color: 2895670, metalness: 0.85, roughness: 0.3 }));
-    const steel = this.m(new THREE6.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.28 }));
-    const ped = new THREE6.Mesh(rbox(4.2, 0.3, 2.4, 0.08), metal);
-    ped.position.y = 0.15;
-    this.add(ped);
-    const pillar = new THREE6.Mesh(new THREE6.CylinderGeometry(0.15, 0.22, 5.5, 24), metal);
-    pillar.position.y = 0.3 + 2.75;
-    this.add(pillar);
-    this.PY = 5.9;
-    this.L = 4.6;
-    this.HANG = 2.55;
-    this.pivot = new THREE6.Group();
-    this.pivot.position.y = this.PY;
-    this.add(this.pivot);
-    const beam = new THREE6.Mesh(rbox(this.L * 2 + 0.6, 0.24, 0.5, 0.06), metal);
-    this.pivot.add(beam);
-    const strip = new THREE6.Mesh(new THREE6.BoxGeometry(this.L * 2 + 0.4, 0.03, 0.03), this.m(new THREE6.MeshBasicMaterial({ color: hdr(16777215, 0.9) })));
-    strip.position.set(0, 0.06, 0.26);
-    this.pivot.add(strip);
-    const cap = new THREE6.Mesh(new THREE6.SphereGeometry(0.3, 24, 16), steel);
-    this.pivot.add(cap);
-    const panGeo = new THREE6.CylinderGeometry(1.7, 1.58, 0.16, 48);
-    const rodGeo = new THREE6.CylinderGeometry(0.025, 0.025, 1, 6);
-    rodGeo.translate(0, 0.5, 0);
-    this.pans = [-1, 1].map((side) => {
-      const g = new THREE6.Group();
-      this.add(g);
-      const pan = new THREE6.Mesh(panGeo, steel);
-      g.add(pan);
-      const top = new THREE6.Vector3(0, this.HANG, 0);
-      for (let k = 0; k < 3; k++) {
-        const a = k / 3 * Math.PI * 2 + 0.5;
-        const p = new THREE6.Vector3(Math.cos(a) * 1.55, 0.05, Math.sin(a) * 1.55);
-        const rod = new THREE6.Mesh(rodGeo, steel);
-        rod.position.copy(p);
-        const dir = top.clone().sub(p);
-        rod.scale.y = dir.length();
-        rod.quaternion.setFromUnitVectors(new THREE6.Vector3(0, 1, 0), dir.normalize());
-        g.add(rod);
-      }
-      return { g, side };
-    });
-    const SL = [];
-    const layer = (y, xs, zs) => xs.forEach((x) => zs.forEach((z) => SL.push([x, y, z])));
-    layer(0.33, [-0.7, 0, 0.7], [-0.36, 0.36]);
-    layer(0.83, [-0.7, 0, 0.7], [-0.36, 0.36]);
-    layer(1.33, [-0.35, 0.35], [-0.36, 0.36]);
-    layer(1.83, [-0.35, 0.35], [0]);
-    layer(2.33, [0], [0]);
-    this.slots = SL;
-    this.NG = SL.length;
-    this.G0 = 6;
-    this.cartons = new THREE6.InstancedMesh(
-      rbox(0.66, 0.48, 0.64, 0.03, 2),
-      this.m(new THREE6.MeshStandardMaterial({ color: 11831896, roughness: 0.85, metalness: 0 })),
-      this.NG
-    );
-    this.cartons.instanceMatrix.setUsage(THREE6.DynamicDrawUsage);
-    this.cartons.frustumCulled = false;
-    this.pans[0].g.add(this.cartons);
-    this.tape = new THREE6.InstancedMesh(new THREE6.BoxGeometry(0.14, 0.49, 0.65), this.m(new THREE6.MeshStandardMaterial({ color: 14929050, roughness: 0.6 })), this.NG);
-    this.tape.instanceMatrix.setUsage(THREE6.DynamicDrawUsage);
-    this.tape.frustumCulled = false;
-    this.pans[0].g.add(this.tape);
-    this.NM = 12;
-    this.M0 = 12;
-    this.M1 = 3;
-    this.money = bundleSet(this, this.NM, { w: 0.92, h: 0.17, d: 0.46 });
-    this.pans[1].g.add(this.money.mesh, this.money.band);
-    this.mslot = [];
-    for (let l = 0; l < 3; l++) for (let k = 0; k < 4; k++) this.mslot.push([k % 2 ? 0.5 : -0.5, 0.17 + l * 0.18, k < 2 ? -0.26 : 0.26]);
-    this.cols = Array.from({ length: this.NM }, (_, i) => RED.clone().offsetHSL(0, 0, (i * 0.37 % 1 - 0.5) * 0.06));
-    this.add(blob(this, 16, 6, 0.8));
-    this.Mx = new THREE6.Matrix4();
-    this.Z = new THREE6.Matrix4().makeScale(0, 0, 0);
-    this.lGoods = this.label('<span class="t">东西多了</span><span class="c">前些年拼命扩产 · 出口受阻转内销</span>', [0, -0.2, 0], "down", this.pans[0].g);
-    this.lMoney = this.label('<span class="t">买的人少了</span><span class="c">房价跌了 · 收入、养老没底</span>', [0, -0.2, 0], "down", this.pans[1].g);
-    this.lResult = this.label('<span class="v red">供大于求</span><span class="c">价格战：出厂价连跌了 41 个月</span>', [0, this.PY + 0.75, 0]);
-    this.ang = 0;
-    this.vel = 0;
-  }
-  enter(st, prev, fresh) {
-    if (fresh) {
-      this.ang = 0;
-      this.vel = 0;
-    }
-  }
-  update(dt, time) {
-    const t = this.t;
-    let wG = 0;
-    for (let k = 0; k < this.NG; k++) {
-      const [x, y, z] = this.slots[k];
-      let yy = y;
-      let s = 1;
-      if (k >= this.G0) {
-        const t0 = 1.3 + (k - this.G0) * 0.25;
-        const q = seg(t, t0, t0 + 0.42);
-        if (q <= 0) s = 0;
-        yy = y + (1 - q * q) * 3.2;
-        if (q >= 1) wG += 1;
-      } else wG += 1;
-      if (s === 0) {
-        this.cartons.setMatrixAt(k, this.Z);
-        this.tape.setMatrixAt(k, this.Z);
-        continue;
-      }
-      this.Mx.makeRotationY((k * 0.618 % 1 - 0.5) * 0.25).setPosition(x, yy, z);
-      this.cartons.setMatrixAt(k, this.Mx);
-      this.tape.setMatrixAt(k, this.Mx);
-    }
-    this.cartons.instanceMatrix.needsUpdate = true;
-    this.tape.instanceMatrix.needsUpdate = true;
-    let wM = 0;
-    for (let i = 0; i < this.NM; i++) {
-      const [x, y, z] = this.mslot[i];
-      const order = this.NM - 1 - i;
-      const leaving = i >= this.M1;
-      const t0 = 1.5 + order * 0.33;
-      const q = leaving ? seg(t, t0, t0 + 0.75) : 0;
-      if (q <= 0) wM += 1;
-      if (q >= 1) {
-        this.money.hide(i);
-        continue;
-      }
-      const e = eIn(q);
-      this.money.set(i, x + e * 2.2, y + e * 3.4, z + e * 0.4, 1 - ss(0.45, 1, q), this.cols[i], q * 1.6, q * 0.8);
-    }
-    this.money.commit();
-    const target = clamp((wG - wM * 0.5) * 0.0118, -0.3, 0.3);
-    const n = 4;
-    const h = dt / n;
-    for (let i = 0; i < n; i++) {
-      this.vel += ((target - this.ang) * 26 - this.vel * 5.2) * h;
-      this.ang += this.vel * h;
-    }
-    this.pivot.rotation.z = this.ang + Math.sin(time * 1.1) * 4e-3;
-    const c = Math.cos(this.pivot.rotation.z);
-    const sn = Math.sin(this.pivot.rotation.z);
-    for (const p of this.pans) {
-      const ex = p.side * this.L * c;
-      const ey = this.PY + p.side * this.L * sn;
-      p.g.position.set(ex, ey - this.HANG, 0);
-    }
-    this.lGoods.target = t > 0.7 ? 1 : 0;
-    this.lMoney.target = t > 1 ? 1 : 0;
-    this.lResult.target = t > 4.3 ? 1 : 0;
-  }
-};
-var M2 = [
-  [2015, 139.2],
-  [2017, 167.7],
-  [2019, 198.6],
-  [2021, 238.3],
-  [2023, 292.3],
-  [2025, 340.3]
-];
-var GDP = [
-  [2015, 68.9],
-  [2017, 83.2],
-  [2019, 98.7],
-  [2021, 114.9],
-  [2023, 126.1],
-  [2025, 140.2]
-];
-var MoneyStack = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 11, 1] });
-    const ped = new THREE6.Mesh(rbox(15, 0.14, 3, 0.05), this.m(new THREE6.MeshStandardMaterial({ color: 1381915, metalness: 0.6, roughness: 0.4 })));
-    ped.position.y = 0.07;
-    this.add(ped);
-    this.cols = M2.map(([yr, v], c) => ({ yr, v, n: Math.round(v / 10), x: (c - 2.5) * 2.35, g: GDP[c][1] }));
-    const total = this.cols.reduce((s, c) => s + c.n, 0);
-    this.set = bundleSet(this, total);
-    this.add(this.set.mesh, this.set.band);
-    this.items = [];
-    const R = rng(17);
-    this.cols.forEach((c, ci) => {
-      for (let k = 0; k < c.n; k++)
-        this.items.push({ ci, k, x: c.x + (R() - 0.5) * 0.06, z: (R() - 0.5) * 0.06, r: (R() - 0.5) * 0.05, col: RED.clone().offsetHSL(0, 0, (R() - 0.5) * 0.07) });
-    });
-    const top = (n) => 0.14 + n * GY;
-    const pts = this.cols.map((c) => new THREE6.Vector3(c.x, top(c.g / 10), 0.62));
-    this.gdp = progTube(pts, 0.06, this.m(new THREE6.MeshBasicMaterial({ color: hdr(6280396, 1.25) })), 8);
-    this.add(this.gdp);
-    this.dots = this.cols.map((c, i) => {
-      const s = new THREE6.Mesh(new THREE6.SphereGeometry(0.13, 16, 12), this.m(new THREE6.MeshBasicMaterial({ color: hdr(6280396, 1.6) })));
-      s.position.copy(pts[i]);
-      this.add(s);
-      return s;
-    });
-    this.add(blob(this, 18, 6, 0.7));
-    this.lVal = this.cols.map((c) => this.label(`<span class="t">${Math.round(c.v)}</span>`, [c.x, top(c.n) + 0.12, 0]));
-    this.lYr = this.cols.map((c) => this.label(`<span class="c">${c.yr}</span>`, [c.x, 0, 1.55], "down"));
-    const last = this.cols[this.cols.length - 1];
-    this.lM2 = this.label('<span class="t">市面上的钱（M2）</span><span class="c">单位：万亿元 · 十年约翻了 2.4 倍</span>', [this.cols[1].x, top(this.cols[4].n) + 0.6, 0]);
-    this.lGdp = this.label('<span class="t teal">经济总量（GDP）</span><span class="c">约翻了一倍</span>', [last.x + 0.9, top(last.g / 10), 0.62], "right");
-    this.T = this.cols.map((c, i) => 0.5 + i * 0.5);
-  }
-  update(dt, time) {
-    const t = this.t;
-    for (let i = 0; i < this.items.length; i++) {
-      const it = this.items[i];
-      const t0 = this.T[it.ci] + it.k * 0.022;
-      const q = seg(t, t0, t0 + 0.34);
-      if (q <= 0) {
-        this.set.hide(i);
-        continue;
-      }
-      const y = 0.14 + 0.13 + it.k * GY + (1 - q * q) * 2.6;
-      this.set.set(i, it.x, y, it.z, 1, it.col, it.r);
-    }
-    this.set.commit();
-    this.cols.forEach((c, i) => {
-      this.lVal[i].target = t > this.T[i] + c.n * 0.022 + 0.3 ? 1 : 0;
-      this.lYr[i].target = t > 0.4 ? 1 : 0;
-    });
-    const pg = eInOut(seg(t, 4, 5.4));
-    this.gdp.setProgress(pg);
-    this.dots.forEach((d, i) => d.visible = pg >= i / (this.dots.length - 1) - 1e-3 && pg > 0);
-    this.lGdp.target = pg > 0.98 ? 1 : 0;
-    this.lM2.target = t > 3.6 ? 1 : 0;
-  }
-};
-var TEA = new THREE6.Color(9062928);
-var TEA_E = new THREE6.Color(3807748);
-var PALE = new THREE6.Color(14208942);
-var PALE_E = new THREE6.Color(2762528);
-var Dilute = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 9, 1.1] });
-    const R = 1.75;
-    const H2 = 5.6;
-    const B = 0.25;
-    Object.assign(this, { R, H: H2, B });
-    const glassMat = this.m(
-      new THREE6.MeshPhysicalMaterial({ color: 14543359, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.12, side: THREE6.DoubleSide, depthWrite: false, envMapIntensity: 1.8, clearcoat: 1 })
-    );
-    const wall = new THREE6.CylinderGeometry(R, R * 0.93, H2, 64, 1, true);
-    wall.translate(0, H2 / 2 + B, 0);
-    const w = new THREE6.Mesh(wall, glassMat);
-    w.renderOrder = 6;
-    this.add(w);
-    const base = new THREE6.Mesh(
-      new THREE6.CylinderGeometry(R * 0.93, R * 0.93, B, 64),
-      this.m(new THREE6.MeshPhysicalMaterial({ color: 14543359, roughness: 0.1, transparent: true, opacity: 0.35, envMapIntensity: 1.5, clearcoat: 1 }))
-    );
-    base.position.y = B / 2;
-    this.add(base);
-    const rim = new THREE6.Mesh(new THREE6.TorusGeometry(R, 0.03, 8, 72), this.m(new THREE6.MeshBasicMaterial({ color: hdr(16777215, 1), transparent: true, opacity: 0.8 })));
-    rim.rotation.x = Math.PI / 2;
-    rim.position.y = H2 + B;
-    this.add(rim);
-    const lg = new THREE6.CylinderGeometry(R * 0.92, R * 0.87, 1, 64);
-    lg.translate(0, 0.5, 0);
-    this.lMat = this.m(new THREE6.MeshStandardMaterial({ color: TEA.clone(), emissive: TEA_E.clone(), emissiveIntensity: 1, roughness: 0.15, transparent: true, opacity: 0.86, depthWrite: false }));
-    this.liq = new THREE6.Mesh(lg, this.lMat);
-    this.liq.position.y = B;
-    this.liq.renderOrder = 3;
-    this.add(this.liq);
-    this.sMat = this.m(new THREE6.MeshStandardMaterial({ color: TEA.clone(), emissive: TEA_E.clone(), emissiveIntensity: 1.3, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.92, depthWrite: false }));
-    this.surf = new THREE6.Mesh(new THREE6.CircleGeometry(R * 0.92, 64), this.sMat);
-    this.surf.rotation.x = -Math.PI / 2;
-    this.surf.renderOrder = 4;
-    this.add(this.surf);
-    this.NL = 70;
-    const lgeo = new THREE6.SphereGeometry(1, 8, 6);
-    lgeo.scale(0.17, 0.035, 0.09);
-    this.leaves = new THREE6.InstancedMesh(lgeo, this.m(new THREE6.MeshStandardMaterial({ color: 4872738, roughness: 0.7, emissive: 1317382, emissiveIntensity: 1 })), this.NL);
-    this.leaves.instanceMatrix.setUsage(THREE6.DynamicDrawUsage);
-    this.leaves.frustumCulled = false;
-    this.leaves.renderOrder = 2;
-    this.add(this.leaves);
-    const r = rng(9);
-    this.lf = Array.from({ length: this.NL }, () => ({ a: r() * Math.PI * 2, r: 0.2 + r() * 1.25, y: B + 0.08 + r() * 0.55, w: 0.08 + r() * 0.12, s: r() * 10, sp: r() * Math.PI }));
-    const steel = this.m(new THREE6.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.28 }));
-    this.mouth = new THREE6.Vector3(-0.45, B + H2 + 1.45, 0.15);
-    const path = new THREE6.CatmullRomCurve3([
-      new THREE6.Vector3(-5.2, B + H2 + 2.6, -1.2),
-      new THREE6.Vector3(-1.6, B + H2 + 2.6, -0.2),
-      new THREE6.Vector3(-0.6, B + H2 + 2.3, 0.1),
-      new THREE6.Vector3(-0.47, B + H2 + 1.75, 0.15),
-      new THREE6.Vector3(-0.45, B + H2 + 1.5, 0.15)
-    ]);
-    this.add(new THREE6.Mesh(new THREE6.TubeGeometry(path, 70, 0.22, 16, false), steel));
-    const ring = new THREE6.Mesh(new THREE6.TorusGeometry(0.24, 0.06, 10, 28), steel);
-    ring.rotation.x = Math.PI / 2;
-    ring.position.copy(this.mouth).setY(this.mouth.y + 0.04);
-    this.add(ring);
-    const cg = new THREE6.CylinderGeometry(0.1, 0.15, 1, 16, 1, true);
-    cg.translate(0, -0.5, 0);
-    this.stream = new THREE6.Mesh(cg, this.m(new THREE6.MeshBasicMaterial({ color: hdr(8042751, 1.1), transparent: true, opacity: 0.45, blending: THREE6.AdditiveBlending, depthWrite: false })));
-    this.stream.position.copy(this.mouth);
-    this.stream.renderOrder = 5;
-    this.add(this.stream);
-    this.add(blob(this, 7, 5, 0.85));
-    this.Mx = new THREE6.Matrix4();
-    this.Q = new THREE6.Quaternion();
-    this.E = new THREE6.Euler();
-    this.S = new THREE6.Vector3();
-    this.P = new THREE6.Vector3();
-    this.lLeaf = this.label('<span class="t">茶叶 = 实实在在的东西</span><span class="c">没多出多少</span>', [R + 0.35, B + 0.55, 0], "right");
-    this.lWater = this.label('<span class="t blue">水 = 钱</span><span class="c">一直在往里加</span>', [-3, B + H2 + 2.95, -0.6]);
-    this.lTaste = this.label('<span class="t">茶越来越淡</span><span class="c">每一块钱，能买的东西越来越少</span>', [R + 0.35, 0, 0], "right");
-    this.L0 = 1.35;
-  }
-  update(dt, time) {
-    const t = this.t;
-    const { B, H: H2 } = this;
-    const level = lerp(this.L0, H2 - 0.55, eInOut(seg(t, 0.8, 6.2)));
-    this.liq.scale.y = level;
-    this.surf.position.y = B + level + 2e-3;
-    const k = Math.pow(this.L0 / level, 1.15);
-    this.lMat.color.copy(PALE).lerp(TEA, k);
-    this.lMat.emissive.copy(PALE_E).lerp(TEA_E, k);
-    this.lMat.opacity = lerp(0.42, 0.86, k);
-    this.sMat.color.copy(PALE).lerp(TEA, k);
-    this.sMat.emissive.copy(PALE_E).lerp(TEA_E, k);
-    this.sMat.opacity = lerp(0.5, 0.92, k);
-    const pouring = t > 0.5 && t < 6.6;
-    const sk = pouring ? ss(0.5, 0.9, t) * (1 - ss(6.2, 6.6, t)) : 0;
-    this.stream.visible = sk > 0.01;
-    this.stream.scale.set(sk, Math.max(0.01, this.mouth.y - (B + level)), sk);
-    for (let i = 0; i < this.NL; i++) {
-      const L = this.lf[i];
-      const a = L.a + time * L.w;
-      this.E.set(Math.sin(time * 0.7 + L.s) * 0.4, a + L.sp, Math.cos(time * 0.6 + L.s) * 0.3);
-      this.Q.setFromEuler(this.E);
-      this.P.set(Math.cos(a) * L.r, L.y + Math.sin(time * 0.9 + L.s) * 0.05, Math.sin(a) * L.r);
-      this.Mx.compose(this.P, this.Q, this.S.setScalar(1));
-      this.leaves.setMatrixAt(i, this.Mx);
-    }
-    this.leaves.instanceMatrix.needsUpdate = true;
-    this.lTaste.pos.y = B + level + 0.1;
-    this.lLeaf.target = t > 0.6 ? 1 : 0;
-    this.lWater.target = t > 0.9 ? 1 : 0;
-    this.lTaste.target = t > 3.8 ? 1 : 0;
-  }
-};
-
-// src/pieces/act2.js
-import * as THREE7 from "three";
-var FX = [
-  [2015, 6.21],
-  [2015.55, 6.21],
-  [2015.63, 6.39],
-  [2015.99, 6.49],
-  [2016.5, 6.65],
-  [2016.98, 6.95],
-  [2017.5, 6.78],
-  [2017.99, 6.51],
-  [2018.25, 6.29],
-  [2018.6, 6.83],
-  [2018.85, 6.96],
-  [2019.3, 6.72],
-  [2019.68, 7.15],
-  [2019.99, 6.97],
-  [2020.4, 7.12],
-  [2020.95, 6.53],
-  [2021.5, 6.47],
-  [2021.99, 6.37],
-  [2022.2, 6.33],
-  [2022.55, 6.71],
-  [2022.83, 7.3],
-  [2023.05, 6.72],
-  [2023.7, 7.3],
-  [2023.99, 7.1],
-  [2024.5, 7.27],
-  [2024.72, 7.02],
-  [2025, 7.3],
-  [2025.27, 7.35],
-  [2025.6, 7.17],
-  [2025.9, 7.1],
-  [2025.99, 6.99],
-  [2026.9, 6.66]
-];
-var FX_T0 = 2015;
-var FX_T1 = 2026.9;
-var fxAt = monotone(
-  FX.map((p) => p[0]),
-  FX.map((p) => p[1])
-);
-function makeFigure(piece, color) {
-  const g = new THREE7.Group();
-  const body = new THREE7.Group();
-  g.add(body);
-  const mat = piece.m(new THREE7.MeshStandardMaterial({ color, roughness: 0.42, metalness: 0.06 }));
-  const leg = new THREE7.CapsuleGeometry(0.15, 0.78, 4, 10);
-  const l1 = new THREE7.Mesh(leg, mat);
-  l1.position.set(0, 0.55, 0.16);
-  const l2 = l1.clone();
-  l2.position.z = -0.16;
-  const torso = new THREE7.Mesh(new THREE7.CapsuleGeometry(0.3, 0.7, 6, 14), mat);
-  torso.position.y = 1.5;
-  const head = new THREE7.Mesh(new THREE7.SphereGeometry(0.26, 24, 16), mat);
-  head.position.y = 2.36;
-  const armGeo = new THREE7.CapsuleGeometry(0.095, 0.62, 4, 8);
-  armGeo.translate(0, -0.41, 0);
-  const sh = [0.31, -0.31].map((z) => {
-    const s = new THREE7.Group();
-    s.position.set(0, 1.95, z);
-    s.add(new THREE7.Mesh(armGeo, mat));
-    body.add(s);
-    return s;
-  });
-  body.add(l1, l2, torso, head);
-  return { g, body, sh };
-}
-var Tug = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 14, 1] });
-    this.ropeG = new THREE7.Group();
-    this.add(this.ropeG);
-    const rope = new THREE7.Mesh(
-      new THREE7.CylinderGeometry(0.07, 0.07, 22, 12),
-      this.m(new THREE7.MeshStandardMaterial({ color: 9207139, roughness: 0.9 }))
-    );
-    rope.rotation.z = Math.PI / 2;
-    rope.position.y = 1.5;
-    this.ropeG.add(rope);
-    const flag = new THREE7.Mesh(
-      new THREE7.PlaneGeometry(0.3, 0.95).translate(0, -0.48, 0),
-      this.m(new THREE7.MeshBasicMaterial({ color: hdr(COL.risk, 1.6), side: THREE7.DoubleSide }))
-    );
-    flag.position.y = 1.5;
-    this.flag = flag;
-    this.ropeG.add(flag);
-    this.figs = [];
-    [-1, 1].forEach((side) => {
-      for (let k = 0; k < 3; k++) {
-        const f = makeFigure(this, side < 0 ? 14833482 : 4177807);
-        f.side = side;
-        f.k = k;
-        f.z = k % 2 ? 0.22 : -0.22;
-        this.add(f.g);
-        this.figs.push(f);
-      }
-    });
-    const line = new THREE7.Mesh(new THREE7.BoxGeometry(0.06, 0.012, 6), this.m(new THREE7.MeshBasicMaterial({ color: hdr(16777215, 1.1) })));
-    line.position.y = 0.01;
-    this.add(line);
-    this.add(blob(this, 26, 7, 0.75));
-    this.chart = new THREE7.Group();
-    this.chart.position.set(0, 0, -4.6);
-    this.add(this.chart);
-    const X2 = (yr) => -10.5 + (yr - FX_T0) / (FX_T1 - FX_T0) * 21;
-    const Y = (r) => 3.6 + (r - 6.1) / 1.4 * 5.6;
-    this.X = X2;
-    this.Y = Y;
-    const band = new THREE7.Mesh(
-      new THREE7.PlaneGeometry(21.6, Y(7.3) - Y(6.3)),
-      this.m(new THREE7.MeshBasicMaterial({ color: 16777215, transparent: true, opacity: 0.045, depthWrite: false }))
-    );
-    band.position.set(0, (Y(7.3) + Y(6.3)) / 2, -0.02);
-    this.chart.add(band);
-    this.chart.add(dashLine(this, [new THREE7.Vector3(-10.8, Y(7.3), 0), new THREE7.Vector3(10.8, Y(7.3), 0)], 16777215, 0.4));
-    this.chart.add(dashLine(this, [new THREE7.Vector3(-10.8, Y(6.3), 0), new THREE7.Vector3(10.8, Y(6.3), 0)], 16777215, 0.4));
-    const pts = [];
-    for (let i = 0; i <= 240; i++) {
-      const yr = FX_T0 + (FX_T1 - FX_T0) * i / 240;
-      pts.push(new THREE7.Vector3(X2(yr), Y(fxAt(yr)), 0));
-    }
-    this.series = progTube(pts, 0.06, this.m(new THREE7.MeshBasicMaterial({ color: hdr(14674431, 1.7) })), 8);
-    this.chart.add(this.series);
-    this.head = new THREE7.Mesh(new THREE7.SphereGeometry(0.17, 20, 14), this.m(new THREE7.MeshBasicMaterial({ color: hdr(COL.risk, 2.2) })));
-    this.chart.add(this.head);
-    this.lAx = [
-      this.label('<span class="c">7.3</span>', [-11.1, Y(7.3), 0], "left", this.chart),
-      this.label('<span class="c">6.3</span>', [-11.1, Y(6.3), 0], "left", this.chart),
-      this.label('<span class="t">美元兑人民币</span><span class="c">2015 – 2026 年（示意）</span>', [-10.6, Y(7.6) + 0.4, 0], "right", this.chart)
-    ];
-    this.lYears = [2015, 2018, 2021, 2024, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [X2(y + 0), 3.15, 0], "down", this.chart));
-    this.lHead = this.label("", [0, 0, 0], "up", this.chart);
-    this.lPeak = this.label('<span class="c">2025 年 4 月</span><span class="t">约 7.35</span>', [X2(2025.27), Y(7.35) + 0.35, 0], "up", this.chart);
-    this.lL = this.label("", [0, 3.1, 0], "up", this.figs[1].g);
-    this.lR = this.label("", [0, 3.1, 0], "up", this.figs[4].g);
-    this.zoneL = this.label('<span class="c">← 人民币升值</span>', [-6, 0, 2.6], "down");
-    this.zoneR = this.label('<span class="c">人民币贬值 →</span>', [6, 0, 2.6], "down");
-    this.m0 = 0;
-    this.prevM = 0;
-    this.tmp = new THREE7.Vector3();
-    this.down = new THREE7.Vector3(0, -1, 0);
-  }
-  update(dt, time) {
-    const t = this.t;
-    const chart = this.st.step === "chart";
-    let m;
-    let rate = 6.82;
-    if (!chart) {
-      m = 1.1 * Math.sin(0.75 * t) + 0.45 * Math.sin(1.9 * t + 1.2);
-    } else {
-      const p = eInOut(seg(t, 0.9, 8.2));
-      const pt = this.series.curve.getPointAt(Math.max(1e-4, p));
-      rate = 6.1 + (pt.y - 3.6) / 5.6 * 1.4;
-      m = (rate - 6.82) * 5 + 0.12 * Math.sin(time * 2.3);
-      this.series.setProgress(p);
-      this.head.position.copy(pt);
-      const yr = FX_T0 + p * (FX_T1 - FX_T0);
-      this.lHead.pos.copy(pt).setY(pt.y + 0.3);
-      this.lHead.set(`<span class="v">${rate.toFixed(2)}</span><span class="c">${Math.floor(yr)} 年</span>`);
-      this.lHead.target = t > 1 ? 1 : 0;
-      this.lPeak.target = p > 0.88 ? 1 : 0;
-    }
-    if (!chart) {
-      this.lHead.target = 0;
-      this.lPeak.target = 0;
-    }
-    this.chart.visible = chart || this.chartVis > 0.01;
-    this.chartVis = lerp(this.chartVis || 0, chart ? 1 : 0, 1 - Math.exp(-3 * dt));
-    this.chart.position.y = (1 - this.chartVis) * -10;
-    for (const l of this.lAx) l.target = chart && t > 0.6 ? 1 : 0;
-    for (const l of this.lYears) l.target = chart && t > 0.6 ? 1 : 0;
-    const vel = (m - this.prevM) / Math.max(dt, 1e-3);
-    this.prevM = m;
-    this.ropeG.position.x = m;
-    this.flag.rotation.z = clamp(-vel * 0.08, -0.4, 0.4);
-    for (const f of this.figs) {
-      const x = m + f.side * (3.4 + f.k * 1.9);
-      f.g.position.set(x, Math.abs(Math.sin(time * 3 + f.k)) * 0.02, f.z);
-      const win = f.side < 0 ? -vel : vel;
-      const lean = 0.36 + clamp(win * 0.05, -0.08, 0.1) + Math.sin(time * 2.2 + f.k) * 0.02;
-      f.body.rotation.z = f.side < 0 ? lean : -lean;
-      f.g.rotation.y = 0;
-      f.g.updateWorldMatrix(true, true);
-      for (const s of f.sh) {
-        const hand = this.tmp.set(x - f.side * 0.15, 1.5, f.z + (s.position.z > 0 ? 0.12 : -0.12));
-        this.inner.localToWorld(hand);
-        s.parent.worldToLocal(hand);
-        hand.sub(s.position).normalize();
-        s.quaternion.setFromUnitVectors(this.down, hand);
-      }
-    }
-    this.lL.set(
-      chart ? '<span class="t red">往上拉</span>' : '<span class="t red">往上拉 · 人民币升值</span><span class="c">出口企业把赚的美元换回人民币，发工资、付货款</span>'
-    );
-    this.lR.set(
-      chart ? '<span class="t green">往下拽</span>' : '<span class="t green">往下拽 · 人民币贬值</span><span class="c">美元利息高，加上保出口的政策</span>'
-    );
-    this.lL.target = this.lR.target = !chart && t > 0.9 ? 1 : 0;
-    this.zoneL.target = this.zoneR.target = t > 1.3 && !chart ? 1 : 0;
-  }
-};
-var Compound = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 12, 0.9] });
-    const X2 = (yr) => -9 + yr * 1.2;
-    const Y = (v) => 1.2 + (v - 0.9) * 3.4;
-    const band = new THREE7.Mesh(
-      new THREE7.PlaneGeometry(18.4, Y(1.05) - Y(0.95)),
-      this.m(new THREE7.MeshBasicMaterial({ color: hdr(COL.rmb, 0.9), transparent: true, opacity: 0.16, depthWrite: false }))
-    );
-    band.position.set(0, (Y(1.05) + Y(0.95)) / 2, -0.05);
-    this.add(band);
-    this.band = band;
-    const wave = [];
-    const curve = [];
-    for (let i = 0; i <= 200; i++) {
-      const yr = 15 * i / 200;
-      const v = 1 + 0.033 * Math.sin(2 * Math.PI * yr / 2.6) + 0.013 * Math.sin(2 * Math.PI * yr / 1.05 + 0.7);
-      wave.push(new THREE7.Vector3(X2(yr), Y(v), 0));
-      curve.push(new THREE7.Vector3(X2(yr), Y(1.07 ** yr), 0.05));
-    }
-    this.wave = progTube(wave, 0.06, this.m(new THREE7.MeshBasicMaterial({ color: hdr(16747114, 1.8) })), 8);
-    this.curve = progTube(curve, 0.08, this.m(new THREE7.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) })), 10);
-    this.add(this.wave);
-    this.add(this.curve);
-    const pos = [];
-    const al = [];
-    for (let i = 0; i <= 200; i++) {
-      const yr = 15 * i / 200;
-      pos.push(X2(yr), Y(1), 0, X2(yr), Y(1.07 ** yr), 0);
-      al.push(0, 1);
-    }
-    const idx = [];
-    for (let i = 0; i < 200; i++) {
-      const a = i * 2;
-      idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
-    }
-    const ag = new THREE7.BufferGeometry();
-    ag.setAttribute("position", new THREE7.Float32BufferAttribute(pos, 3));
-    ag.setAttribute("aA", new THREE7.Float32BufferAttribute(al, 1));
-    ag.setIndex(idx);
-    this.areaMat = new THREE7.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      uniforms: { uFade: this.fade, uP: { value: 0 }, uC: { value: new THREE7.Color(COL.spx) } },
-      vertexShader: "attribute float aA; varying float vA; varying float vX; void main(){ vA = aA; vX = position.x; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform float uFade; uniform float uP; uniform vec3 uC; varying float vA; varying float vX; void main(){ float on = step(vX, -9.0 + uP * 18.0); float a = pow(clamp(vA, 0.0, 1.0), 1.6) * 0.32 * on * uFade; gl_FragColor = vec4(uC, a); }"
-    });
-    this.area = new THREE7.Mesh(ag, this.areaMat);
-    this.add(this.area);
-    this.add(dashLine(this, [new THREE7.Vector3(-9.3, Y(1), -0.02), new THREE7.Vector3(9.3, Y(1), -0.02)], 16777215, 0.3));
-    this.lWave = this.label('<span class="t">汇率：上下几个点来回晃</span><span class="c">大约 ±5% 的范围</span>', [X2(2.2), Y(0.95) - 0.1, 0], "down");
-    this.l10 = this.label('<span class="v blue">≈ 2 倍</span><span class="c">第 10 年</span>', [X2(10), Y(1.07 ** 10) + 0.25, 0]);
-    this.l15 = this.label('<span class="v blue">≈ 2.8 倍</span><span class="c">第 15 年</span>', [X2(15), Y(1.07 ** 15) + 0.25, 0]);
-    this.lNote = this.label('<span class="c">示意：好资产按年化 7% 复利计算</span>', [X2(5.5), Y(1.07 ** 5.5) + 0.55, 0], "up");
-    this.lTicks = [0, 5, 10, 15].map((y) => this.label(`<span class="c">${y === 0 ? "现在" : "第 " + y + " 年"}</span>`, [X2(y), 0.55, 0], "down"));
-  }
-  update() {
-    const t = this.t;
-    const pw = eInOut(seg(t, 0.4, 1.9));
-    const pc = eInOut(seg(t, 1.6, 4.4));
-    this.wave.setProgress(pw);
-    this.curve.setProgress(pc);
-    this.areaMat.uniforms.uP.value = pc;
-    this.band.scale.x = Math.max(1e-3, ss(0.2, 0.9, t));
-    this.lWave.target = pw > 0.8 ? 1 : 0;
-    this.l10.target = pc > 0.66 ? 1 : 0;
-    this.l15.target = pc > 0.98 ? 1 : 0;
-    this.lNote.target = pc > 0.4 ? 1 : 0;
-    for (const l of this.lTicks) l.target = t > 0.5 ? 1 : 0;
-  }
-};
-
 // src/pieces/act3.js
-import * as THREE8 from "three";
+import * as THREE6 from "three";
 function seaH(x, z, t, amp, sx, sz, ss_) {
   let h = amp * (0.35 * Math.sin(x * 0.35 + t * 0.9) + 0.25 * Math.sin(z * 0.5 - t * 0.7 + x * 0.2) + 0.12 * Math.sin((x + z) * 0.9 + t * 1.6));
   const dx = x - sx;
@@ -2763,49 +2145,49 @@ function seaH(x, z, t, amp, sx, sz, ss_) {
 }
 var SEA_Y = 0.62;
 function factory(piece, mat, win) {
-  const g = new THREE8.Group();
-  const main = new THREE8.Mesh(rbox(2.8, 1.3, 2, 0.05), mat);
+  const g = new THREE6.Group();
+  const main = new THREE6.Mesh(rbox(2.8, 1.3, 2, 0.05), mat);
   main.position.y = 0.65;
   g.add(main);
-  const tri = new THREE8.Shape();
+  const tri = new THREE6.Shape();
   tri.moveTo(0, 0);
   tri.lineTo(0.93, 0);
   tri.lineTo(0, 0.55);
   tri.closePath();
-  const tg = new THREE8.ExtrudeGeometry(tri, { depth: 2, bevelEnabled: false });
+  const tg = new THREE6.ExtrudeGeometry(tri, { depth: 2, bevelEnabled: false });
   tg.translate(0, 0, -1);
   for (let i = 0; i < 3; i++) {
-    const r = new THREE8.Mesh(tg, mat);
+    const r = new THREE6.Mesh(tg, mat);
     r.position.set(-1.4 + i * 0.93, 1.3, 0);
     g.add(r);
   }
-  const ch = new THREE8.Mesh(new THREE8.CylinderGeometry(0.15, 0.19, 1.7, 20), mat);
+  const ch = new THREE6.Mesh(new THREE6.CylinderGeometry(0.15, 0.19, 1.7, 20), mat);
   ch.position.set(-1, 1.95, -0.55);
   g.add(ch);
-  const w = new THREE8.Mesh(new THREE8.BoxGeometry(2.3, 0.16, 0.02), win);
+  const w = new THREE6.Mesh(new THREE6.BoxGeometry(2.3, 0.16, 0.02), win);
   w.position.set(0, 0.75, 1.01);
   g.add(w);
   return g;
 }
 function house(piece, mat, roofMat, win) {
-  const g = new THREE8.Group();
-  const b = new THREE8.Mesh(rbox(1.6, 1.1, 1.4, 0.04), mat);
+  const g = new THREE6.Group();
+  const b = new THREE6.Mesh(rbox(1.6, 1.1, 1.4, 0.04), mat);
   b.position.y = 0.55;
   g.add(b);
-  const tri = new THREE8.Shape();
+  const tri = new THREE6.Shape();
   tri.moveTo(-0.92, 0);
   tri.lineTo(0.92, 0);
   tri.lineTo(0, 0.75);
   tri.closePath();
-  const rg = new THREE8.ExtrudeGeometry(tri, { depth: 1.55, bevelEnabled: false });
+  const rg = new THREE6.ExtrudeGeometry(tri, { depth: 1.55, bevelEnabled: false });
   rg.translate(0, 0, -0.775);
-  const roof = new THREE8.Mesh(rg, roofMat);
+  const roof = new THREE6.Mesh(rg, roofMat);
   roof.position.y = 1.1;
   g.add(roof);
-  const w = new THREE8.Mesh(new THREE8.BoxGeometry(0.34, 0.34, 0.02), win);
+  const w = new THREE6.Mesh(new THREE6.BoxGeometry(0.34, 0.34, 0.02), win);
   w.position.set(0.35, 0.65, 0.71);
   g.add(w);
-  const d = new THREE8.Mesh(new THREE8.BoxGeometry(0.3, 0.55, 0.02), win);
+  const d = new THREE6.Mesh(new THREE6.BoxGeometry(0.3, 0.55, 0.02), win);
   d.position.set(-0.35, 0.28, 0.71);
   g.add(d);
   return g;
@@ -2813,18 +2195,18 @@ function house(piece, mat, roofMat, win) {
 var Islands = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 1, 0], rise: 1.4 });
-    const sg = new THREE8.PlaneGeometry(90, 56, 180, 112);
+    const sg = new THREE6.PlaneGeometry(90, 56, 180, 112);
     sg.rotateX(-Math.PI / 2);
-    this.seaMat = new THREE8.ShaderMaterial({
+    this.seaMat = new THREE6.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uAmp: { value: 0.8 },
-        uStorm: { value: new THREE8.Vector3(-6.5, 1.5, 0) },
-        uCam: { value: new THREE8.Vector3() },
+        uStorm: { value: new THREE6.Vector3(-6.5, 1.5, 0) },
+        uCam: { value: new THREE6.Vector3() },
         uFade: this.fade,
-        uDeep: { value: new THREE8.Color(4e-3, 0.011, 0.026) },
-        uSky: { value: new THREE8.Color(0.07, 0.11, 0.19) },
-        uL: { value: new THREE8.Vector3(-0.3, 0.55, -1) },
+        uDeep: { value: new THREE6.Color(4e-3, 0.011, 0.026) },
+        uSky: { value: new THREE6.Color(0.07, 0.11, 0.19) },
+        uL: { value: new THREE6.Vector3(-0.3, 0.55, -1) },
         uFog: { value: FOG }
       },
       vertexShader: (
@@ -2868,19 +2250,19 @@ var Islands = class extends Piece {
         }`
       )
     });
-    this.sea = new THREE8.Mesh(sg, this.seaMat);
+    this.sea = new THREE6.Mesh(sg, this.seaMat);
     this.sea.position.y = SEA_Y;
     this.add(this.sea);
-    const white = this.m(new THREE8.MeshStandardMaterial({ color: 11117722, roughness: 0.6, metalness: 0.04 }));
-    const roof = this.m(new THREE8.MeshStandardMaterial({ color: 9203544, roughness: 0.6 }));
-    const win = this.m(new THREE8.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
-    const gold = this.m(new THREE8.MeshStandardMaterial({ color: COL.gold, metalness: 1, roughness: 0.25 }));
-    this.i1 = new THREE8.Group();
-    this.i1.base = new THREE8.Vector3(-6.5, 0, 1.5);
+    const white = this.m(new THREE6.MeshStandardMaterial({ color: 11117722, roughness: 0.6, metalness: 0.04 }));
+    const roof = this.m(new THREE6.MeshStandardMaterial({ color: 9203544, roughness: 0.6 }));
+    const win = this.m(new THREE6.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
+    const gold = this.m(new THREE6.MeshStandardMaterial({ color: COL.gold, metalness: 1, roughness: 0.25 }));
+    this.i1 = new THREE6.Group();
+    this.i1.base = new THREE6.Vector3(-6.5, 0, 1.5);
     this.add(this.i1);
-    const hull = new THREE8.Mesh(rbox(9, 0.8, 5.6, 0.28), white);
+    const hull = new THREE6.Mesh(rbox(9, 0.8, 5.6, 0.28), white);
     this.i1.add(hull);
-    const stripe = new THREE8.Mesh(rbox(9.06, 0.12, 5.66, 0.05), this.m(new THREE8.MeshStandardMaterial({ color: COL.rmb, roughness: 0.4 })));
+    const stripe = new THREE6.Mesh(rbox(9.06, 0.12, 5.66, 0.05), this.m(new THREE6.MeshStandardMaterial({ color: COL.rmb, roughness: 0.4 })));
     stripe.position.y = -0.18;
     this.i1.add(stripe);
     const fac = factory(this, white, win);
@@ -2889,10 +2271,10 @@ var Islands = class extends Piece {
     const hs = house(this, white, roof, win);
     hs.position.set(1.9, 0.4, -1);
     this.i1.add(hs);
-    const net = new THREE8.Group();
+    const net = new THREE6.Group();
     net.position.set(1.7, 0.4, 1.4);
     this.i1.add(net);
-    const nodeMat = this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.spxHi, 1.8) }));
+    const nodeMat = this.m(new THREE6.MeshBasicMaterial({ color: hdr(COL.spxHi, 1.8) }));
     const np = [
       [-0.7, 0.5, 0],
       [0.1, 1.2, -0.3],
@@ -2901,7 +2283,7 @@ var Islands = class extends Piece {
       [0.5, 1.6, 0.4]
     ];
     np.forEach((p) => {
-      const s = new THREE8.Mesh(new THREE8.SphereGeometry(0.15, 16, 12), nodeMat);
+      const s = new THREE6.Mesh(new THREE6.SphereGeometry(0.15, 16, 12), nodeMat);
       s.position.set(...p);
       net.add(s);
     });
@@ -2914,34 +2296,34 @@ var Islands = class extends Piece {
       [1, 4],
       [2, 4],
       [0, 2]
-    ].forEach(([a, b]) => lp.push(new THREE8.Vector3(...np[a]), new THREE8.Vector3(...np[b])));
-    net.add(new THREE8.LineSegments(new THREE8.BufferGeometry().setFromPoints(lp), this.m(new THREE8.LineBasicMaterial({ color: COL.spxHi, transparent: true, opacity: 0.7 }))));
-    const coins = new THREE8.Group();
+    ].forEach(([a, b]) => lp.push(new THREE6.Vector3(...np[a]), new THREE6.Vector3(...np[b])));
+    net.add(new THREE6.LineSegments(new THREE6.BufferGeometry().setFromPoints(lp), this.m(new THREE6.LineBasicMaterial({ color: COL.spxHi, transparent: true, opacity: 0.7 }))));
+    const coins = new THREE6.Group();
     coins.position.set(-2.6, 0.4, 1.6);
     this.i1.add(coins);
     for (let i = 0; i < 6; i++) {
-      const c = new THREE8.Mesh(new THREE8.CylinderGeometry(0.42, 0.42, 0.1, 40), gold);
+      const c = new THREE6.Mesh(new THREE6.CylinderGeometry(0.42, 0.42, 0.1, 40), gold);
       c.position.set(i % 2 * 0.03, 0.06 + i * 0.11, 0);
       coins.add(c);
     }
-    this.i2 = new THREE8.Group();
-    this.i2.base = new THREE8.Vector3(9.5, 0, -4.5);
+    this.i2 = new THREE6.Group();
+    this.i2.base = new THREE6.Vector3(9.5, 0, -4.5);
     this.add(this.i2);
-    this.i2.add(new THREE8.Mesh(rbox(6.6, 0.7, 4.2, 0.25), white));
-    const st2 = new THREE8.Mesh(rbox(6.66, 0.12, 4.26, 0.05), this.m(new THREE8.MeshStandardMaterial({ color: COL.spx, roughness: 0.4 })));
+    this.i2.add(new THREE6.Mesh(rbox(6.6, 0.7, 4.2, 0.25), white));
+    const st2 = new THREE6.Mesh(rbox(6.66, 0.12, 4.26, 0.05), this.m(new THREE6.MeshStandardMaterial({ color: COL.spx, roughness: 0.4 })));
     st2.position.y = -0.16;
     this.i2.add(st2);
-    const towerMat = this.m(new THREE8.MeshStandardMaterial({ color: 858668, roughness: 0.3, metalness: 0.6, emissive: COL.spx, emissiveIntensity: 0.25 }));
-    const capMat = this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) }));
+    const towerMat = this.m(new THREE6.MeshStandardMaterial({ color: 858668, roughness: 0.3, metalness: 0.6, emissive: COL.spx, emissiveIntensity: 0.25 }));
+    const capMat = this.m(new THREE6.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) }));
     const R = rng(5);
     for (let i = 0; i < 9; i++) {
       const h = 0.6 + R() * 2.2;
       const x = -2.4 + i % 3 * 0.75 + R() * 0.1;
       const z = -1.2 + Math.floor(i / 3) * 0.8;
-      const tw = new THREE8.Mesh(new THREE8.BoxGeometry(0.55, h, 0.55), towerMat);
+      const tw = new THREE6.Mesh(new THREE6.BoxGeometry(0.55, h, 0.55), towerMat);
       tw.position.set(x, 0.35 + h / 2, z);
       this.i2.add(tw);
-      const cp = new THREE8.Mesh(new THREE8.BoxGeometry(0.57, 0.05, 0.57), capMat);
+      const cp = new THREE6.Mesh(new THREE6.BoxGeometry(0.57, 0.05, 0.57), capMat);
       cp.position.set(x, 0.35 + h, z);
       this.i2.add(cp);
     }
@@ -2951,24 +2333,24 @@ var Islands = class extends Piece {
       [1.3, 0.55, 0.3],
       [1.3, 0.95, -0.1]
     ].forEach((p) => {
-      const b = new THREE8.Mesh(barGeo, gold);
+      const b = new THREE6.Mesh(barGeo, gold);
       b.position.set(...p);
       this.i2.add(b);
     });
     this.NB = 64;
-    this.bridgeGeo = new THREE8.BufferGeometry();
-    this.bridgeGeo.setAttribute("position", new THREE8.BufferAttribute(new Float32Array(this.NB * 3), 3));
-    this.bridge = new THREE8.Line(this.bridgeGeo, this.m(new THREE8.LineBasicMaterial({ color: hdr(COL.gold, 1.4), transparent: true, opacity: 0.85 })));
+    this.bridgeGeo = new THREE6.BufferGeometry();
+    this.bridgeGeo.setAttribute("position", new THREE6.BufferAttribute(new Float32Array(this.NB * 3), 3));
+    this.bridge = new THREE6.Line(this.bridgeGeo, this.m(new THREE6.LineBasicMaterial({ color: hdr(COL.gold, 1.4), transparent: true, opacity: 0.85 })));
     this.bridge.frustumCulled = false;
     this.add(this.bridge);
-    this.pulses = new THREE8.InstancedMesh(new THREE8.SphereGeometry(0.11, 12, 8), this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.gold, 2.6) })), 10);
+    this.pulses = new THREE6.InstancedMesh(new THREE6.SphereGeometry(0.11, 12, 8), this.m(new THREE6.MeshBasicMaterial({ color: hdr(COL.gold, 2.6) })), 10);
     this.pulses.frustumCulled = false;
     this.add(this.pulses);
-    this.M = new THREE8.Matrix4();
-    this.a = new THREE8.Vector3();
-    this.b = new THREE8.Vector3();
-    this.c = new THREE8.Vector3();
-    this.p = new THREE8.Vector3();
+    this.M = new THREE6.Matrix4();
+    this.a = new THREE6.Vector3();
+    this.b = new THREE6.Vector3();
+    this.c = new THREE6.Vector3();
+    this.p = new THREE6.Vector3();
     this.lMain = this.label('<span class="t">国内主业</span>', [-0.2, 3.3, -0.4], "up", this.i1);
     this.lSea = this.label('<span class="c">海面起伏 = 国内经济周期</span>', [-1.2, 0.9, 6.2], "mid");
     this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数 · 黄金</span>', [-0.5, 3.4, 0], "up", this.i2);
@@ -3042,23 +2424,23 @@ var Islands = class extends Piece {
 var Bet = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 8, 1] });
-    const ped = new THREE8.Mesh(rbox(7.4, 0.3, 3.8, 0.08), this.m(new THREE8.MeshStandardMaterial({ color: 1579294, metalness: 0.7, roughness: 0.35 })));
+    const ped = new THREE6.Mesh(rbox(7.4, 0.3, 3.8, 0.08), this.m(new THREE6.MeshStandardMaterial({ color: 1579294, metalness: 0.7, roughness: 0.35 })));
     ped.position.y = 0.15;
     this.add(ped);
-    const geo = new THREE8.BoxGeometry(2.2, 1, 2.2);
+    const geo = new THREE6.BoxGeometry(2.2, 1, 2.2);
     geo.translate(0, 0.5, 0);
     const col = (color, em, x, body) => {
-      const g = new THREE8.Group();
+      const g = new THREE6.Group();
       g.position.set(x, 0.3, 0);
       this.add(g);
-      const m = new THREE8.Mesh(
+      const m = new THREE6.Mesh(
         geo,
-        this.m(new THREE8.MeshPhysicalMaterial({ color: body, emissive: color, emissiveIntensity: em, roughness: 0.16, metalness: 0.1, transparent: true, opacity: 0.94, clearcoat: 1 }))
+        this.m(new THREE6.MeshPhysicalMaterial({ color: body, emissive: color, emissiveIntensity: em, roughness: 0.16, metalness: 0.1, transparent: true, opacity: 0.94, clearcoat: 1 }))
       );
       g.add(m);
       const e = edges(this, geo, color, 0.85);
       g.add(e);
-      const cap = new THREE8.Mesh(new THREE8.BoxGeometry(2.22, 0.05, 2.22), this.m(new THREE8.MeshBasicMaterial({ color: hdr(color, 2) })));
+      const cap = new THREE6.Mesh(new THREE6.BoxGeometry(2.22, 0.05, 2.22), this.m(new THREE6.MeshBasicMaterial({ color: hdr(color, 2) })));
       this.add(cap);
       return { g, cap };
     };
@@ -3093,6 +2475,732 @@ var Bet = class extends Piece {
     const yr = 2008 + Math.round(9 * k);
     this.lYear.set(`<span class="c">十年累计收益</span><span class="t">2008 → ${yr}</span>`);
     this.lYear.target = t > 0.8 ? 1 : 0;
+  }
+};
+
+// src/pieces/macro.js
+var RED = new THREE7.Color(11739178);
+var FAC = [new THREE7.Vector3(-10.4, 0, -2.4), new THREE7.Vector3(-7.9, 0, -3.5)];
+var WALL_X = -13.6;
+var SAFE = new THREE7.Vector3(9.4, 0, 2.5);
+var HOUSE = new THREE7.Vector3(10.6, 0, -2.6);
+var JUG = [new THREE7.Vector3(15.2, 0, 0.6), new THREE7.Vector3(18.6, 0, 0.6)];
+var JUG_H = 4;
+var SHARE = [0.4, 0.68];
+var arcTo = (a, b, u, h, out) => out.set(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u + 4 * h * u * (1 - u), a.z + (b.z - a.z) * u);
+var Scale = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [2, 0, 17, 1.1] });
+    const metal = this.m(new THREE7.MeshStandardMaterial({ color: 2895670, metalness: 0.85, roughness: 0.3 }));
+    const steel = this.m(new THREE7.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.28 }));
+    const ped = new THREE7.Mesh(rbox(4.2, 0.3, 2.4, 0.08), metal);
+    ped.position.y = 0.15;
+    this.add(ped);
+    const pillar = new THREE7.Mesh(new THREE7.CylinderGeometry(0.15, 0.22, 5.5, 24), metal);
+    pillar.position.y = 0.3 + 2.75;
+    this.add(pillar);
+    this.PY = 5.9;
+    this.L = 4.6;
+    this.HANG = 2.55;
+    this.pivot = new THREE7.Group();
+    this.pivot.position.y = this.PY;
+    this.add(this.pivot);
+    const beam = new THREE7.Mesh(rbox(this.L * 2 + 0.6, 0.24, 0.5, 0.06), metal);
+    this.pivot.add(beam);
+    const strip = new THREE7.Mesh(new THREE7.BoxGeometry(this.L * 2 + 0.4, 0.03, 0.03), this.m(new THREE7.MeshBasicMaterial({ color: hdr(16777215, 0.9) })));
+    strip.position.set(0, 0.06, 0.26);
+    this.pivot.add(strip);
+    const cap = new THREE7.Mesh(new THREE7.SphereGeometry(0.3, 24, 16), steel);
+    this.pivot.add(cap);
+    const panGeo = new THREE7.CylinderGeometry(1.7, 1.58, 0.16, 48);
+    const rodGeo = new THREE7.CylinderGeometry(0.025, 0.025, 1, 6);
+    rodGeo.translate(0, 0.5, 0);
+    this.pans = [-1, 1].map((side) => {
+      const g = new THREE7.Group();
+      this.add(g);
+      g.add(new THREE7.Mesh(panGeo, steel));
+      const top = new THREE7.Vector3(0, this.HANG, 0);
+      for (let k = 0; k < 3; k++) {
+        const a = k / 3 * Math.PI * 2 + 0.5;
+        const p = new THREE7.Vector3(Math.cos(a) * 1.55, 0.05, Math.sin(a) * 1.55);
+        const rod = new THREE7.Mesh(rodGeo, steel);
+        rod.position.copy(p);
+        const dir = top.clone().sub(p);
+        rod.scale.y = dir.length();
+        rod.quaternion.setFromUnitVectors(new THREE7.Vector3(0, 1, 0), dir.normalize());
+        g.add(rod);
+      }
+      return { g, side };
+    });
+    const SL = [];
+    const layer = (y, xs, zs) => xs.forEach((x) => zs.forEach((z) => SL.push([x, y, z])));
+    layer(0.33, [-0.7, 0, 0.7], [-0.36, 0.36]);
+    layer(0.83, [-0.7, 0, 0.7], [-0.36, 0.36]);
+    layer(1.33, [-0.35, 0.35], [-0.36, 0.36]);
+    layer(1.83, [-0.35, 0.35], [0]);
+    layer(2.33, [0], [0]);
+    this.slots = SL;
+    this.NG = SL.length;
+    this.G0 = 4;
+    const cartonGeo = rbox(0.66, 0.48, 0.64, 0.03, 2);
+    const cartonMat = this.m(new THREE7.MeshStandardMaterial({ color: 11831896, roughness: 0.85, metalness: 0 }));
+    const tapeGeo = new THREE7.BoxGeometry(0.14, 0.49, 0.65);
+    const tapeMat = this.m(new THREE7.MeshStandardMaterial({ color: 14929050, roughness: 0.6 }));
+    const inst = (geo, mat, n, parent) => {
+      const m = new THREE7.InstancedMesh(geo, mat, n);
+      m.instanceMatrix.setUsage(THREE7.DynamicDrawUsage);
+      m.frustumCulled = false;
+      parent.add(m);
+      return m;
+    };
+    this.cartons = inst(cartonGeo, cartonMat, this.NG, this.pans[0].g);
+    this.tape = inst(tapeGeo, tapeMat, this.NG, this.pans[0].g);
+    this.NF = 8;
+    this.fly = inst(cartonGeo, cartonMat, this.NF, this.inner);
+    this.flyT = inst(tapeGeo, tapeMat, this.NF, this.inner);
+    this.NM = 12;
+    this.M1 = 3;
+    this.money = bundleSet(this, this.NM, { w: 0.92, h: 0.17, d: 0.46 });
+    this.pans[1].g.add(this.money.mesh, this.money.band);
+    this.mslot = [];
+    for (let l = 0; l < 3; l++) for (let k = 0; k < 4; k++) this.mslot.push([k % 2 ? 0.5 : -0.5, 0.17 + l * 0.18, k < 2 ? -0.26 : 0.26]);
+    this.cols = Array.from({ length: this.NM }, (_, i) => RED.clone().offsetHSL(0, 0, (i * 0.37 % 1 - 0.5) * 0.06));
+    const stone = this.m(new THREE7.MeshStandardMaterial({ color: 11709859, roughness: 0.6, metalness: 0.05 }));
+    const roof = this.m(new THREE7.MeshStandardMaterial({ color: 9203544, roughness: 0.6 }));
+    const win = this.m(new THREE7.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
+    this.facs = FAC.map((p) => {
+      const f = factory(this, stone, win);
+      f.position.copy(p);
+      f.scale.setScalar(0.7);
+      this.add(f);
+      return f;
+    });
+    this.wall = new THREE7.Mesh(
+      new THREE7.BoxGeometry(0.3, 3.4, 3.6),
+      this.m(new THREE7.MeshStandardMaterial({ color: 3804427, emissive: COL.risk, emissiveIntensity: 0.7, transparent: true, opacity: 0.8, depthWrite: false }))
+    );
+    this.wall.position.set(WALL_X, 1.72, -0.6);
+    this.add(this.wall);
+    this.house = house(this, stone, roof, win);
+    this.house.position.copy(HOUSE);
+    this.house.scale.setScalar(1.25);
+    this.add(this.house);
+    const safe = new THREE7.Group();
+    safe.position.copy(SAFE);
+    this.add(safe);
+    const sb = new THREE7.Mesh(rbox(1.8, 1.6, 1.4, 0.08), this.m(new THREE7.MeshStandardMaterial({ color: 3817288, metalness: 0.85, roughness: 0.35 })));
+    sb.position.y = 0.8;
+    safe.add(sb);
+    const dial = new THREE7.Mesh(new THREE7.CylinderGeometry(0.26, 0.26, 0.08, 28), steel);
+    dial.rotation.x = Math.PI / 2;
+    dial.position.set(0.25, 0.85, 0.72);
+    safe.add(dial);
+    this.jugs = JUG.map((p, i) => {
+      const g = new THREE7.Group();
+      g.position.copy(p);
+      this.add(g);
+      const base = new THREE7.Mesh(new THREE7.CylinderGeometry(1.25, 1.3, 0.2, 40), metal);
+      base.position.y = 0.1;
+      g.add(base);
+      const glass = new THREE7.Mesh(
+        new THREE7.CylinderGeometry(1.05, 1.05, JUG_H, 40, 1, true),
+        this.m(new THREE7.MeshPhysicalMaterial({ color: 14215423, roughness: 0.05, transparent: true, opacity: 0.16, depthWrite: false, side: THREE7.DoubleSide }))
+      );
+      glass.position.y = 0.21 + JUG_H / 2;
+      glass.renderOrder = 5;
+      g.add(glass);
+      const fg = new THREE7.CylinderGeometry(0.98, 0.98, 1, 40);
+      fg.translate(0, 0.5, 0);
+      const col = i ? COL.spx : COL.rmb;
+      const fill = new THREE7.Mesh(fg, this.m(new THREE7.MeshStandardMaterial({ color: new THREE7.Color(col).multiplyScalar(0.35), emissive: col, emissiveIntensity: 0.55, roughness: 0.3 })));
+      fill.position.y = 0.21;
+      fill.scale.y = 1e-3;
+      g.add(fill);
+      return { g, fill };
+    });
+    this.add(blob(this, 40, 10, 0.75));
+    this.Mx = new THREE7.Matrix4();
+    this.Z = new THREE7.Matrix4().makeScale(0, 0, 0);
+    this.P = new THREE7.Vector3();
+    this.lFac = this.label('<span class="t">前些年拼命扩产</span>', [(FAC[0].x + FAC[1].x) / 2, 2.9, -3]);
+    this.lWall = this.label('<span class="t red">出口碰上关税</span>', [WALL_X, 3.6, -0.6]);
+    this.lBack = this.label('<span class="c">只好转回国内卖</span>', [WALL_X + 2.6, 0.9, 1.4], "down");
+    this.lGoods = this.label('<span class="t">东西多了</span>', [0, -0.2, 0], "down", this.pans[0].g);
+    this.lMoney = this.label('<span class="t">买的人少了</span>', [0, -0.2, 0], "down", this.pans[1].g);
+    this.lHouse = this.label('<span class="t red">房价跌了 ↓</span><span class="c">家里的钱“缩水”</span>', [HOUSE.x, 3.3, HOUSE.z]);
+    this.lSafe = this.label('<span class="t">存起来，不敢花</span><span class="c">收入、养老心里没底</span>', [SAFE.x - 1.1, 0.8, SAFE.z], "left");
+    this.lPrice = this.label("", [0, 3.15, 0], "up", this.pans[0].g);
+    this.lResult = this.label('<span class="v red">供大于求</span>', [0, this.PY + 0.75, 0]);
+    this.lJug = JUG.map((p, i) => this.label(`<span class="v sm ${i ? "blue" : "red"}">约 ${Math.round(SHARE[i] * 100)}%</span><span class="t">${i ? "美国" : "中国"}</span>`, [p.x, 0, p.z]));
+    this.lJugCap = this.label('<span class="c">老百姓花的钱，占整个经济的比例</span>', [(JUG[0].x + JUG[1].x) / 2, 0.21 + JUG_H + 0.35, 0.6]);
+    this.ang = 0;
+    this.vel = 0;
+  }
+  enter(st, prev, fresh) {
+    if (fresh) {
+      this.ang = 0;
+      this.vel = 0;
+    }
+  }
+  update(dt, time) {
+    const t = this.t;
+    const st = this.st.step || "goods";
+    const goods = st === "goods";
+    const on = (c2) => c2 ? 1 : 0;
+    const nG = goods ? Math.min(this.NG, this.G0 + Math.max(0, Math.floor((t - 1) / 0.3))) : this.NG;
+    for (let k = 0; k < this.NG; k++) {
+      if (k >= nG) {
+        this.cartons.setMatrixAt(k, this.Z);
+        this.tape.setMatrixAt(k, this.Z);
+        continue;
+      }
+      const [x, y, z] = this.slots[k];
+      this.Mx.makeRotationY((k * 0.618 % 1 - 0.5) * 0.25).setPosition(x, y, z);
+      this.cartons.setMatrixAt(k, this.Mx);
+      this.tape.setMatrixAt(k, this.Mx);
+    }
+    this.cartons.instanceMatrix.needsUpdate = true;
+    this.tape.instanceMatrix.needsUpdate = true;
+    const pan0 = this.pans[0].g.position;
+    const dest = this.P.set(pan0.x, pan0.y + 2.4, 0).clone();
+    for (let k = 0; k < this.NF; k++) {
+      const exportOne = k % 2 === 1;
+      const v = goods ? (t - 0.6) * 0.38 - k / this.NF : -1;
+      if (v < 0) {
+        this.fly.setMatrixAt(k, this.Z);
+        this.flyT.setMatrixAt(k, this.Z);
+        continue;
+      }
+      const u = v % 1;
+      const src = FAC[k % 4 < 2 ? 0 : 1];
+      const a = new THREE7.Vector3(src.x, 2, src.z);
+      if (!exportOne) arcTo(a, dest, u, 1.4, this.P);
+      else if (u < 0.5) arcTo(a, new THREE7.Vector3(WALL_X + 0.4, 2.2, -0.6), u / 0.5, 1.2, this.P);
+      else arcTo(new THREE7.Vector3(WALL_X + 0.4, 2.2, -0.6), dest, (u - 0.5) / 0.5, 1, this.P);
+      const s = 0.85 * Math.min(1, u / 0.06) * Math.min(1, (1 - u) / 0.06);
+      this.Mx.makeRotationY(u * 3 + k).scale(new THREE7.Vector3(s, s, s)).setPosition(this.P);
+      this.fly.setMatrixAt(k, this.Mx);
+      this.flyT.setMatrixAt(k, this.Mx);
+    }
+    this.fly.instanceMatrix.needsUpdate = true;
+    this.flyT.instanceMatrix.needsUpdate = true;
+    const pan1 = this.pans[1].g.position;
+    let wM = 0;
+    for (let i = 0; i < this.NM; i++) {
+      const [x, y, z] = this.mslot[i];
+      const leaving = i >= this.M1;
+      const order = this.NM - 1 - i;
+      const q = !leaving || goods ? 0 : st === "money" ? seg(t, 0.9 + order * 0.3, 1.6 + order * 0.3) : 1;
+      if (q <= 0) wM += 1;
+      if (q >= 1) {
+        this.money.hide(i);
+        continue;
+      }
+      const e = eInOut(q);
+      const tx = SAFE.x - pan1.x;
+      const ty = 1.7 - pan1.y;
+      const tz = SAFE.z;
+      this.money.set(i, x + (tx - x) * e, y + (ty - y) * e + Math.sin(Math.PI * e) * 2.2, z + (tz - z) * e, 1 - ss(0.8, 1, q), this.cols[i], q * 1.6, 0);
+    }
+    this.money.commit();
+    const target = clamp((nG - wM * 0.62) * 0.0135, -0.3, 0.3);
+    const n = 4;
+    const h = dt / n;
+    for (let i = 0; i < n; i++) {
+      this.vel += ((target - this.ang) * 26 - this.vel * 5.2) * h;
+      this.ang += this.vel * h;
+    }
+    this.pivot.rotation.z = this.ang + Math.sin(time * 1.1) * 4e-3;
+    const c = Math.cos(this.pivot.rotation.z);
+    const sn = Math.sin(this.pivot.rotation.z);
+    for (const p of this.pans) p.g.position.set(p.side * this.L * c, this.PY + p.side * this.L * sn - this.HANG, 0);
+    const kh = goods ? 0 : st === "money" ? eInOut(seg(t, 0.6, 1.8)) : 1;
+    this.house.position.y = HOUSE.y - 0.35 * kh;
+    this.house.rotation.z = -0.06 * kh;
+    const kp = st === "price" ? eInOut(seg(t, 0.8, 4.4)) : st === "share" ? 1 : 0;
+    const price = Math.round(100 - 22 * kp);
+    this.lPrice.set(`<span class="c">出厂价</span><span class="v sm red">¥${price}${kp > 0.05 ? " ↓" : ""}</span>`);
+    this.jugs.forEach((j, i) => {
+      j.g.visible = st === "share";
+      const k = st === "share" ? eInOut(seg(t, 0.5 + i * 0.3, 2.2 + i * 0.3)) : 0;
+      j.fill.scale.y = Math.max(1e-3, SHARE[i] * (JUG_H - 0.1) * k);
+      this.lJug[i].pos.y = 0.21 + SHARE[i] * (JUG_H - 0.1) * k + 0.2;
+      this.lJug[i].target = on(st === "share" && k > 0.6);
+    });
+    this.lJugCap.target = on(st === "share" && t > 0.8);
+    this.lFac.target = on(goods && t > 0.5);
+    this.lWall.target = on(goods && t > 1.6);
+    this.lBack.target = on(goods && t > 2.6);
+    this.lGoods.target = on(t > 0.4 && st !== "share");
+    this.lMoney.target = on(t > 0.4 && st !== "share" && !goods);
+    this.lHouse.target = on(st === "money" && t > 1);
+    this.lSafe.target = on(st === "money" && t > 1.8);
+    this.lPrice.target = on(st === "price" && t > 0.6);
+    this.lResult.target = on(st === "price" && t > 0.4);
+  }
+};
+var M2 = [
+  [2015, 139.2],
+  [2017, 167.7],
+  [2019, 198.6],
+  [2021, 238.3],
+  [2023, 292.3],
+  [2025, 340.3]
+];
+var GDP = [
+  [2015, 68.9],
+  [2017, 83.2],
+  [2019, 98.7],
+  [2021, 114.9],
+  [2023, 126.1],
+  [2025, 140.2]
+];
+var MoneyStack = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [0, 0, 11, 1] });
+    const ped = new THREE7.Mesh(rbox(15, 0.14, 3, 0.05), this.m(new THREE7.MeshStandardMaterial({ color: 1381915, metalness: 0.6, roughness: 0.4 })));
+    ped.position.y = 0.07;
+    this.add(ped);
+    this.cols = M2.map(([yr, v], c) => ({ yr, v, n: Math.round(v / 10), x: (c - 2.5) * 2.35, g: GDP[c][1] }));
+    const total = this.cols.reduce((s, c) => s + c.n, 0);
+    this.set = bundleSet(this, total);
+    this.add(this.set.mesh, this.set.band);
+    this.items = [];
+    const R = rng(17);
+    this.cols.forEach((c, ci) => {
+      for (let k = 0; k < c.n; k++)
+        this.items.push({ ci, k, x: c.x + (R() - 0.5) * 0.06, z: (R() - 0.5) * 0.06, r: (R() - 0.5) * 0.05, col: RED.clone().offsetHSL(0, 0, (R() - 0.5) * 0.07) });
+    });
+    const top = (n) => 0.14 + n * GY;
+    const pts = this.cols.map((c) => new THREE7.Vector3(c.x, top(c.g / 10), 0.62));
+    this.gdp = progTube(pts, 0.06, this.m(new THREE7.MeshBasicMaterial({ color: hdr(6280396, 1.25) })), 8);
+    this.add(this.gdp);
+    this.dots = this.cols.map((c, i) => {
+      const s = new THREE7.Mesh(new THREE7.SphereGeometry(0.13, 16, 12), this.m(new THREE7.MeshBasicMaterial({ color: hdr(6280396, 1.6) })));
+      s.position.copy(pts[i]);
+      this.add(s);
+      return s;
+    });
+    this.add(blob(this, 18, 6, 0.7));
+    this.lVal = this.cols.map((c) => this.label(`<span class="t">${Math.round(c.v)}</span>`, [c.x, top(c.n) + 0.12, 0]));
+    this.lYr = this.cols.map((c) => this.label(`<span class="c">${c.yr}</span>`, [c.x, 0, 1.55], "down"));
+    const last = this.cols[this.cols.length - 1];
+    this.lM2 = this.label('<span class="t">市面上的钱（M2）</span><span class="c">单位：万亿元 · 十年约翻了 2.4 倍</span>', [this.cols[1].x, top(this.cols[4].n) + 0.6, 0]);
+    this.lGdp = this.label('<span class="t teal">经济总量（GDP）</span><span class="c">约翻了一倍</span>', [last.x + 0.9, top(last.g / 10), 0.62], "right");
+    this.T = this.cols.map((c, i) => 0.5 + i * 0.5);
+  }
+  update(dt, time) {
+    const t = this.t;
+    for (let i = 0; i < this.items.length; i++) {
+      const it = this.items[i];
+      const t0 = this.T[it.ci] + it.k * 0.022;
+      const q = seg(t, t0, t0 + 0.34);
+      if (q <= 0) {
+        this.set.hide(i);
+        continue;
+      }
+      const y = 0.14 + 0.13 + it.k * GY + (1 - q * q) * 2.6;
+      this.set.set(i, it.x, y, it.z, 1, it.col, it.r);
+    }
+    this.set.commit();
+    this.cols.forEach((c, i) => {
+      this.lVal[i].target = t > this.T[i] + c.n * 0.022 + 0.3 ? 1 : 0;
+      this.lYr[i].target = t > 0.4 ? 1 : 0;
+    });
+    const pg = eInOut(seg(t, 4, 5.4));
+    this.gdp.setProgress(pg);
+    this.dots.forEach((d, i) => d.visible = pg >= i / (this.dots.length - 1) - 1e-3 && pg > 0);
+    this.lGdp.target = pg > 0.98 ? 1 : 0;
+    this.lM2.target = t > 3.6 ? 1 : 0;
+  }
+};
+var TEA = new THREE7.Color(9062928);
+var TEA_E = new THREE7.Color(3807748);
+var PALE = new THREE7.Color(14208942);
+var PALE_E = new THREE7.Color(2762528);
+var Dilute = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [0, 0, 9, 1.1] });
+    const R = 1.75;
+    const H2 = 5.6;
+    const B = 0.25;
+    Object.assign(this, { R, H: H2, B });
+    const glassMat = this.m(
+      new THREE7.MeshPhysicalMaterial({ color: 14543359, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.12, side: THREE7.DoubleSide, depthWrite: false, envMapIntensity: 1.8, clearcoat: 1 })
+    );
+    const wall = new THREE7.CylinderGeometry(R, R * 0.93, H2, 64, 1, true);
+    wall.translate(0, H2 / 2 + B, 0);
+    const w = new THREE7.Mesh(wall, glassMat);
+    w.renderOrder = 6;
+    this.add(w);
+    const base = new THREE7.Mesh(
+      new THREE7.CylinderGeometry(R * 0.93, R * 0.93, B, 64),
+      this.m(new THREE7.MeshPhysicalMaterial({ color: 14543359, roughness: 0.1, transparent: true, opacity: 0.35, envMapIntensity: 1.5, clearcoat: 1 }))
+    );
+    base.position.y = B / 2;
+    this.add(base);
+    const rim = new THREE7.Mesh(new THREE7.TorusGeometry(R, 0.03, 8, 72), this.m(new THREE7.MeshBasicMaterial({ color: hdr(16777215, 1), transparent: true, opacity: 0.8 })));
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = H2 + B;
+    this.add(rim);
+    const lg = new THREE7.CylinderGeometry(R * 0.92, R * 0.87, 1, 64);
+    lg.translate(0, 0.5, 0);
+    this.lMat = this.m(new THREE7.MeshStandardMaterial({ color: TEA.clone(), emissive: TEA_E.clone(), emissiveIntensity: 1, roughness: 0.15, transparent: true, opacity: 0.86, depthWrite: false }));
+    this.liq = new THREE7.Mesh(lg, this.lMat);
+    this.liq.position.y = B;
+    this.liq.renderOrder = 3;
+    this.add(this.liq);
+    this.sMat = this.m(new THREE7.MeshStandardMaterial({ color: TEA.clone(), emissive: TEA_E.clone(), emissiveIntensity: 1.3, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.92, depthWrite: false }));
+    this.surf = new THREE7.Mesh(new THREE7.CircleGeometry(R * 0.92, 64), this.sMat);
+    this.surf.rotation.x = -Math.PI / 2;
+    this.surf.renderOrder = 4;
+    this.add(this.surf);
+    this.NL = 70;
+    const lgeo = new THREE7.SphereGeometry(1, 8, 6);
+    lgeo.scale(0.17, 0.035, 0.09);
+    this.leaves = new THREE7.InstancedMesh(lgeo, this.m(new THREE7.MeshStandardMaterial({ color: 4872738, roughness: 0.7, emissive: 1317382, emissiveIntensity: 1 })), this.NL);
+    this.leaves.instanceMatrix.setUsage(THREE7.DynamicDrawUsage);
+    this.leaves.frustumCulled = false;
+    this.leaves.renderOrder = 2;
+    this.add(this.leaves);
+    const r = rng(9);
+    this.lf = Array.from({ length: this.NL }, () => ({ a: r() * Math.PI * 2, r: 0.2 + r() * 1.25, y: B + 0.08 + r() * 0.55, w: 0.08 + r() * 0.12, s: r() * 10, sp: r() * Math.PI }));
+    const steel = this.m(new THREE7.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.28 }));
+    this.mouth = new THREE7.Vector3(-0.45, B + H2 + 1.45, 0.15);
+    const path = new THREE7.CatmullRomCurve3([
+      new THREE7.Vector3(-5.2, B + H2 + 2.6, -1.2),
+      new THREE7.Vector3(-1.6, B + H2 + 2.6, -0.2),
+      new THREE7.Vector3(-0.6, B + H2 + 2.3, 0.1),
+      new THREE7.Vector3(-0.47, B + H2 + 1.75, 0.15),
+      new THREE7.Vector3(-0.45, B + H2 + 1.5, 0.15)
+    ]);
+    this.add(new THREE7.Mesh(new THREE7.TubeGeometry(path, 70, 0.22, 16, false), steel));
+    const ring = new THREE7.Mesh(new THREE7.TorusGeometry(0.24, 0.06, 10, 28), steel);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.copy(this.mouth).setY(this.mouth.y + 0.04);
+    this.add(ring);
+    const cg = new THREE7.CylinderGeometry(0.1, 0.15, 1, 16, 1, true);
+    cg.translate(0, -0.5, 0);
+    this.stream = new THREE7.Mesh(cg, this.m(new THREE7.MeshBasicMaterial({ color: hdr(8042751, 1.1), transparent: true, opacity: 0.45, blending: THREE7.AdditiveBlending, depthWrite: false })));
+    this.stream.position.copy(this.mouth);
+    this.stream.renderOrder = 5;
+    this.add(this.stream);
+    this.add(blob(this, 7, 5, 0.85));
+    this.Mx = new THREE7.Matrix4();
+    this.Q = new THREE7.Quaternion();
+    this.E = new THREE7.Euler();
+    this.S = new THREE7.Vector3();
+    this.P = new THREE7.Vector3();
+    this.lLeaf = this.label('<span class="t">茶叶 = 实实在在的东西</span><span class="c">没多出多少</span>', [R + 0.35, B + 0.55, 0], "right");
+    this.lWater = this.label('<span class="t blue">水 = 钱</span><span class="c">一直在往里加</span>', [-3, B + H2 + 2.95, -0.6]);
+    this.lTaste = this.label('<span class="t">茶越来越淡</span><span class="c">每一块钱，能买的东西越来越少</span>', [R + 0.35, 0, 0], "right");
+    this.L0 = 1.35;
+  }
+  update(dt, time) {
+    const t = this.t;
+    const { B, H: H2 } = this;
+    const level = lerp(this.L0, H2 - 0.55, eInOut(seg(t, 0.8, 6.2)));
+    this.liq.scale.y = level;
+    this.surf.position.y = B + level + 2e-3;
+    const k = Math.pow(this.L0 / level, 1.15);
+    this.lMat.color.copy(PALE).lerp(TEA, k);
+    this.lMat.emissive.copy(PALE_E).lerp(TEA_E, k);
+    this.lMat.opacity = lerp(0.42, 0.86, k);
+    this.sMat.color.copy(PALE).lerp(TEA, k);
+    this.sMat.emissive.copy(PALE_E).lerp(TEA_E, k);
+    this.sMat.opacity = lerp(0.5, 0.92, k);
+    const pouring = t > 0.5 && t < 6.6;
+    const sk = pouring ? ss(0.5, 0.9, t) * (1 - ss(6.2, 6.6, t)) : 0;
+    this.stream.visible = sk > 0.01;
+    this.stream.scale.set(sk, Math.max(0.01, this.mouth.y - (B + level)), sk);
+    for (let i = 0; i < this.NL; i++) {
+      const L = this.lf[i];
+      const a = L.a + time * L.w;
+      this.E.set(Math.sin(time * 0.7 + L.s) * 0.4, a + L.sp, Math.cos(time * 0.6 + L.s) * 0.3);
+      this.Q.setFromEuler(this.E);
+      this.P.set(Math.cos(a) * L.r, L.y + Math.sin(time * 0.9 + L.s) * 0.05, Math.sin(a) * L.r);
+      this.Mx.compose(this.P, this.Q, this.S.setScalar(1));
+      this.leaves.setMatrixAt(i, this.Mx);
+    }
+    this.leaves.instanceMatrix.needsUpdate = true;
+    this.lTaste.pos.y = B + level + 0.1;
+    this.lLeaf.target = t > 0.6 ? 1 : 0;
+    this.lWater.target = t > 0.9 ? 1 : 0;
+    this.lTaste.target = t > 3.8 ? 1 : 0;
+  }
+};
+
+// src/pieces/act2.js
+import * as THREE8 from "three";
+var FX = [
+  [2015, 6.21],
+  [2015.55, 6.21],
+  [2015.63, 6.39],
+  [2015.99, 6.49],
+  [2016.5, 6.65],
+  [2016.98, 6.95],
+  [2017.5, 6.78],
+  [2017.99, 6.51],
+  [2018.25, 6.29],
+  [2018.6, 6.83],
+  [2018.85, 6.96],
+  [2019.3, 6.72],
+  [2019.68, 7.15],
+  [2019.99, 6.97],
+  [2020.4, 7.12],
+  [2020.95, 6.53],
+  [2021.5, 6.47],
+  [2021.99, 6.37],
+  [2022.2, 6.33],
+  [2022.55, 6.71],
+  [2022.83, 7.3],
+  [2023.05, 6.72],
+  [2023.7, 7.3],
+  [2023.99, 7.1],
+  [2024.5, 7.27],
+  [2024.72, 7.02],
+  [2025, 7.3],
+  [2025.27, 7.35],
+  [2025.6, 7.17],
+  [2025.9, 7.1],
+  [2025.99, 6.99],
+  [2026.9, 6.66]
+];
+var FX_T0 = 2015;
+var FX_T1 = 2026.9;
+var fxAt = monotone(
+  FX.map((p) => p[0]),
+  FX.map((p) => p[1])
+);
+function makeFigure(piece, color) {
+  const g = new THREE8.Group();
+  const body = new THREE8.Group();
+  g.add(body);
+  const mat = piece.m(new THREE8.MeshStandardMaterial({ color, roughness: 0.42, metalness: 0.06 }));
+  const leg = new THREE8.CapsuleGeometry(0.15, 0.78, 4, 10);
+  const l1 = new THREE8.Mesh(leg, mat);
+  l1.position.set(0, 0.55, 0.16);
+  const l2 = l1.clone();
+  l2.position.z = -0.16;
+  const torso = new THREE8.Mesh(new THREE8.CapsuleGeometry(0.3, 0.7, 6, 14), mat);
+  torso.position.y = 1.5;
+  const head = new THREE8.Mesh(new THREE8.SphereGeometry(0.26, 24, 16), mat);
+  head.position.y = 2.36;
+  const armGeo = new THREE8.CapsuleGeometry(0.095, 0.62, 4, 8);
+  armGeo.translate(0, -0.41, 0);
+  const sh = [0.31, -0.31].map((z) => {
+    const s = new THREE8.Group();
+    s.position.set(0, 1.95, z);
+    s.add(new THREE8.Mesh(armGeo, mat));
+    body.add(s);
+    return s;
+  });
+  body.add(l1, l2, torso, head);
+  return { g, body, sh };
+}
+var Tug = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [0, 0, 14, 1] });
+    this.ropeG = new THREE8.Group();
+    this.add(this.ropeG);
+    const rope = new THREE8.Mesh(
+      new THREE8.CylinderGeometry(0.07, 0.07, 22, 12),
+      this.m(new THREE8.MeshStandardMaterial({ color: 9207139, roughness: 0.9 }))
+    );
+    rope.rotation.z = Math.PI / 2;
+    rope.position.y = 1.5;
+    this.ropeG.add(rope);
+    const flag = new THREE8.Mesh(
+      new THREE8.PlaneGeometry(0.3, 0.95).translate(0, -0.48, 0),
+      this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.risk, 1.6), side: THREE8.DoubleSide }))
+    );
+    flag.position.y = 1.5;
+    this.flag = flag;
+    this.ropeG.add(flag);
+    this.figs = [];
+    [-1, 1].forEach((side) => {
+      for (let k = 0; k < 3; k++) {
+        const f = makeFigure(this, side < 0 ? 14833482 : 4177807);
+        f.side = side;
+        f.k = k;
+        f.z = k % 2 ? 0.22 : -0.22;
+        this.add(f.g);
+        this.figs.push(f);
+      }
+    });
+    const line = new THREE8.Mesh(new THREE8.BoxGeometry(0.06, 0.012, 6), this.m(new THREE8.MeshBasicMaterial({ color: hdr(16777215, 1.1) })));
+    line.position.y = 0.01;
+    this.add(line);
+    this.add(blob(this, 26, 7, 0.75));
+    this.chart = new THREE8.Group();
+    this.chart.position.set(0, 0, -4.6);
+    this.add(this.chart);
+    const X2 = (yr) => -10.5 + (yr - FX_T0) / (FX_T1 - FX_T0) * 21;
+    const Y = (r) => 3.6 + (r - 6.1) / 1.4 * 5.6;
+    this.X = X2;
+    this.Y = Y;
+    const band = new THREE8.Mesh(
+      new THREE8.PlaneGeometry(21.6, Y(7.3) - Y(6.3)),
+      this.m(new THREE8.MeshBasicMaterial({ color: 16777215, transparent: true, opacity: 0.045, depthWrite: false }))
+    );
+    band.position.set(0, (Y(7.3) + Y(6.3)) / 2, -0.02);
+    this.chart.add(band);
+    this.chart.add(dashLine(this, [new THREE8.Vector3(-10.8, Y(7.3), 0), new THREE8.Vector3(10.8, Y(7.3), 0)], 16777215, 0.4));
+    this.chart.add(dashLine(this, [new THREE8.Vector3(-10.8, Y(6.3), 0), new THREE8.Vector3(10.8, Y(6.3), 0)], 16777215, 0.4));
+    const pts = [];
+    for (let i = 0; i <= 240; i++) {
+      const yr = FX_T0 + (FX_T1 - FX_T0) * i / 240;
+      pts.push(new THREE8.Vector3(X2(yr), Y(fxAt(yr)), 0));
+    }
+    this.series = progTube(pts, 0.06, this.m(new THREE8.MeshBasicMaterial({ color: hdr(14674431, 1.7) })), 8);
+    this.chart.add(this.series);
+    this.head = new THREE8.Mesh(new THREE8.SphereGeometry(0.17, 20, 14), this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.risk, 2.2) })));
+    this.chart.add(this.head);
+    this.lAx = [
+      this.label('<span class="c">7.3</span>', [-11.1, Y(7.3), 0], "left", this.chart),
+      this.label('<span class="c">6.3</span>', [-11.1, Y(6.3), 0], "left", this.chart),
+      this.label('<span class="t">美元兑人民币</span><span class="c">2015 – 2026 年（示意）</span>', [-10.6, Y(7.6) + 0.4, 0], "right", this.chart)
+    ];
+    this.lYears = [2015, 2018, 2021, 2024, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [X2(y + 0), 3.15, 0], "down", this.chart));
+    this.lHead = this.label("", [0, 0, 0], "up", this.chart);
+    this.lPeak = this.label('<span class="c">2025 年 4 月</span><span class="t">约 7.35</span>', [X2(2025.27), Y(7.35) + 0.35, 0], "up", this.chart);
+    this.lL = this.label("", [0, 3.1, 0], "up", this.figs[1].g);
+    this.lR = this.label("", [0, 3.1, 0], "up", this.figs[4].g);
+    this.zoneL = this.label('<span class="c">← 人民币升值</span>', [-6, 0, 2.6], "down");
+    this.zoneR = this.label('<span class="c">人民币贬值 →</span>', [6, 0, 2.6], "down");
+    this.m0 = 0;
+    this.prevM = 0;
+    this.tmp = new THREE8.Vector3();
+    this.down = new THREE8.Vector3(0, -1, 0);
+  }
+  update(dt, time) {
+    const t = this.t;
+    const chart = this.st.step === "chart";
+    let m;
+    let rate = 6.82;
+    if (!chart) {
+      m = 1.1 * Math.sin(0.75 * t) + 0.45 * Math.sin(1.9 * t + 1.2);
+    } else {
+      const p = eInOut(seg(t, 0.9, 8.2));
+      const pt = this.series.curve.getPointAt(Math.max(1e-4, p));
+      rate = 6.1 + (pt.y - 3.6) / 5.6 * 1.4;
+      m = (rate - 6.82) * 5 + 0.12 * Math.sin(time * 2.3);
+      this.series.setProgress(p);
+      this.head.position.copy(pt);
+      const yr = FX_T0 + p * (FX_T1 - FX_T0);
+      this.lHead.pos.copy(pt).setY(pt.y + 0.3);
+      this.lHead.set(`<span class="v">${rate.toFixed(2)}</span><span class="c">${Math.floor(yr)} 年</span>`);
+      this.lHead.target = t > 1 ? 1 : 0;
+      this.lPeak.target = p > 0.88 ? 1 : 0;
+    }
+    if (!chart) {
+      this.lHead.target = 0;
+      this.lPeak.target = 0;
+    }
+    this.chart.visible = chart || this.chartVis > 0.01;
+    this.chartVis = lerp(this.chartVis || 0, chart ? 1 : 0, 1 - Math.exp(-3 * dt));
+    this.chart.position.y = (1 - this.chartVis) * -10;
+    for (const l of this.lAx) l.target = chart && t > 0.6 ? 1 : 0;
+    for (const l of this.lYears) l.target = chart && t > 0.6 ? 1 : 0;
+    const vel = (m - this.prevM) / Math.max(dt, 1e-3);
+    this.prevM = m;
+    this.ropeG.position.x = m;
+    this.flag.rotation.z = clamp(-vel * 0.08, -0.4, 0.4);
+    for (const f of this.figs) {
+      const x = m + f.side * (3.4 + f.k * 1.9);
+      f.g.position.set(x, Math.abs(Math.sin(time * 3 + f.k)) * 0.02, f.z);
+      const win = f.side < 0 ? -vel : vel;
+      const lean = 0.36 + clamp(win * 0.05, -0.08, 0.1) + Math.sin(time * 2.2 + f.k) * 0.02;
+      f.body.rotation.z = f.side < 0 ? lean : -lean;
+      f.g.rotation.y = 0;
+      f.g.updateWorldMatrix(true, true);
+      for (const s of f.sh) {
+        const hand = this.tmp.set(x - f.side * 0.15, 1.5, f.z + (s.position.z > 0 ? 0.12 : -0.12));
+        this.inner.localToWorld(hand);
+        s.parent.worldToLocal(hand);
+        hand.sub(s.position).normalize();
+        s.quaternion.setFromUnitVectors(this.down, hand);
+      }
+    }
+    this.lL.set(
+      chart ? '<span class="t red">往上拉</span>' : '<span class="t red">往上拉 · 人民币升值</span><span class="c">出口企业把赚的美元换回人民币，发工资、付货款</span>'
+    );
+    this.lR.set(
+      chart ? '<span class="t green">往下拽</span>' : '<span class="t green">往下拽 · 人民币贬值</span><span class="c">美元利息高，加上保出口的政策</span>'
+    );
+    this.lL.target = this.lR.target = !chart && t > 0.9 ? 1 : 0;
+    this.zoneL.target = this.zoneR.target = t > 1.3 && !chart ? 1 : 0;
+  }
+};
+var Compound = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [0, 0, 12, 0.9] });
+    const X2 = (yr) => -9 + yr * 1.2;
+    const Y = (v) => 1.2 + (v - 0.9) * 3.4;
+    const band = new THREE8.Mesh(
+      new THREE8.PlaneGeometry(18.4, Y(1.05) - Y(0.95)),
+      this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.rmb, 0.9), transparent: true, opacity: 0.16, depthWrite: false }))
+    );
+    band.position.set(0, (Y(1.05) + Y(0.95)) / 2, -0.05);
+    this.add(band);
+    this.band = band;
+    const wave = [];
+    const curve = [];
+    for (let i = 0; i <= 200; i++) {
+      const yr = 15 * i / 200;
+      const v = 1 + 0.033 * Math.sin(2 * Math.PI * yr / 2.6) + 0.013 * Math.sin(2 * Math.PI * yr / 1.05 + 0.7);
+      wave.push(new THREE8.Vector3(X2(yr), Y(v), 0));
+      curve.push(new THREE8.Vector3(X2(yr), Y(1.07 ** yr), 0.05));
+    }
+    this.wave = progTube(wave, 0.06, this.m(new THREE8.MeshBasicMaterial({ color: hdr(16747114, 1.8) })), 8);
+    this.curve = progTube(curve, 0.08, this.m(new THREE8.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) })), 10);
+    this.add(this.wave);
+    this.add(this.curve);
+    const pos = [];
+    const al = [];
+    for (let i = 0; i <= 200; i++) {
+      const yr = 15 * i / 200;
+      pos.push(X2(yr), Y(1), 0, X2(yr), Y(1.07 ** yr), 0);
+      al.push(0, 1);
+    }
+    const idx = [];
+    for (let i = 0; i < 200; i++) {
+      const a = i * 2;
+      idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+    }
+    const ag = new THREE8.BufferGeometry();
+    ag.setAttribute("position", new THREE8.Float32BufferAttribute(pos, 3));
+    ag.setAttribute("aA", new THREE8.Float32BufferAttribute(al, 1));
+    ag.setIndex(idx);
+    this.areaMat = new THREE8.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      uniforms: { uFade: this.fade, uP: { value: 0 }, uC: { value: new THREE8.Color(COL.spx) } },
+      vertexShader: "attribute float aA; varying float vA; varying float vX; void main(){ vA = aA; vX = position.x; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: "uniform float uFade; uniform float uP; uniform vec3 uC; varying float vA; varying float vX; void main(){ float on = step(vX, -9.0 + uP * 18.0); float a = pow(clamp(vA, 0.0, 1.0), 1.6) * 0.32 * on * uFade; gl_FragColor = vec4(uC, a); }"
+    });
+    this.area = new THREE8.Mesh(ag, this.areaMat);
+    this.add(this.area);
+    this.add(dashLine(this, [new THREE8.Vector3(-9.3, Y(1), -0.02), new THREE8.Vector3(9.3, Y(1), -0.02)], 16777215, 0.3));
+    this.lWave = this.label('<span class="t">汇率：上下几个点来回晃</span><span class="c">大约 ±5% 的范围</span>', [X2(2.2), Y(0.95) - 0.1, 0], "down");
+    this.l10 = this.label('<span class="v blue">≈ 2 倍</span><span class="c">第 10 年</span>', [X2(10), Y(1.07 ** 10) + 0.25, 0]);
+    this.l15 = this.label('<span class="v blue">≈ 2.8 倍</span><span class="c">第 15 年</span>', [X2(15), Y(1.07 ** 15) + 0.25, 0]);
+    this.lNote = this.label('<span class="c">示意：好资产按年化 7% 复利计算</span>', [X2(5.5), Y(1.07 ** 5.5) + 0.55, 0], "up");
+    this.lTicks = [0, 5, 10, 15].map((y) => this.label(`<span class="c">${y === 0 ? "现在" : "第 " + y + " 年"}</span>`, [X2(y), 0.55, 0], "down"));
+  }
+  update() {
+    const t = this.t;
+    const pw = eInOut(seg(t, 0.4, 1.9));
+    const pc = eInOut(seg(t, 1.6, 4.4));
+    this.wave.setProgress(pw);
+    this.curve.setProgress(pc);
+    this.areaMat.uniforms.uP.value = pc;
+    this.band.scale.x = Math.max(1e-3, ss(0.2, 0.9, t));
+    this.lWave.target = pw > 0.8 ? 1 : 0;
+    this.l10.target = pc > 0.66 ? 1 : 0;
+    this.l15.target = pc > 0.98 ? 1 : 0;
+    this.lNote.target = pc > 0.4 ? 1 : 0;
+    for (const l of this.lTicks) l.target = t > 0.5 ? 1 : 0;
   }
 };
 
@@ -4063,7 +4171,7 @@ var Underwater = class extends Piece {
     });
     this.ddLine = dashLine(this, [new THREE12.Vector3(UX(1932.42), SURF, 0.15), new THREE12.Vector3(UX(1932.42), UY(-86.2), 0.15)], 16765562, 0.9, 0.18, 0.12);
     this.add(this.ddLine);
-    this.lDD = this.label('<span class="t gold">最大回撤 ↓</span><span class="c">从最高点跌到最低点</span>', [UX(1929.6) - 0.25, UY(-48), 0.2], "left");
+    this.lDD = this.label('<span class="t gold">最大回撤 ↓</span>', [UX(1929.6) - 0.25, UY(-48), 0.2], "left");
     this.add(blob(this, 40, 8, 0.5));
     this.p = 0;
   }
@@ -5325,6 +5433,9 @@ var Paths = class extends Piece {
   }
 };
 
+// src/pieces/rates.js
+import * as THREE18 from "three";
+
 // src/pieces/fx.js
 import * as THREE17 from "three";
 var HI = 7.3;
@@ -5344,6 +5455,31 @@ var flowU = (tau, speed, k, n) => {
   const v = tau * speed - k / n;
   return v < 0 ? -1 : v % 1;
 };
+function bankModel(piece, stone) {
+  const bank = new THREE17.Group();
+  const body = new THREE17.Mesh(rbox(3, 1.7, 1.5, 0.04), stone);
+  body.position.set(0, 0.85, -0.35);
+  bank.add(body);
+  for (let i = 0; i < 4; i++) {
+    const c = new THREE17.Mesh(new THREE17.CylinderGeometry(0.13, 0.15, 1.7, 16), stone);
+    c.position.set(-1.15 + i * 0.77, 0.85, 0.75);
+    bank.add(c);
+  }
+  const slab2 = new THREE17.Mesh(rbox(3.6, 0.22, 2.3, 0.04), stone);
+  slab2.position.set(0, 1.81, 0.05);
+  bank.add(slab2);
+  const tri = new THREE17.Shape();
+  tri.moveTo(-1.85, 0);
+  tri.lineTo(1.85, 0);
+  tri.lineTo(0, 0.7);
+  tri.closePath();
+  const pg = new THREE17.ExtrudeGeometry(tri, { depth: 2.2, bevelEnabled: false });
+  pg.translate(0, 0, -1.05);
+  const ped = new THREE17.Mesh(pg, stone);
+  ped.position.y = 1.92;
+  bank.add(ped);
+  return bank;
+}
 var FxFlow = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [-1.5, 0, 17, 1] });
@@ -5367,30 +5503,9 @@ var FxFlow = class extends Piece {
       this.add(h);
     });
     pad(P_BANK, 4.4, 3.2, 10133674);
-    const bank = new THREE17.Group();
+    const bank = bankModel(this, stone);
     bank.position.set(P_BANK.x, 0.24, P_BANK.z);
     this.add(bank);
-    const body = new THREE17.Mesh(rbox(3, 1.7, 1.5, 0.04), stone);
-    body.position.set(0, 0.85, -0.35);
-    bank.add(body);
-    for (let i = 0; i < 4; i++) {
-      const c = new THREE17.Mesh(new THREE17.CylinderGeometry(0.13, 0.15, 1.7, 16), stone);
-      c.position.set(-1.15 + i * 0.77, 0.85, 0.75);
-      bank.add(c);
-    }
-    const slab2 = new THREE17.Mesh(rbox(3.6, 0.22, 2.3, 0.04), stone);
-    slab2.position.set(0, 1.81, 0.05);
-    bank.add(slab2);
-    const tri = new THREE17.Shape();
-    tri.moveTo(-1.85, 0);
-    tri.lineTo(1.85, 0);
-    tri.lineTo(0, 0.7);
-    tri.closePath();
-    const pg = new THREE17.ExtrudeGeometry(tri, { depth: 2.2, bevelEnabled: false });
-    pg.translate(0, 0, -1.05);
-    const ped = new THREE17.Mesh(pg, stone);
-    ped.position.y = 1.92;
-    bank.add(ped);
     pad(P_FAC, 4.4, 3.2, COL.rmb);
     const fac = factory(this, stone, win);
     fac.position.set(P_FAC.x, 0.24, P_FAC.z);
@@ -5525,10 +5640,188 @@ var FxFlow = class extends Piece {
   }
 };
 
+// src/pieces/rates.js
+var P_CB = new THREE18.Vector3(-8.2, 0, -0.8);
+var P_VAULT = new THREE18.Vector3(-8.2, 0, 2.3);
+var P_BANK2 = new THREE18.Vector3(0, 0, 0);
+var P_G = new THREE18.Vector3(2.75, 0, 1.55);
+var NQ = 6;
+var QX = (i) => 6 + i * 2.1;
+var GH = 4;
+var RMB = new THREE18.Color(14239803);
+var arc2 = (a, b, u, h, out) => out.set(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u + 4 * h * u * (1 - u), a.z + (b.z - a.z) * u);
+var flowU2 = (tau, speed, k, n) => {
+  const v = tau * speed - k / n;
+  return v < 0 ? -1 : v % 1;
+};
+var V2 = (x, y, z) => new THREE18.Vector3(x, y, z);
+var Rates = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [3, 0, 17, 1.05] });
+    const stone = this.m(new THREE18.MeshStandardMaterial({ color: 11709859, roughness: 0.6, metalness: 0.05 }));
+    const padMat = this.m(new THREE18.MeshStandardMaterial({ color: 1710880, metalness: 0.6, roughness: 0.4 }));
+    const pad = (x, z, w, d, rim) => {
+      const m = new THREE18.Mesh(rbox(w, 0.24, d, 0.08), padMat);
+      m.position.set(x, 0.12, z);
+      const r = new THREE18.Mesh(rbox(w + 0.06, 0.06, d + 0.06, 0.03), this.m(new THREE18.MeshBasicMaterial({ color: hdr(rim, 1.3) })));
+      r.position.set(x, 0.06, z);
+      const g = new THREE18.Group();
+      g.add(m, r);
+      this.add(g);
+      return g;
+    };
+    pad(1, 0.2, 6.6, 3.6, 10133674);
+    const bank = bankModel(this, stone);
+    bank.position.set(P_BANK2.x - 0.4, 0.24, P_BANK2.z);
+    this.add(bank);
+    const glass = new THREE18.Mesh(
+      new THREE18.CylinderGeometry(0.42, 0.42, GH, 32, 1, true),
+      this.m(new THREE18.MeshPhysicalMaterial({ color: 14215423, roughness: 0.05, transparent: true, opacity: 0.16, depthWrite: false, side: THREE18.DoubleSide }))
+    );
+    glass.position.set(P_G.x, 0.24 + GH / 2 + 0.02, P_G.z);
+    glass.renderOrder = 5;
+    this.add(glass);
+    const fg = new THREE18.CylinderGeometry(0.34, 0.34, 1, 32);
+    fg.translate(0, 0.5, 0);
+    this.fill = new THREE18.Mesh(fg, this.m(new THREE18.MeshStandardMaterial({ color: 3811848, emissive: COL.gold, emissiveIntensity: 0.9, roughness: 0.3 })));
+    this.fill.position.set(P_G.x, 0.26, P_G.z);
+    this.add(this.fill);
+    const gb = new THREE18.Mesh(new THREE18.CylinderGeometry(0.55, 0.6, 0.18, 32), this.m(new THREE18.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.3 })));
+    gb.position.set(P_G.x, 0.33, P_G.z);
+    this.add(gb);
+    pad(QX(2.5), 0.4, NQ * 2.1 + 0.6, 3, COL.rmb);
+    this.q = Array.from({ length: NQ }, (_, i) => {
+      const win = this.m(new THREE18.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
+      const f = factory(this, stone, win);
+      f.scale.setScalar(0.5);
+      this.add(f);
+      return { f, win, p: 0, lit: 1 };
+    });
+    this.cb = new THREE18.Group();
+    this.cb.position.copy(P_CB);
+    this.add(this.cb);
+    const cbp = new THREE18.Mesh(rbox(5, 0.24, 6.6, 0.08), padMat);
+    cbp.position.set(0, 0.12, 1.4);
+    this.cb.add(cbp);
+    const cbr = new THREE18.Mesh(rbox(5.06, 0.06, 6.66, 0.03), this.m(new THREE18.MeshBasicMaterial({ color: hdr(COL.gold, 1.3) })));
+    cbr.position.set(0, 0.06, 1.4);
+    this.cb.add(cbr);
+    const cbm = bankModel(this, this.m(new THREE18.MeshStandardMaterial({ color: 13221796, roughness: 0.55, metalness: 0.1 })));
+    cbm.position.y = 0.24;
+    cbm.scale.setScalar(1.2);
+    this.cb.add(cbm);
+    const vault = new THREE18.Mesh(
+      rbox(3.2, 1.3, 1.7, 0.06),
+      this.m(new THREE18.MeshPhysicalMaterial({ color: 16770726, roughness: 0.08, transparent: true, opacity: 0.14, depthWrite: false, side: THREE18.DoubleSide }))
+    );
+    vault.position.set(0, 0.24 + 0.65 + 0.01, P_VAULT.z - P_CB.z);
+    vault.renderOrder = 5;
+    this.cb.add(vault);
+    for (let i = 0; i < 6; i++) {
+      const bar = new THREE18.Mesh(new THREE18.CylinderGeometry(0.03, 0.03, 1.3, 8), this.m(new THREE18.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.3 })));
+      bar.position.set(-1.35 + i * 0.54, 0.24 + 0.66, P_VAULT.z - P_CB.z + 0.86);
+      this.cb.add(bar);
+    }
+    this.bills = bundleSet(this, 8 + NQ * 3, { w: 0.86, h: 0.15, d: 0.42 });
+    this.add(this.bills.mesh, this.bills.band);
+    this.NV = 8;
+    this.vslot = Array.from({ length: this.NV }, (_, i) => V2(P_VAULT.x - 0.95 + i % 3 * 0.95, 0.24 + 0.1 + Math.floor(i / 3) * 0.16, P_VAULT.z + (i % 2 ? 0.25 : -0.25)));
+    this.pulse = new THREE18.Mesh(new THREE18.SphereGeometry(0.28, 20, 14), this.m(new THREE18.MeshBasicMaterial({ color: hdr(COL.gold, 2.4) })));
+    this.add(this.pulse);
+    this.P = new THREE18.Vector3();
+    this.add(blob(this, 34, 10, 0.6));
+    this.lBank = this.label('<span class="t">银行</span><span class="c">把钱借出去</span>', [P_BANK2.x - 0.4, 3, 0]);
+    this.lGauge = this.label("", [P_G.x, 0.24 + GH + 0.25, P_G.z]);
+    this.lQueue = this.label('<span class="t">来借钱的企业</span>', [QX(2.5), 2.1, 0.4]);
+    this.lMsg = this.label("", [QX(2.5), 0.05, 2], "down");
+    this.lCB = this.label('<span class="t">央行</span>', [P_CB.x, 3.6, P_CB.z]);
+    this.lCut = this.label('<span class="t gold">降息：直接把“租金”调低</span>', [-2.6, 5.6, 0.5]);
+    this.lVault = this.label('<span class="t">押在央行的钱</span><span class="c">银行不能借出去</span>', [P_VAULT.x, 0.05, P_VAULT.z + 1.5], "down");
+    this.lRrr = this.label('<span class="t gold">降准：少押一点</span>', [-3.9, 3.9, 1.6]);
+  }
+  update(dt, time) {
+    const t = this.t;
+    const st = this.st.step || "many";
+    const on = (c) => c ? 1 : 0;
+    const pres = (i) => {
+      const arrive = (t0) => eOut(seg(t, t0, t0 + 0.45));
+      if (st === "many") return arrive(0.5 + i * 0.42);
+      if (st === "few") return i < 2 ? 1 : 1 - eInOut(seg(t, 0.6 + (5 - i) * 0.55, 1.05 + (5 - i) * 0.55));
+      if (st === "cut") return i < 2 ? 1 : i < 4 ? arrive(2.7 + (i - 2) * 0.5) : 0;
+      return i < 4 ? 1 : arrive(3 + (i - 4) * 0.5);
+    };
+    let sum = 0;
+    this.q.forEach((c, i) => {
+      const p = pres(i);
+      sum += p;
+      c.f.position.set(QX(i) + (1 - p) * 7, 0.24, 0.35);
+      c.f.scale.setScalar(Math.max(1e-3, 0.5 * p));
+      c.f.visible = p > 0.01;
+    });
+    let r;
+    if (st === "many") r = 0.32 + 0.52 * (sum / NQ);
+    else if (st === "few") r = 0.42 + 0.42 * ((sum - 2) / 4);
+    else if (st === "cut") r = lerp(0.42, 0.2, eInOut(seg(t, 1.8, 2.5)));
+    else r = 0.2;
+    this.fill.scale.y = Math.max(0.01, r * (GH - 0.2));
+    const arrow = st === "many" ? t > 1.2 ? '<span class="t red">↑ 涨</span>' : "" : st === "few" ? t > 1 ? '<span class="t green">↓ 降</span>' : "" : st === "cut" ? t > 2 ? '<span class="t green">↓ 降</span>' : "" : "";
+    this.lGauge.set(`<span class="t gold">借钱的“租金”</span><span class="c">也就是利息</span>${arrow}`);
+    const B = V2(P_BANK2.x + 0.4, 1.9, 0.6);
+    for (let i = 0; i < NQ; i++) {
+      const p = pres(i);
+      const dest = V2(QX(i), 1.5, 0.35);
+      for (let k = 0; k < 3; k++) {
+        const idx = this.NV + i * 3 + k;
+        const u = p > 0.95 ? flowU2(t - 0.3 - i * 0.2, 0.55, k, 3) : -1;
+        if (u < 0) {
+          this.bills.hide(idx);
+          continue;
+        }
+        arc2(B, dest, u, 1.3 + i * 0.12, this.P);
+        const s = ss(0, 0.08, u) * ss(1, 0.92, u);
+        this.bills.set(idx, this.P.x, this.P.y, this.P.z, s, RMB, u * 1.1);
+      }
+    }
+    const cbOn = st === "cut" || st === "rrr";
+    const kcb = cbOn ? st === "cut" ? eOut(seg(t, 0.2, 1)) : 1 : 0;
+    this.cb.scale.setScalar(Math.max(1e-3, kcb));
+    this.cb.visible = kcb > 0.01;
+    for (let i = 0; i < this.NV; i++) {
+      const v = this.vslot[i];
+      if (!cbOn || kcb < 0.98) {
+        this.bills.hide(i);
+        continue;
+      }
+      let q = 0;
+      if (st === "rrr" && i >= this.NV - 3) q = eInOut(seg(t, 1.3 + (i - this.NV + 3) * 0.35, 2.3 + (i - this.NV + 3) * 0.35));
+      if (q >= 1) {
+        this.bills.hide(i);
+        continue;
+      }
+      arc2(v, V2(P_BANK2.x - 0.4, 2.2, 0.9), q, 2, this.P);
+      this.bills.set(i, this.P.x, this.P.y, this.P.z, 1 - ss(0.85, 1, q), RMB, q * 2);
+    }
+    this.bills.commit();
+    const pq = st === "cut" ? seg(t, 1, 1.8) : 0;
+    this.pulse.visible = pq > 0 && pq < 1;
+    if (this.pulse.visible) arc2(V2(P_CB.x, 4, P_CB.z), V2(P_G.x, 0.24 + GH + 0.3, P_G.z), pq, 2.2, this.pulse.position);
+    const msg = st === "many" ? '<span class="t red">借钱的人多 → 租金涨</span>' : st === "few" ? '<span class="t green">生意难做，不敢借钱扩张 → 租金降</span>' : st === "cut" ? '<span class="t">借钱便宜了，又有人来借</span>' : '<span class="t">能借出去的钱多了</span>';
+    this.lMsg.set(msg);
+    this.lMsg.target = on(st === "many" ? t > 3.2 : st === "few" ? t > 1.2 : st === "cut" ? t > 3.2 : t > 3.2);
+    this.lBank.target = on(t > 0.3);
+    this.lGauge.target = on(t > 0.5);
+    this.lQueue.target = on(st === "many" && t > 1.4);
+    this.lCB.target = on(cbOn && kcb > 0.9);
+    this.lCut.target = on(st === "cut" && t > 1.6 && !this.app.ui.narrow());
+    this.lVault.target = on(st === "rrr" && t > 0.4);
+    this.lRrr.target = on(st === "rrr" && t > 1.5);
+  }
+};
+
 // src/pieces/swan.js
-import * as THREE18 from "three";
+import * as THREE19 from "three";
 var slab = (piece, w, d) => {
-  const m = new THREE18.Mesh(rbox(w, 0.3, d, 0.08), piece.m(new THREE18.MeshStandardMaterial({ color: 1579294, metalness: 0.7, roughness: 0.35 })));
+  const m = new THREE19.Mesh(rbox(w, 0.3, d, 0.08), piece.m(new THREE19.MeshStandardMaterial({ color: 1579294, metalness: 0.7, roughness: 0.35 })));
   m.position.y = 0.15;
   return m;
 };
@@ -5540,10 +5833,10 @@ function curtain(piece, pts, y0, color, op) {
     const a = i * 2;
     idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
   }
-  const g = new THREE18.BufferGeometry();
-  g.setAttribute("position", new THREE18.Float32BufferAttribute(pos, 3));
+  const g = new THREE19.BufferGeometry();
+  g.setAttribute("position", new THREE19.Float32BufferAttribute(pos, 3));
   g.setIndex(idx);
-  const m = new THREE18.Mesh(g, piece.m(new THREE18.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: THREE18.DoubleSide })));
+  const m = new THREE19.Mesh(g, piece.m(new THREE19.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: THREE19.DoubleSide })));
   m.setProgress = (p) => g.setDrawRange(0, Math.round(Math.max(0, Math.min(1, p)) * (pts.length - 1)) * 6);
   m.setProgress(0);
   return m;
@@ -5562,23 +5855,23 @@ var Turkey = class extends Piece {
     for (let i = 0; i <= N2; i++) {
       const d = i / N2 * 1e3;
       const jit = i > 0 && i < N2 ? (R() - 0.5) * 0.1 : 0;
-      pts.push(new THREE18.Vector3(X2(d), Y(val(d) + jit), 0));
+      pts.push(new THREE19.Vector3(X2(d), Y(val(d) + jit), 0));
     }
     this.pts = pts;
     this.add(slab(this, 19.4, 2.4));
-    const axis = new THREE18.Mesh(new THREE18.BoxGeometry(18.2, 0.04, 0.04), this.m(new THREE18.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
+    const axis = new THREE19.Mesh(new THREE19.BoxGeometry(18.2, 0.04, 0.04), this.m(new THREE19.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
     axis.position.set(X2(500) + 0.4, Y(0), 0);
     this.add(axis);
-    this.line = progTube(pts, 0.075, this.m(new THREE18.MeshBasicMaterial({ color: hdr(15266047, 1.7) })), 8);
+    this.line = progTube(pts, 0.075, this.m(new THREE19.MeshBasicMaterial({ color: hdr(15266047, 1.7) })), 8);
     this.add(this.line);
     this.band = curtain(this, pts, Y(0), hdr(COL.spx, 0.8), 0.13);
     this.add(this.band);
     const top = pts[pts.length - 1];
     this.top = top;
-    const drop = [top.clone(), new THREE18.Vector3(top.x + 0.12, Y(2.4), 0), new THREE18.Vector3(top.x + 0.3, Y(0.02), 0)];
-    this.drop = progTube(drop, 0.085, this.m(new THREE18.MeshBasicMaterial({ color: hdr(COL.risk, 2.2) })), 8);
+    const drop = [top.clone(), new THREE19.Vector3(top.x + 0.12, Y(2.4), 0), new THREE19.Vector3(top.x + 0.3, Y(0.02), 0)];
+    this.drop = progTube(drop, 0.085, this.m(new THREE19.MeshBasicMaterial({ color: hdr(COL.risk, 2.2) })), 8);
     this.add(this.drop);
-    this.head = new THREE18.Mesh(new THREE18.SphereGeometry(0.2, 18, 12), this.m(new THREE18.MeshBasicMaterial({ color: hdr(16769968, 2) })));
+    this.head = new THREE19.Mesh(new THREE19.SphereGeometry(0.2, 18, 12), this.m(new THREE19.MeshBasicMaterial({ color: hdr(16769968, 2) })));
     this.add(this.head);
     this.add(blob(this, 22, 6, 0.7));
     this.lAxis = this.label('<span class="c">↑ 火鸡的“安全感”</span>', [X2(0) + 0.1, Y(4.4), 0], "right");
@@ -5586,7 +5879,7 @@ var Turkey = class extends Piece {
     this.lFed = this.label('<span class="t">天天有人喂</span><span class="c">一天比一天放心</span>', [X2(430), Y(val(430)) + 0.55, 0]);
     this.lTop = this.label('<span class="t">第 1000 天</span><span class="c">最放心的时候</span>', [top.x - 0.6, top.y + 0.5, 0]);
     this.lDrop = this.label('<span class="t red">第 1001 天：感恩节</span><span class="c">（美国人这天吃火鸡）</span>', [top.x + 0.55, Y(0.5), 0.2], "right");
-    this.lMoral = this.label('<span class="t gold">预测不了，但迟早会来</span>', [top.x - 1.4, top.y + 0.5, 0]);
+    this.lMoral = this.label('<span class="t gold">过去越平稳，越以为不会出事</span>', [top.x - 2, top.y + 0.5, 0]);
     this.cHead = hdr(16769968, 2);
     this.cRed = hdr(COL.risk, 2.2);
     this.shook = false;
@@ -5635,22 +5928,22 @@ var STOPS = [
   { h: 10, html: '<span class="t gold">十年以上不用</span><span class="c">养老</span>' }
 ];
 var HX2 = (yr) => -5.2 + yr * 0.56;
-var GREEN = new THREE18.Color(COL.ok);
-var RED4 = new THREE18.Color(COL.risk);
+var GREEN = new THREE19.Color(COL.ok);
+var RED4 = new THREE19.Color(COL.risk);
 var Horizon = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [1, 0, 13, 1] });
     this.add(slab(this, 24, 2.2));
     const Y02 = 0.75;
     const row = (i) => 5.75 - i * 0.74;
-    const axis = new THREE18.Mesh(new THREE18.BoxGeometry(HX2(26) - HX2(0), 0.04, 0.04), this.m(new THREE18.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
+    const axis = new THREE19.Mesh(new THREE19.BoxGeometry(HX2(26) - HX2(0), 0.04, 0.04), this.m(new THREE19.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
     axis.position.set((HX2(0) + HX2(26)) / 2, Y02, 0);
     this.add(axis);
-    const geo = new THREE18.BoxGeometry(1, 0.4, 0.3);
+    const geo = new THREE19.BoxGeometry(1, 0.4, 0.3);
     geo.translate(0.5, 0, 0);
     this.bars = REC.map((r, i) => {
-      const mat = this.m(new THREE18.MeshStandardMaterial({ color: 1316380, emissive: RED4.clone(), emissiveIntensity: 0.75, roughness: 0.4, metalness: 0.2 }));
-      const m = new THREE18.Mesh(geo, mat);
+      const mat = this.m(new THREE19.MeshStandardMaterial({ color: 1316380, emissive: RED4.clone(), emissiveIntensity: 0.75, roughness: 0.4, metalness: 0.2 }));
+      const m = new THREE19.Mesh(geo, mat);
       m.position.set(HX2(0), row(i), 0);
       m.scale.x = 1e-3;
       this.add(m);
@@ -5658,13 +5951,13 @@ var Horizon = class extends Piece {
       return { ...r, m, mat, l, c: RED4.clone() };
     });
     this.ticks = [0, 5, 10, 15, 20, 25].map((y) => {
-      const tk = new THREE18.Mesh(new THREE18.BoxGeometry(0.04, 0.22, 0.04), this.m(new THREE18.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
+      const tk = new THREE19.Mesh(new THREE19.BoxGeometry(0.04, 0.22, 0.04), this.m(new THREE19.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
       tk.position.set(HX2(y), Y02 - 0.11, 0);
       this.add(tk);
       return this.label(`<span class="c">${y === 0 ? "0" : y + " 年"}</span>`, [HX2(y), Y02 - 0.2, 0], "down");
     });
-    this.lCap = this.label('<span class="c">买在最高点，到涨回这个高点用了多久（标普 500 点位）</span>', [HX2(13), Y02 - 0.95, 0.3], "down");
-    this.marker = new THREE18.Mesh(new THREE18.BoxGeometry(0.07, row(0) - Y02 + 0.9, 0.07), this.m(new THREE18.MeshBasicMaterial({ color: hdr(COL.gold, 2) })));
+    this.lCap = this.label('<span class="c">买在最高点 → 涨回这个高点（标普 500 点位）</span>', [HX2(19), row(6) + 0.5, 0.2]);
+    this.marker = new THREE19.Mesh(new THREE19.BoxGeometry(0.07, row(0) - Y02 + 0.9, 0.07), this.m(new THREE19.MeshBasicMaterial({ color: hdr(COL.gold, 2) })));
     this.markerY = (row(0) + 0.9 + Y02) / 2;
     this.add(this.marker);
     this.lMark = this.label("", [0, row(0) + 0.95, 0.2]);
@@ -5719,18 +6012,18 @@ var Withdraw = class extends Piece {
     const pts = [];
     for (let i = 0; i <= N2; i++) {
       const yr = a0 + (W1 - a0) * i / N2;
-      pts.push(new THREE18.Vector3(WX(yr), WY(10 ** f(yr)), 0));
+      pts.push(new THREE19.Vector3(WX(yr), WY(10 ** f(yr)), 0));
     }
     this.yrOf = (p) => a0 + (W1 - a0) * p;
     this.pOf = (yr) => (yr - a0) / (W1 - a0);
     this.add(slab(this, 20.4, 2.4));
-    this.line = progTube(pts, 0.075, this.m(new THREE18.MeshBasicMaterial({ color: hdr(15266047, 1.7) })), 8);
+    this.line = progTube(pts, 0.075, this.m(new THREE19.MeshBasicMaterial({ color: hdr(15266047, 1.7) })), 8);
     this.add(this.line);
     this.band = curtain(this, pts, WY(32), hdr(COL.spx, 0.8), 0.12);
     this.add(this.band);
-    this.add(dashLine(this, [new THREE18.Vector3(WX(W0), WY(100), -0.05), new THREE18.Vector3(WX(W1) + 0.3, WY(100), -0.05)], 16777215, 0.45));
+    this.add(dashLine(this, [new THREE19.Vector3(WX(W0), WY(100), -0.05), new THREE19.Vector3(WX(W1) + 0.3, WY(100), -0.05)], 16777215, 0.45));
     const dot = (yr, v, col) => {
-      const m = new THREE18.Mesh(new THREE18.SphereGeometry(0.22, 18, 12), this.m(new THREE18.MeshBasicMaterial({ color: hdr(col, 2) })));
+      const m = new THREE19.Mesh(new THREE19.SphereGeometry(0.22, 18, 12), this.m(new THREE19.MeshBasicMaterial({ color: hdr(col, 2) })));
       m.position.set(WX(yr), WY(v), 0.05);
       m.visible = false;
       this.add(m);
@@ -5773,11 +6066,12 @@ function buildPieces(app2) {
     new Bundles(app2, "cover", [0, 0, 0], "cover"),
     // 1 大环境
     new Scale(app2, "scale", [200, 0, 0]),
-    new Stairs(app2, "stairs", [262, 0, 0]),
-    new MoneyStack(app2, "money", [324, 0, 0]),
-    new Dilute(app2, "dilute", [386, 0, 0]),
-    new Tank(app2, "tank", [448, 0, 0]),
-    new Seesaw(app2, "seesaw", [512, 0, 0]),
+    new Rates(app2, "rates", [255, 0, 0]),
+    new Stairs(app2, "stairs", [300, 0, 0]),
+    new MoneyStack(app2, "money", [345, 0, 0]),
+    new Dilute(app2, "dilute", [400, 0, 0]),
+    new Tank(app2, "tank", [455, 0, 0]),
+    new Seesaw(app2, "seesaw", [515, 0, 0]),
     // 2 汇率
     new Tug(app2, "tug", [700, 0, 0]),
     new FxFlow(app2, "fx", [765, 0, 0]),
@@ -5819,7 +6113,6 @@ function buildPieces(app2) {
 
 // src/beats.js
 var ACTS = ["开场", "大环境", "汇率", "思路", "标普 500", "黄金", "风险", "方案", "怎么买"];
-var chain = (items) => `<div class="chain">${items.map((s) => `<span>${s}</span>`).join("<i>→</i>")}</div>`;
 var spec = (rows, tags = "") => `<dl class="spec">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${tags ? `<div class="tags">${tags}</div>` : ""}`;
 var BEATS = [
   /* ---------- 开场 ---------- */
@@ -5834,27 +6127,82 @@ var BEATS = [
   /* ---------- 第一幕：大环境 ---------- */
   {
     act: 1,
-    layout: "left",
+    layout: "top",
     eyebrow: "<b>第一幕</b>大环境",
     h: "这几年，生意<br>为什么越来越卷？",
-    sub: "说到底是内需不足：老百姓的消费只占经济的四成，美国近七成。",
-    cam: { at: "scale", p: [0.5, 6.8, 25.5], t: [0.2, 3.6, 0], shift: [0.24, 0.03] },
-    pieces: { scale: {} }
+    sub: "一边：东西越来越多。",
+    cam: { at: "scale", p: [-5.6, 6.6, 24.5], t: [-5.6, 3.2, 0], shift: [0, 0.12] },
+    pieces: { scale: { step: "goods" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "另一边：买东西的人越来越少",
+    sub: "钱都捂紧了。",
+    cam: { at: "scale", p: [4.8, 6.6, 24.5], t: [4.8, 3.2, 0], shift: [0, 0.12] },
+    pieces: { scale: { step: "money" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "货多、买的人少，只能拼价格",
+    sub: "工厂的出厂价，连跌了 41 个月。",
+    cam: { at: "scale", p: [0, 7.2, 26.5], t: [0, 3.6, 0], shift: [0, 0.12] },
+    pieces: { scale: { step: "price" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "说到底：内需不足",
+    sub: "老百姓花的钱，只占整个经济的四成。",
+    cam: { at: "scale", p: [16.9, 4.8, 16.5], t: [16.9, 2.5, 0], shift: [0, 0.14] },
+    pieces: { scale: { step: "share" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "利息，就是借钱的“租金”",
+    sub: "借钱的人多，租金就涨。",
+    cam: { at: "rates", p: [7.6, 6.6, 22.5], t: [7.6, 2.2, 0], shift: [0, 0.12] },
+    pieces: { rates: { step: "many" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "生意难做，借钱的人少了",
+    sub: "租金只好往下降。",
+    cam: { at: "rates", p: [7.6, 6.6, 22.5], t: [7.6, 2.2, 0], shift: [0, 0.12] },
+    pieces: { rates: { step: "few" } }
   },
   {
     act: 1,
     layout: "left",
-    h: "生意难做，<br>利息也一降再降",
-    sub: "利息就是借钱的“租金”：借钱的人少，租金就降。",
+    h: "存款的利息，<br>也一降再降",
+    sub: "银行收的租金少了，给存款的利息也就少了。",
     cam: { at: "stairs", p: [-2.6, 6.8, 20.5], t: [1.2, 2.5, 0], shift: [0.21, 0.02] },
     pieces: { stairs: {} }
   },
   {
     act: 1,
+    layout: "top",
+    h: "“降息”：央行直接把租金调低",
+    sub: "借钱便宜了，想让大家多借、多花。",
+    cam: { at: "rates", p: [3.4, 7.4, 27.5], t: [3.4, 2.3, 0], shift: [0, 0.12] },
+    pieces: { rates: { step: "cut" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "“降准”：银行少押一点钱在央行",
+    sub: "押得少了，能借出去的钱就多了。",
+    cam: { at: "rates", p: [3.4, 7.4, 27.5], t: [3.4, 2.3, 0], shift: [0, 0.12] },
+    pieces: { rates: { step: "rrr" } }
+  },
+  {
+    act: 1,
     layout: "left",
     h: "降息、降准，<br>就是常说的“放水”",
-    sub: "就是让市面上的钱变多：",
-    extra: chain(["降息：借钱便宜了", "降准：银行能多放贷款", "贷款放出去，钱就多了"]),
+    sub: "就是让市面上的钱变多。",
     cam: { at: "money", p: [1, 6.6, 33.5], t: [0.6, 4.9, 0], shift: [0.2, 0] },
     pieces: { money: {} }
   },
@@ -6079,14 +6427,6 @@ var BEATS = [
   {
     act: 6,
     layout: "top",
-    h: "《黑天鹅》这本书讲了什么",
-    sub: "极少发生、事先没人料到、一来就影响巨大的事，书里叫“黑天鹅”。",
-    cam: { at: "turkey", p: [0, 4.8, 23], t: [0, 3, 0], shift: [0, 0.15] },
-    pieces: { turkey: {} }
-  },
-  {
-    act: 6,
-    layout: "top",
     h: "但每一次，最后都涨了回来",
     sub: "而且都创了新高。但要等多久，每次差很多。",
     cam: { at: "coaster", p: [3, 10, 62], t: [1.5, 6.6, 0], shift: [0, 0.1] },
@@ -6094,32 +6434,40 @@ var BEATS = [
   },
   {
     act: 6,
+    layout: "top",
+    h: "《黑天鹅》：这种大跌预测不了，但迟早会来",
+    sub: "所以要想的不是它哪天来，而是来了等不等得起。",
+    cam: { at: "turkey", p: [0, 4.8, 23], t: [0, 3, 0], shift: [0, 0.15] },
+    pieces: { turkey: {} }
+  },
+  {
+    act: 6,
     layout: "left",
-    h: '历史最大回撤：<br><em class="red">−86%</em>',
-    sub: "最大回撤：从最高点跌到最低点，一共跌了多少。",
+    h: '跌多深：<br><em class="red">最大回撤</em>',
+    sub: "从最高点跌到最低点，一共跌掉多少。最深的一次：1929 年，−86%。",
     cam: { at: "underwater", p: [-8, 6.2, 26.5], t: [-11, 5.2, 0], shift: [0.27, 0] },
     pieces: { underwater: { step: "deep" } }
   },
   {
     act: 6,
     layout: "top",
-    h: "大跌之后，多久能回本？",
-    sub: "回本时间：跌下去以后，多久才涨回原来的最高点。",
+    h: "多久回来：回本时间",
+    sub: "跌下去以后，多久才涨回原来的最高点。",
     cam: { at: "underwater", p: [9, 6.6, 25.5], t: [8.4, 4.6, 0], shift: [0, 0.13] },
     pieces: { underwater: { step: "modern" } }
   },
   {
     act: 6,
     layout: "top",
-    h: "这笔钱准备干什么、放多久？",
-    sub: "能放得比回本时间久，黑天鹅来了也等得回来。",
+    h: "所以：这笔钱干什么用、能放多久？",
+    sub: "放得比回本时间久，黑天鹅来了也等得回来。",
     cam: { at: "horizon", p: [-1, 4.5, 21.5], t: [-1, 3.3, 0], shift: [0, 0.14] },
     pieces: { horizon: {} }
   },
   {
     act: 6,
     layout: "top",
-    h: "要取钱时碰上黑天鹅，怎么办？",
+    h: "要取钱时正好碰上黑天鹅，怎么办？",
     extra: '<ol class="risks"><li><b>1</b>快要用的钱，提前分批取</li><li><b>2</b>先取没跌的（比如黄金）</li><li><b>3</b>能晚取就晚取</li></ol>',
     cam: { at: "withdraw", p: [0, 4.8, 24], t: [0, 3.2, 0], shift: [0, 0.16] },
     pieces: { withdraw: {} }
@@ -6343,7 +6691,7 @@ function boot() {
   const canvas = document.getElementById("gl");
   let renderer;
   try {
-    renderer = new THREE19.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: QA });
+    renderer = new THREE20.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: QA });
     if (!renderer.capabilities.isWebGL2) throw new Error("WebGL2 unavailable");
   } catch (err) {
     document.documentElement.classList.add("nogl");
@@ -6351,25 +6699,25 @@ function boot() {
     return;
   }
   renderer.setClearColor(0, 1);
-  renderer.toneMapping = THREE19.NeutralToneMapping;
+  renderer.toneMapping = THREE20.NeutralToneMapping;
   renderer.toneMappingExposure = 1;
-  renderer.outputColorSpace = THREE19.SRGBColorSpace;
+  renderer.outputColorSpace = THREE20.SRGBColorSpace;
   app.renderer = renderer;
-  const scene = new THREE19.Scene();
-  scene.background = new THREE19.Color(0);
-  scene.fog = new THREE19.FogExp2(0, FOG);
-  const pmrem = new THREE19.PMREMGenerator(renderer);
+  const scene = new THREE20.Scene();
+  scene.background = new THREE20.Color(0);
+  scene.fog = new THREE20.FogExp2(0, FOG);
+  const pmrem = new THREE20.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.42;
   app.scene = scene;
-  scene.add(new THREE19.HemisphereLight(10135752, 657936, 0.42));
-  const key = new THREE19.DirectionalLight(16773342, 2.5);
+  scene.add(new THREE20.HemisphereLight(10135752, 657936, 0.42));
+  const key = new THREE20.DirectionalLight(16773342, 2.5);
   key.position.set(-0.55, 1, 0.75);
   scene.add(key);
-  const rim = new THREE19.DirectionalLight(9418495, 1.9);
+  const rim = new THREE20.DirectionalLight(9418495, 1.9);
   rim.position.set(0.8, 0.55, -1);
   scene.add(rim);
-  const camera = new THREE19.PerspectiveCamera(34, 1, 0.1, 700);
+  const camera = new THREE20.PerspectiveCamera(34, 1, 0.1, 700);
   app.camera = camera;
   app.labels = new Labels(document.getElementById("labels"));
   app.floor = makeFloor(scene);
@@ -6377,7 +6725,7 @@ function boot() {
   const { list, map } = buildPieces(app);
   app.pieces = map;
   app.list = list;
-  const rt = new THREE19.WebGLRenderTarget(4, 4, { type: THREE19.HalfFloatType, samples: 4 });
+  const rt = new THREE20.WebGLRenderTarget(4, 4, { type: THREE20.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(
@@ -6387,7 +6735,7 @@ function boot() {
       fragmentShader: "uniform sampler2D tDiffuse; varying vec2 vUv; void main(){ vec4 c = texture2D(tDiffuse, vUv); bvec4 bad = bvec4(isnan(c.r) || isinf(c.r), isnan(c.g) || isinf(c.g), isnan(c.b) || isinf(c.b), isnan(c.a) || isinf(c.a)); if (any(bad)) c = vec4(0.0, 0.0, 0.0, 1.0); gl_FragColor = clamp(c, vec4(0.0), vec4(48.0)); }"
     })
   );
-  const bloom = new UnrealBloomPass(new THREE19.Vector2(256, 256), 0.55, 0.45, 1.35);
+  const bloom = new UnrealBloomPass(new THREE20.Vector2(256, 256), 0.55, 0.45, 1.35);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
   app.composer = composer;
@@ -6410,8 +6758,8 @@ function boot() {
   };
   window.addEventListener("resize", resize);
   const cs = {
-    pos: new THREE19.Vector3(-30, 14, 40),
-    tgt: new THREE19.Vector3(0, 1, 0),
+    pos: new THREE20.Vector3(-30, 14, 40),
+    tgt: new THREE20.Vector3(0, 1, 0),
     fov: 34,
     fovT: 34,
     sx: 0,
@@ -6420,15 +6768,15 @@ function boot() {
     syT: 0,
     tw: null
   };
-  const UP = new THREE19.Vector3(0, 1, 0);
-  const fwd = new THREE19.Vector3();
-  const right = new THREE19.Vector3();
-  const up2 = new THREE19.Vector3();
+  const UP = new THREE20.Vector3(0, 1, 0);
+  const fwd = new THREE20.Vector3();
+  const right = new THREE20.Vector3();
+  const up2 = new THREE20.Vector3();
   function camGoal(b) {
     const c = b.cam;
-    const o = map[c.at] ? map[c.at].origin : new THREE19.Vector3();
-    const P = new THREE19.Vector3(...c.p).add(o);
-    const T = new THREE19.Vector3(...c.t).add(o);
+    const o = map[c.at] ? map[c.at].origin : new THREE20.Vector3();
+    const P = new THREE20.Vector3(...c.p).add(o);
+    const T = new THREE20.Vector3(...c.t).add(o);
     const asp = app.W / app.H;
     const narrow = ui.narrow();
     let k = 1;
@@ -6520,8 +6868,8 @@ function boot() {
     } catch (e) {
     }
   };
-  const focus = new THREE19.Vector3();
-  const lastCam = new THREE19.Vector3();
+  const focus = new THREE20.Vector3();
+  const lastCam = new THREE20.Vector3();
   let boost = 0;
   function step(dt) {
     app.time += dt;

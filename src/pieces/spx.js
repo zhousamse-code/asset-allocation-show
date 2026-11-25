@@ -261,7 +261,7 @@ export class Underwater extends Piece {
     // what the two words mean: the depth of a pit is the 最大回撤, its width the 回本时间
     this.ddLine = dashLine(this, [new THREE.Vector3(UX(1932.42), SURF, 0.15), new THREE.Vector3(UX(1932.42), UY(-86.2), 0.15)], 0xffd27a, 0.9, 0.18, 0.12);
     this.add(this.ddLine);
-    this.lDD = this.label('<span class="t gold">最大回撤 ↓</span><span class="c">从最高点跌到最低点</span>', [UX(1929.6) - 0.25, UY(-48), 0.2], 'left');
+    this.lDD = this.label('<span class="t gold">最大回撤 ↓</span>', [UX(1929.6) - 0.25, UY(-48), 0.2], 'left');
     this.add(blob(this, 40, 8, 0.5));
     this.p = 0;
   }
