@@ -223,11 +223,7 @@ export class Islands extends Piece {
     this.c = new THREE.Vector3();
     this.p = new THREE.Vector3();
 
-    this.lFac = this.label('<span class="t">公司</span>', [-2.1, 3.0, -0.7], 'up', this.i1);
-    this.lHouse = this.label('<span class="t">房产</span>', [1.9, 2.5, -1.0], 'up', this.i1);
-    this.lNet = this.label('<span class="t">人脉</span>', [1.9, 2.4, 1.6], 'up', this.i1);
-    this.lCash = this.label('<span class="t">现金流</span>', [-2.6, 1.3, 1.6], 'up', this.i1);
-    this.lHome = this.label('<span class="c">100% 绑在国内经济周期里</span>', [0, -0.5, 2.9], 'down', this.i1);
+    this.lMain = this.label('<span class="t">国内主业</span>', [-0.2, 3.3, -0.4], 'up', this.i1);
     this.lSea = this.label('<span class="c">海面起伏 = 国内经济周期</span>', [-1.2, 0.9, 6.2], 'mid');
     this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数 · 黄金</span>', [-0.5, 3.4, 0], 'up', this.i2);
     this.lBridge = this.label('<span class="t gold">跨海保险</span>', [0, 0, 0]);
@@ -295,9 +291,7 @@ export class Islands extends Piece {
       this.lBridge.pos.copy(this.b).setY(this.b.y * 0.5 + this.a.y * 0.25 + this.c.y * 0.25 + 0.35);
     }
 
-    const on1 = t > 0.8 ? 1 : 0;
-    this.lFac.target = this.lHouse.target = this.lNet.target = this.lCash.target = step === 1 ? on1 : 0.0;
-    this.lHome.target = step === 1 && t > 1.4 ? 1 : 0;
+    this.lMain.target = step === 2 && t > 0.8 ? 1 : 0;
     this.lSea.target = t > 1.0 ? 1 : 0;
     this.lI2.target = step === 2 && t > 1.3 ? 1 : 0;
     this.lBridge.target = step === 2 && t > 2.2 ? 1 : 0;

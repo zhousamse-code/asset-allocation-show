@@ -134,7 +134,7 @@ function boot() {
     let k = 1;
     if (asp < 1.6) k = clamp((1.6 / asp) ** 1.3, 1, 2.8);
     if (k !== 1) P.sub(T).multiplyScalar(k).add(T);
-    return { P, T, fov: c.fov || 34, sx: narrow ? 0 : c.shift ? c.shift[0] : 0, sy: narrow ? 0.16 : c.shift ? c.shift[1] : 0 };
+    return { P, T, fov: c.fov || 34, sx: narrow ? 0 : c.shift ? c.shift[0] : 0, sy: narrow ? c.nsy ?? 0.16 : c.shift ? c.shift[1] : 0 };
   }
   function camTo(b, instant, keepTween) {
     const g = camGoal(b);

@@ -166,7 +166,9 @@ export class Tank extends Piece {
     this.add(this.surf);
 
     const ggeo = new THREE.BoxGeometry(W, H, D);
-    ggeo.translate(0, H / 2 + B, 0);
+    // sit the glass a hair above the base: its bottom face and bottom edges were exactly coplanar with the
+    // base top (y = B) and z-fought, flickering across the whole tank floor
+    ggeo.translate(0, H / 2 + B + 0.012, 0);
     const glass = new THREE.Mesh(
       ggeo,
       this.m(
@@ -447,8 +449,11 @@ export class Seesaw extends Piece {
     if (st.step === 'tilt') {
       target = t < 0.7 ? 0 : -0.19;
       this.lRate.set('<span class="t">利率</span><span class="v red">↑ 涨</span>');
-      this.lRate.el.className = 'lbl up';
-      this.lRate.pos.set(0, 1.35, 0);
+      // wide screens: beside the cube, not above it (above, it ran into the cause chain under the slide text);
+      // narrow screens: above it, since beside it falls off the left edge
+      const nar = this.app.ui.narrow();
+      this.lRate.el.className = nar ? 'lbl up' : 'lbl left';
+      this.lRate.pos.set(nar ? 0 : -1.25, nar ? 1.35 : 0, 0);
       this.lBox.set('<span class="t">出口</span><span class="v">↓ 难</span>');
     } else {
       const k = seg(t, 0.55, 1.1);
@@ -460,8 +465,10 @@ export class Seesaw extends Piece {
         this.vel += 2.2;
       }
       this.lRate.set('<span class="t">利率</span><span class="v red">被压在低位</span>');
-      this.lRate.el.className = 'lbl left';
-      this.lRate.pos.set(-1.25, 0, 0);
+      // the plate lands on top of the cube, so never above it; on narrow screens the left side is off screen
+      const nar = this.app.ui.narrow();
+      this.lRate.el.className = nar ? 'lbl right' : 'lbl left';
+      this.lRate.pos.set(nar ? 1.25 : -1.25, 0, 0);
       this.lBox.set('<span class="t">出口</span><span class="v green">稳住了</span>');
     }
     const K = this.hit ? 70 : 24;

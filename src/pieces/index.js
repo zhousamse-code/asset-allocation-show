@@ -1,7 +1,7 @@
 import { Bundles } from './bundles.js';
 import { Stairs, Tank, Seesaw } from './act1.js';
 import { Scale, MoneyStack, Dilute } from './macro.js';
-import { Tug, Trap, Compound } from './act2.js';
+import { Tug, Compound } from './act2.js';
 import { Islands, Bet } from './act3.js';
 import { Roster } from './roster.js';
 import { City, Gold } from './act4.js';
@@ -24,7 +24,6 @@ export function buildPieces(app) {
     new Seesaw(app, 'seesaw', [512, 0, 0]),
     // 2 汇率
     new Tug(app, 'tug', [700, 0, 0]),
-    new Trap(app, 'trap', [765, 0, 0]),
     new Compound(app, 'compoundA', [825, 0, 0]),
     // 3 思路
     new Islands(app, 'islands', [1010, 0, 0]),

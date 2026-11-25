@@ -182,6 +182,12 @@ body {
 .center .h br {
   display: none;
 }
+/* long one-line titles (19–20 characters) used to wrap at the 1120px column cap on wide screens, pushing the
+   sub-line down into the 3D labels; let the title itself run wider than the column */
+.slide.top .h {
+  width: max-content;
+  max-width: 94vw;
+}
 .h em {
   font-style: normal;
   background: linear-gradient(100deg, var(--gold-2), var(--gold) 65%);
@@ -777,6 +783,10 @@ body {
   }
   .h {
     font-size: clamp(24px, 7vw, 40px);
+  }
+  .slide.top .h {
+    width: auto;
+    max-width: 100%;
   }
   .cover .h {
     font-size: clamp(30px, 8.5vw, 48px);
@@ -1750,7 +1760,7 @@ var Tank = class extends Piece {
     this.surf.renderOrder = 3;
     this.add(this.surf);
     const ggeo = new THREE4.BoxGeometry(W, H, D);
-    ggeo.translate(0, H / 2 + B, 0);
+    ggeo.translate(0, H / 2 + B + 0.012, 0);
     const glass = new THREE4.Mesh(
       ggeo,
       this.m(
@@ -2010,8 +2020,9 @@ var Seesaw = class extends Piece {
     if (st.step === "tilt") {
       target = t < 0.7 ? 0 : -0.19;
       this.lRate.set('<span class="t">利率</span><span class="v red">↑ 涨</span>');
-      this.lRate.el.className = "lbl up";
-      this.lRate.pos.set(0, 1.35, 0);
+      const nar = this.app.ui.narrow();
+      this.lRate.el.className = nar ? "lbl up" : "lbl left";
+      this.lRate.pos.set(nar ? 0 : -1.25, nar ? 1.35 : 0, 0);
       this.lBox.set('<span class="t">出口</span><span class="v">↓ 难</span>');
     } else {
       const k = seg(t, 0.55, 1.1);
@@ -2023,8 +2034,9 @@ var Seesaw = class extends Piece {
         this.vel += 2.2;
       }
       this.lRate.set('<span class="t">利率</span><span class="v red">被压在低位</span>');
-      this.lRate.el.className = "lbl left";
-      this.lRate.pos.set(-1.25, 0, 0);
+      const nar = this.app.ui.narrow();
+      this.lRate.el.className = nar ? "lbl right" : "lbl left";
+      this.lRate.pos.set(nar ? 1.25 : -1.25, 0, 0);
       this.lBox.set('<span class="t">出口</span><span class="v green">稳住了</span>');
     }
     const K = this.hit ? 70 : 24;
@@ -2668,65 +2680,6 @@ var Tug = class extends Piece {
     this.zoneL.target = this.zoneR.target = t > 1.3 && !chart ? 1 : 0;
   }
 };
-var Trap = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 9, 0.9] });
-    const U = 0.78;
-    const base = 3;
-    this.base = base;
-    this.hA = 3.6 * U;
-    this.hB = 5.18 * U;
-    this.topA = base + this.hA;
-    this.botB = this.topA - this.hB;
-    const bar = (color, x, em, body) => {
-      const g = new THREE7.Group();
-      g.position.x = x;
-      this.add(g);
-      const geo = new THREE7.BoxGeometry(2, 1, 1.7);
-      const mesh = new THREE7.Mesh(
-        geo,
-        this.m(new THREE7.MeshPhysicalMaterial({ color: body, emissive: color, emissiveIntensity: em, roughness: 0.18, metalness: 0.1, transparent: true, opacity: 0.92, clearcoat: 1 }))
-      );
-      g.add(mesh);
-      const e = edges(this, geo, color, 0.9);
-      g.add(e);
-      return g;
-    };
-    this.A = bar(COL.ok, -3.3, 0.55, 862744);
-    this.B = bar(COL.risk, 0, 0.5, 3017481);
-    this.C = bar(16743022, 3.3, 0.3, 2363406);
-    this.add(dashLine(this, [new THREE7.Vector3(-5.6, base, 0.9), new THREE7.Vector3(5.6, base, 0.9)], 16777215, 0.55));
-    this.c1 = dashLine(this, [new THREE7.Vector3(-2.3, this.topA, 0.86), new THREE7.Vector3(-1, this.topA, 0.86)], 16777215, 0.45, 0.12, 0.1);
-    this.c2 = dashLine(this, [new THREE7.Vector3(1, this.botB, 0.86), new THREE7.Vector3(2.3, this.botB, 0.86)], 16777215, 0.45, 0.12, 0.1);
-    this.add(this.c1);
-    this.add(this.c2);
-    this.add(blob(this, 12, 5, 0.5));
-    this.lBase = this.label('<span class="c">本金 100 万</span>', [-1.65, base - 0.08, 0.9], "down");
-    this.lA = this.label('<span class="v green">+3.6 万</span><span class="c">美元利息</span>', [-3.3, this.topA + 0.15, 0.5]);
-    this.lB = this.label('<span class="v red">−5.2 万</span><span class="c">汇率损失</span>', [1.2, (this.topA + this.botB) / 2, 0.85], "right");
-    this.lC = this.label('<span class="v red">98.4 万</span><span class="c">一年后到手</span>', [3.3, this.botB - 0.15, 0.5], "down");
-  }
-  update() {
-    const t = this.t;
-    const kA = eOut(seg(t, 0.5, 1.3));
-    const kB = eOut(seg(t, 1.8, 2.8));
-    const kC = eOut(seg(t, 3.2, 3.9));
-    const set = (g, bottom, h) => {
-      g.scale.y = Math.max(1e-3, h);
-      g.position.y = bottom + h / 2;
-      g.visible = h > 2e-3;
-    };
-    set(this.A, this.base, this.hA * kA);
-    set(this.B, this.topA - this.hB * kB, this.hB * kB);
-    set(this.C, this.base - (this.base - this.botB) * kC, (this.base - this.botB) * kC);
-    this.c1.visible = t > 1.5;
-    this.c2.visible = t > 3;
-    this.lBase.target = t > 0.3 ? 1 : 0;
-    this.lA.target = kA > 0.9 ? 1 : 0;
-    this.lB.target = kB > 0.9 ? 1 : 0;
-    this.lC.target = kC > 0.9 ? 1 : 0;
-  }
-};
 var Compound = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 12, 0.9] });
@@ -3016,11 +2969,7 @@ var Islands = class extends Piece {
     this.b = new THREE8.Vector3();
     this.c = new THREE8.Vector3();
     this.p = new THREE8.Vector3();
-    this.lFac = this.label('<span class="t">公司</span>', [-2.1, 3, -0.7], "up", this.i1);
-    this.lHouse = this.label('<span class="t">房产</span>', [1.9, 2.5, -1], "up", this.i1);
-    this.lNet = this.label('<span class="t">人脉</span>', [1.9, 2.4, 1.6], "up", this.i1);
-    this.lCash = this.label('<span class="t">现金流</span>', [-2.6, 1.3, 1.6], "up", this.i1);
-    this.lHome = this.label('<span class="c">100% 绑在国内经济周期里</span>', [0, -0.5, 2.9], "down", this.i1);
+    this.lMain = this.label('<span class="t">国内主业</span>', [-0.2, 3.3, -0.4], "up", this.i1);
     this.lSea = this.label('<span class="c">海面起伏 = 国内经济周期</span>', [-1.2, 0.9, 6.2], "mid");
     this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数 · 黄金</span>', [-0.5, 3.4, 0], "up", this.i2);
     this.lBridge = this.label('<span class="t gold">跨海保险</span>', [0, 0, 0]);
@@ -3084,9 +3033,7 @@ var Islands = class extends Piece {
       this.pulses.instanceMatrix.needsUpdate = true;
       this.lBridge.pos.copy(this.b).setY(this.b.y * 0.5 + this.a.y * 0.25 + this.c.y * 0.25 + 0.35);
     }
-    const on1 = t > 0.8 ? 1 : 0;
-    this.lFac.target = this.lHouse.target = this.lNet.target = this.lCash.target = step === 1 ? on1 : 0;
-    this.lHome.target = step === 1 && t > 1.4 ? 1 : 0;
+    this.lMain.target = step === 2 && t > 0.8 ? 1 : 0;
     this.lSea.target = t > 1 ? 1 : 0;
     this.lI2.target = step === 2 && t > 1.3 ? 1 : 0;
     this.lBridge.target = step === 2 && t > 2.2 ? 1 : 0;
@@ -5318,7 +5265,6 @@ function buildPieces(app2) {
     new Seesaw(app2, "seesaw", [512, 0, 0]),
     // 2 汇率
     new Tug(app2, "tug", [700, 0, 0]),
-    new Trap(app2, "trap", [765, 0, 0]),
     new Compound(app2, "compoundA", [825, 0, 0]),
     // 3 思路
     new Islands(app2, "islands", [1010, 0, 0]),
@@ -5379,9 +5325,9 @@ var BEATS = [
     layout: "left",
     eyebrow: "<b>第一幕</b>大环境",
     h: "这几年，生意<br>为什么越来越卷？",
-    sub: "说到底，是东西多了，买的人少了。",
-    extra: '<ul class="causes"><li><b>东西多了</b><span>前些年各行各业都在扩厂、加产能；出口又碰上关税，一部分货只能转回国内卖。</span></li><li><b>买的少了</b><span>房价跌了，家里的钱“缩水”了，大家捂紧钱包，能不花就不花。</span></li></ul><p class="note">货多钱少，只能拼价格：工厂出厂价格（PPI）从 2022 年 10 月起连跌了 41 个月，到今年 3 月才转正。</p>',
-    cam: { at: "scale", p: [0.5, 6.8, 25.5], t: [0.2, 3.6, 0], shift: [0.24, 0.03] },
+    sub: "说到底是内需不足：东西多了，买的人少了。",
+    extra: '<ul class="causes"><li><b>东西多了</b><span>前些年各行各业都在扩厂、加产能；出口又碰上关税，一部分货只能转回国内卖。</span></li><li><b>买的少了</b><span>房价跌了，家里的钱“缩水”了；收入、养老没底，能不花就不花。</span></li></ul><p class="note">老百姓的消费只占经济的四成左右（美国近七成）。货多钱少只能拼价格：工厂出厂价格（PPI）连跌 41 个月，今年 3 月才转正。</p>',
+    cam: { at: "scale", p: [0.5, 6.8, 25.5], t: [0.2, 3.6, 0], shift: [0.24, 0.03], nsy: 0.21 },
     pieces: { scale: {} }
   },
   {
@@ -5423,7 +5369,7 @@ var BEATS = [
     act: 1,
     layout: "top",
     h: "利息为什么<br>涨不回去？",
-    sub: "一是经济还弱，企业、地方、家庭都背着债，利息一高就还不起。二是汇率：",
+    sub: "一是内需不足，借钱的人少，利息自然上不去；<br>二是企业、地方、家庭都背着债，利息一高就还不起；三是汇率：",
     extra: chain(["利息一涨", "外面的钱涌进来换人民币", "人民币变贵", "我们的货在国外变贵", "订单跑了"]),
     cam: { at: "seesaw", p: [0, 5.6, 24.5], t: [0, 2, 0], shift: [0, 0.19] },
     pieces: { seesaw: { step: "tilt" } }
@@ -5456,15 +5402,6 @@ var BEATS = [
   },
   {
     act: 2,
-    layout: "left",
-    h: "别只为 3.6% 的利息<br>去存美元",
-    sub: "碰上人民币升值 5%，就是赚了利息、亏了汇率。",
-    extra: '<p class="note">假设：100 万换成美元存 1 年，年息 3.6%，期间人民币升值 5%。实际上过去一年（7.11 → 6.66），人民币就升值了约 6%。</p>',
-    cam: { at: "trap", p: [-1.6, 4.8, 18.5], t: [0.8, 3.7, 0], shift: [0.21, 0] },
-    pieces: { trap: {} }
-  },
-  {
-    act: 2,
     layout: "top",
     h: "想盖过汇率波动，<br>得靠长期复利",
     sub: "汇率只是来回晃；好资产的复利，时间越长，差距拉得越大。",
@@ -5474,16 +5411,8 @@ var BEATS = [
   /* ---------- 第三幕：思路 ---------- */
   {
     act: 3,
-    layout: "left",
-    eyebrow: "<b>第三幕</b>思路",
-    h: "您的身家，<br>都在同一条船上",
-    sub: "公司、房产、人脉、现金流，100% 绑在国内经济周期里。",
-    cam: { at: "islands", p: [-0.5, 7.4, 20], t: [-5.4, 1.4, 1.2], shift: [0.21, 0.02] },
-    pieces: { islands: { step: 1 } }
-  },
-  {
-    act: 3,
     layout: "top",
+    eyebrow: "<b>第三幕</b>思路",
     h: "拿一部分闲钱配到全球，<br>给主业上一份“保险”",
     sub: "不是为了炒股暴富。两边不同步：这边起风浪，那边未必。",
     cam: { at: "islands", p: [2.4, 10.5, 29], t: [1.8, 1.8, -1.5], shift: [0, 0.14] },
@@ -5984,7 +5913,7 @@ function boot() {
     let k = 1;
     if (asp < 1.6) k = clamp((1.6 / asp) ** 1.3, 1, 2.8);
     if (k !== 1) P.sub(T).multiplyScalar(k).add(T);
-    return { P, T, fov: c.fov || 34, sx: narrow ? 0 : c.shift ? c.shift[0] : 0, sy: narrow ? 0.16 : c.shift ? c.shift[1] : 0 };
+    return { P, T, fov: c.fov || 34, sx: narrow ? 0 : c.shift ? c.shift[0] : 0, sy: narrow ? c.nsy ?? 0.16 : c.shift ? c.shift[1] : 0 };
   }
   function camTo(b, instant, keepTween) {
     const g = camGoal(b);

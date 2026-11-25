@@ -186,67 +186,6 @@ export class Tug extends Piece {
   }
 }
 
-/* ---------- 2.3  The USD deposit trap: +3.6 interest, -5.2 FX, end up with 98.4 ---------- */
-export class Trap extends Piece {
-  constructor(app, name, origin) {
-    super(app, name, origin, { spot: [0, 0, 9, 0.9] });
-    const U = 0.78;
-    const base = 3.0;
-    this.base = base;
-    this.hA = 3.6 * U;
-    this.hB = 5.18 * U;
-    this.topA = base + this.hA;
-    this.botB = this.topA - this.hB;
-    const bar = (color, x, em, body) => {
-      const g = new THREE.Group();
-      g.position.x = x;
-      this.add(g);
-      const geo = new THREE.BoxGeometry(2.0, 1, 1.7);
-      const mesh = new THREE.Mesh(
-        geo,
-        this.m(new THREE.MeshPhysicalMaterial({ color: body, emissive: color, emissiveIntensity: em, roughness: 0.18, metalness: 0.1, transparent: true, opacity: 0.92, clearcoat: 1 })),
-      );
-      g.add(mesh);
-      const e = edges(this, geo, color, 0.9);
-      g.add(e);
-      return g;
-    };
-    this.A = bar(COL.ok, -3.3, 0.55, 0x0d2a18);
-    this.B = bar(COL.risk, 0, 0.5, 0x2e0b09);
-    this.C = bar(0xff7a6e, 3.3, 0.3, 0x24100e);
-    this.add(dashLine(this, [new THREE.Vector3(-5.6, base, 0.9), new THREE.Vector3(5.6, base, 0.9)], 0xffffff, 0.55));
-    this.c1 = dashLine(this, [new THREE.Vector3(-2.3, this.topA, 0.86), new THREE.Vector3(-1.0, this.topA, 0.86)], 0xffffff, 0.45, 0.12, 0.1);
-    this.c2 = dashLine(this, [new THREE.Vector3(1.0, this.botB, 0.86), new THREE.Vector3(2.3, this.botB, 0.86)], 0xffffff, 0.45, 0.12, 0.1);
-    this.add(this.c1);
-    this.add(this.c2);
-    this.add(blob(this, 12, 5, 0.5));
-    this.lBase = this.label('<span class="c">本金 100 万</span>', [-1.65, base - 0.08, 0.9], 'down');
-    this.lA = this.label('<span class="v green">+3.6 万</span><span class="c">美元利息</span>', [-3.3, this.topA + 0.15, 0.5]);
-    this.lB = this.label('<span class="v red">−5.2 万</span><span class="c">汇率损失</span>', [1.2, (this.topA + this.botB) / 2, 0.85], 'right');
-    this.lC = this.label('<span class="v red">98.4 万</span><span class="c">一年后到手</span>', [3.3, this.botB - 0.15, 0.5], 'down');
-  }
-  update() {
-    const t = this.t;
-    const kA = eOut(seg(t, 0.5, 1.3));
-    const kB = eOut(seg(t, 1.8, 2.8));
-    const kC = eOut(seg(t, 3.2, 3.9));
-    const set = (g, bottom, h) => {
-      g.scale.y = Math.max(0.001, h);
-      g.position.y = bottom + h / 2;
-      g.visible = h > 0.002;
-    };
-    set(this.A, this.base, this.hA * kA);
-    set(this.B, this.topA - this.hB * kB, this.hB * kB);
-    set(this.C, this.base - (this.base - this.botB) * kC, (this.base - this.botB) * kC);
-    this.c1.visible = t > 1.5;
-    this.c2.visible = t > 3.0;
-    this.lBase.target = t > 0.3 ? 1 : 0;
-    this.lA.target = kA > 0.9 ? 1 : 0;
-    this.lB.target = kB > 0.9 ? 1 : 0;
-    this.lC.target = kC > 0.9 ? 1 : 0;
-  }
-}
-
 /* ---------- 2.4 / 5.2  FX wobble (±5%) vs. compounding at 7%/yr (schematic) ---------- */
 export class Compound extends Piece {
   constructor(app, name, origin) {

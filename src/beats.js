@@ -1,7 +1,8 @@
 /* Story script: every entry is one "pause point". Copy is plain spoken Chinese for a ~50-year-old business owner
    who is not a finance person. Data as of 24 Nov 2026.
    cam: camera position p and look-at t, relative to the origin of piece `at`; shift moves the subject on screen
-   (x > 0 to the right, y > 0 downward) to leave room for the text block. */
+   (x > 0 to the right, y > 0 downward) to leave room for the text block; nsy overrides the downward shift on
+   narrow screens (default 0.16) for pages whose text runs long there. */
 
 export const ACTS = ['开场', '大环境', '汇率', '思路', '标普 500', '黄金', '风险', '方案', '怎么买'];
 
@@ -34,10 +35,10 @@ export const BEATS = [
     layout: 'left',
     eyebrow: '<b>第一幕</b>大环境',
     h: '这几年，生意<br>为什么越来越卷？',
-    sub: '说到底，是东西多了，买的人少了。',
+    sub: '说到底是内需不足：东西多了，买的人少了。',
     extra:
-      '<ul class="causes"><li><b>东西多了</b><span>前些年各行各业都在扩厂、加产能；出口又碰上关税，一部分货只能转回国内卖。</span></li><li><b>买的少了</b><span>房价跌了，家里的钱“缩水”了，大家捂紧钱包，能不花就不花。</span></li></ul><p class="note">货多钱少，只能拼价格：工厂出厂价格（PPI）从 2022 年 10 月起连跌了 41 个月，到今年 3 月才转正。</p>',
-    cam: { at: 'scale', p: [0.5, 6.8, 25.5], t: [0.2, 3.6, 0], shift: [0.24, 0.03] },
+      '<ul class="causes"><li><b>东西多了</b><span>前些年各行各业都在扩厂、加产能；出口又碰上关税，一部分货只能转回国内卖。</span></li><li><b>买的少了</b><span>房价跌了，家里的钱“缩水”了；收入、养老没底，能不花就不花。</span></li></ul><p class="note">老百姓的消费只占经济的四成左右（美国近七成）。货多钱少只能拼价格：工厂出厂价格（PPI）连跌 41 个月，今年 3 月才转正。</p>',
+    cam: { at: 'scale', p: [0.5, 6.8, 25.5], t: [0.2, 3.6, 0], shift: [0.24, 0.03], nsy: 0.21 },
     pieces: { scale: {} },
   },
   {
@@ -79,7 +80,7 @@ export const BEATS = [
     act: 1,
     layout: 'top',
     h: '利息为什么<br>涨不回去？',
-    sub: '一是经济还弱，企业、地方、家庭都背着债，利息一高就还不起。二是汇率：',
+    sub: '一是内需不足，借钱的人少，利息自然上不去；<br>二是企业、地方、家庭都背着债，利息一高就还不起；三是汇率：',
     extra: chain(['利息一涨', '外面的钱涌进来换人民币', '人民币变贵', '我们的货在国外变贵', '订单跑了']),
     cam: { at: 'seesaw', p: [0, 5.6, 24.5], t: [0, 2.0, 0], shift: [0, 0.19] },
     pieces: { seesaw: { step: 'tilt' } },
@@ -113,15 +114,6 @@ export const BEATS = [
   },
   {
     act: 2,
-    layout: 'left',
-    h: '别只为 3.6% 的利息<br>去存美元',
-    sub: '碰上人民币升值 5%，就是赚了利息、亏了汇率。',
-    extra: '<p class="note">假设：100 万换成美元存 1 年，年息 3.6%，期间人民币升值 5%。实际上过去一年（7.11 → 6.66），人民币就升值了约 6%。</p>',
-    cam: { at: 'trap', p: [-1.6, 4.8, 18.5], t: [0.8, 3.7, 0], shift: [0.21, 0] },
-    pieces: { trap: {} },
-  },
-  {
-    act: 2,
     layout: 'top',
     h: '想盖过汇率波动，<br>得靠长期复利',
     sub: '汇率只是来回晃；好资产的复利，时间越长，差距拉得越大。',
@@ -132,16 +124,8 @@ export const BEATS = [
   /* ---------- 第三幕：思路 ---------- */
   {
     act: 3,
-    layout: 'left',
-    eyebrow: '<b>第三幕</b>思路',
-    h: '您的身家，<br>都在同一条船上',
-    sub: '公司、房产、人脉、现金流，100% 绑在国内经济周期里。',
-    cam: { at: 'islands', p: [-0.5, 7.4, 20], t: [-5.4, 1.4, 1.2], shift: [0.21, 0.02] },
-    pieces: { islands: { step: 1 } },
-  },
-  {
-    act: 3,
     layout: 'top',
+    eyebrow: '<b>第三幕</b>思路',
     h: '拿一部分闲钱配到全球，<br>给主业上一份“保险”',
     sub: '不是为了炒股暴富。两边不同步：这边起风浪，那边未必。',
     cam: { at: 'islands', p: [2.4, 10.5, 29], t: [1.8, 1.8, -1.5], shift: [0, 0.14] },
