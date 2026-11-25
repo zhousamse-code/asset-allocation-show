@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { Piece, rbox, COL, clamp01, lerp, eInOut, ss, rng, canvasTex, blob } from '../lib.js';
 
-/* 200 bundles = 200 万元 (one bundle = 1 万). The same bundles become the allocation towers later:
-   70% S&P 500 (140 bundles) + 30% gold (60 bundles). */
+/* 200 bundles = 200 万元 (one bundle = 1 万). The same bundles become the allocation tower later:
+   all 200 into the S&P 500 (the user's choice, 2026-11-25: no gold, no Nasdaq split). */
 const N = 200;
 export const BW = 1.56;
 export const BH = 0.26;
@@ -10,17 +10,20 @@ export const BD = 0.76;
 const GX = 1.62;
 export const GY = 0.272;
 const GZ = 0.8;
-const NS = 140; // S&P 500 bundles
-const PER = 6; // bundles per tower layer (3 wide x 2 deep)
-const TX = [-2.95, 2.95];
+const NS = 200; // S&P 500 bundles (all of them)
+const PER = 12; // bundles per tower layer (4 wide x 3 deep)
+const TX = [0, 0];
 const LAYERS = [Math.ceil(NS / PER), Math.ceil((N - NS) / PER)];
 const catOf = (i) => (i < NS ? 0 : 1);
 const idxIn = (i) => (i < NS ? i : i - NS);
 const HERO = 9 * 20 + 3 * 5 + 2;
 
-/* buying plan: gold in one go; the S&P part in 7 batches of 20 (FX quotas / ETF premiums make it gradual) */
-const NB = 7;
-const batchOf = (i) => (i < NS ? Math.floor(i / 20) : -1);
+/* buying plan: the S&P part in 8 batches of 25 (FX quotas / ETF premiums make it gradual) */
+const BATCH = 25;
+const NB = 8;
+const batchOf = (i) => (i < NS ? Math.floor(i / BATCH) : -1);
+/* step 'crash': a 2008-style fall (-57%) takes the tower from 200 to 86 bundles, then it grows back */
+const KEEP = 86;
 function pilePos(i, out) {
   const layer = Math.floor(i / 20);
   const r = i % 20;
@@ -29,12 +32,12 @@ function pilePos(i, out) {
 function towerPos(cat, k, out) {
   const layer = Math.floor(k / PER);
   const r = k % PER;
-  return out.set(TX[cat] + ((r % 3) - 1) * GX, BH / 2 + layer * GY, (Math.floor(r / 3) - 0.5) * GZ);
+  return out.set(TX[cat] + ((r % 4) - 1.5) * GX, BH / 2 + layer * GY, (Math.floor(r / 4) - 1) * GZ);
 }
 function queuePos(i, out) {
   const b = batchOf(i);
-  const k = i % 20;
-  return out.set(-1.2 + b * 1.6 + ((k % 2) - 0.5) * 0.82, BH / 2 + Math.floor(k / 2) * GY, 5.4);
+  const k = i % BATCH;
+  return out.set(-7 + b * 2.0 + ((k % 2) - 0.5) * 0.82, BH / 2 + Math.floor(k / 2) * GY, 5.4);
 }
 export function noteTex() {
   return canvasTex(256, 128, (g, w, h) => {
@@ -55,8 +58,7 @@ export function noteTex() {
 }
 
 const TOWER_TXT = [
-  ['70%', '标普 500', '140 万 · 长期增长', 'blue'],
-  ['30%', '黄金', '60 万 · 对冲 · 抗贬值', 'gold'],
+  ['100%', '标普 500', '200 万 · 长期拿住', 'blue'],
 ];
 
 export class Bundles extends Piece {
@@ -107,6 +109,8 @@ export class Bundles extends Piece {
     this.red = new THREE.Color(0xb3202a);
     this.cash = new THREE.Color(0xb9bdc4);
     this.catC = [0x2f7fe0, 0xe0ad3c].map((c) => new THREE.Color(c));
+    this.lost = new THREE.Color(0x4a1416);
+    this.tmpC = new THREE.Color();
     this.batchNow = -1;
 
     if (kind === 'cover') {
@@ -221,7 +225,7 @@ export class Bundles extends Piece {
         S.arc = 0;
         S.drop = true;
       } else if (mode === 'batch') {
-        S.t0 = t + (c === 1 ? k * 0.008 : (i % 20) * 0.025);
+        S.t0 = t + (i % BATCH) * 0.02;
         S.dur = 0.8;
         S.arc = 1.8;
       } else {
@@ -280,13 +284,23 @@ export class Bundles extends Piece {
       }
       this.P.copy(S.p);
       if (mode === 'unit' && i === HERO && k >= 1) this.P.y += Math.sin(time * 1.3) * 0.08;
+      let fallen = 0;
+      if (mode === 'crash' && i >= KEEP) {
+        // the top 114 bundles slide off the tower onto the floor, then climb back
+        const f = eInOut(clamp01((t - 0.9 - (N - 1 - i) * 0.004) / 1.3)) - eInOut(clamp01((t - 4.0 - (i - KEEP) * 0.006) / 1.6));
+        fallen = f;
+        const j = i - KEEP;
+        const ring = 4.2 + (j % 3) * 0.95;
+        const a = (j / (N - KEEP)) * Math.PI * 1.7 - Math.PI * 0.35;
+        this.P.set(lerp(S.p.x, Math.cos(a) * ring, f), lerp(S.p.y, BH / 2 + Math.floor(j / 57) * GY, f) + Math.sin(Math.PI * f) * 1.2, lerp(S.p.z, Math.sin(a) * ring * 0.55 + 0.6, f));
+      }
       this.E.set(i === HERO && mode === 'unit' ? 0.18 : 0, S.r, 0);
       this.Q.setFromEuler(this.E);
-      this.SC.setScalar(S.s);
+      this.SC.setScalar(S.s * (1 - 0.18 * fallen));
       this.M.compose(this.P, this.Q, this.SC);
       this.mesh.setMatrixAt(i, this.M);
       this.band.setMatrixAt(i, this.M);
-      this.mesh.setColorAt(i, S.c);
+      this.mesh.setColorAt(i, fallen > 0.001 ? this.tmpC.copy(S.c).lerp(this.lost, fallen) : S.c);
     }
     this.mesh.instanceMatrix.needsUpdate = true;
     this.band.instanceMatrix.needsUpdate = true;
@@ -299,20 +313,25 @@ export class Bundles extends Piece {
       this.lHero.pos.set(H.p.x, H.p.y + 0.62, H.p.z);
       this.lHero.target = mode === 'unit' && t > 1.7 ? 1 : 0;
     } else {
-      const show = mode === 'alloc' ? t > 2.4 : mode === 'final' ? t > 1.6 : mode === 'batch';
-      for (let c = 0; c < 2; c++) {
+      const show = mode === 'alloc' ? t > 2.4 : mode === 'final' ? t > 1.6 : mode === 'batch' || mode === 'crash';
+      for (let c = 0; c < this.lTower.length; c++) {
         const l = this.lTower[c];
         let top = LAYERS[c] * GY;
-        if (mode === 'batch' && c === 0) top = Math.ceil(((batchNow + 1) * 20) / PER) * GY;
-        l.pos.y = top + 0.3;
-        if (mode === 'batch')
+        if (mode === 'batch') top = Math.ceil(((batchNow + 1) * BATCH) / PER) * GY;
+        if (mode === 'crash') {
+          const down = t > 1.9 && t < 4.6;
+          top = (down ? Math.ceil(KEEP / PER) : LAYERS[c]) * GY;
           l.set(
-            c === 1
-              ? '<span class="t gold">黄金 60 万</span><span class="c">没有额度限制，一次买齐</span>'
-              : `<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * 20} 万</span><span class="c">受额度和溢价限制，分批进场</span>`,
+            down
+              ? '<span class="v red">86 万</span><span class="c">像 2008 年：一度跌掉 57%</span>'
+              : t >= 4.6
+                ? '<span class="v green">200 万</span><span class="c">等了 5 年半，才涨回来</span>'
+                : '<span class="v blue">200 万</span><span class="c">全部买了标普 500</span>',
           );
+        } else if (mode === 'batch') l.set(`<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * BATCH} 万</span><span class="c">受额度和溢价限制，分批进场</span>`);
         else l.set(`<span class="v ${TOWER_TXT[c][3]}">${TOWER_TXT[c][0]}</span><span class="t">${TOWER_TXT[c][1]}</span><span class="c">${TOWER_TXT[c][2]}</span>`);
-        l.target = show && !(mode === 'batch' && c === 0 && batchNow < 0) && !(mode === 'batch' && c === 1 && t < 0.8) ? 1 : 0;
+        l.pos.y = top + 0.3;
+        l.target = show && !(mode === 'batch' && batchNow < 0) ? 1 : 0;
       }
       if (mode === 'batch') {
         const b = batchNow + 1;

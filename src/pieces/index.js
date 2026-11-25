@@ -5,10 +5,10 @@ import { Tug, Compound } from './act2.js';
 import { Islands, Bet } from './act3.js';
 import { Roster } from './roster.js';
 import { Eras } from './eras.js';
-import { City, Gold } from './act4.js';
+import { City } from './act4.js';
 import { Skyline, Underwater, TenYear } from './spx.js';
 import { GoldFiat, GoldHistory } from './goldx.js';
-import { Coaster, Stampede, Discount, Premium } from './act5.js';
+import { Coaster, Discount, Premium } from './act5.js';
 import { Glasses } from './act6.js';
 import { Paths } from './act7.js';
 import { Rates } from './rates.js';
@@ -41,7 +41,6 @@ export function buildPieces(app) {
     new Skyline(app, 'skyline', [1450, 0, 0]),
     new TenYear(app, 'tenyear', [1540, 0, 0]),
     // 5 黄金
-    new Gold(app, 'gold', [1810, 0, 0]),
     new GoldFiat(app, 'goldfiat', [1870, 0, 0]),
     new GoldHistory(app, 'goldhist', [1940, 0, 0]),
     // 6 风险
@@ -50,7 +49,6 @@ export function buildPieces(app) {
     new Underwater(app, 'underwater', [2275, 0, 0]),
     new Horizon(app, 'horizon', [2350, 0, 0]),
     new Withdraw(app, 'withdraw', [2415, 0, 0]),
-    new Stampede(app, 'stampede', [2480, 0, 0]),
     new Discount(app, 'discount', [2540, 0, 0]),
     new Compound(app, 'compoundB', [2600, 0, 0]),
     new Premium(app, 'premium', [2660, 0, 0]),

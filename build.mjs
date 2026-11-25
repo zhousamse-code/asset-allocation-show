@@ -19,7 +19,7 @@ const body = fs.readFileSync('src/body.html', 'utf8');
 
 const head = `<title>${TITLE}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="200 万闲钱怎么投资：从利率、放水和汇率讲起，到标普 500、纳指、黄金、风险、70/30 配置方案和具体怎么买。数据截至 2026 年 11 月。">
+<meta name="description" content="200 万闲钱怎么投资：从利率、放水和汇率讲起，到标普 500、黄金、黑天鹅和风险，再到全部买标普 500 的方案和具体怎么买。数据截至 2026 年 11 月。">
 <style>${css}</style>`;
 
 // 1) stand-alone file: works offline (double-click), no external requests at all

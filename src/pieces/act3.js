@@ -225,7 +225,7 @@ export class Islands extends Piece {
 
     this.lMain = this.label('<span class="t">国内主业</span>', [-0.2, 3.3, -0.4], 'up', this.i1);
     this.lSea = this.label('<span class="c">海面起伏 = 国内经济周期</span>', [-1.2, 0.9, 6.2], 'mid');
-    this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数 · 黄金</span>', [-0.5, 3.4, 0], 'up', this.i2);
+    this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数</span>', [-0.5, 3.4, 0], 'up', this.i2);
     this.lBridge = this.label('<span class="t gold">跨海保险</span>', [0, 0, 0]);
     this.i2v = 0;
   }

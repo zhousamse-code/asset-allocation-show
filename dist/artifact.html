@@ -1,6 +1,6 @@
 <title>200 万闲钱怎么投资</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="200 万闲钱怎么投资：从利率、放水和汇率讲起，到标普 500、纳指、黄金、风险、70/30 配置方案和具体怎么买。数据截至 2026 年 11 月。">
+<meta name="description" content="200 万闲钱怎么投资：从利率、放水和汇率讲起，到标普 500、黄金、黑天鹅和风险，再到全部买标普 500 的方案和具体怎么买。数据截至 2026 年 11 月。">
 <style>/* Layout concept: a full-bleed dark stage (WebGL) with one quiet text block per pause point;
    the 3D subject is framed opposite the text. Single deliberate dark look. */
 :root {
@@ -1302,15 +1302,17 @@ var BD = 0.76;
 var GX = 1.62;
 var GY = 0.272;
 var GZ = 0.8;
-var NS = 140;
-var PER = 6;
-var TX = [-2.95, 2.95];
+var NS = 200;
+var PER = 12;
+var TX = [0, 0];
 var LAYERS = [Math.ceil(NS / PER), Math.ceil((N - NS) / PER)];
 var catOf = (i) => i < NS ? 0 : 1;
 var idxIn = (i) => i < NS ? i : i - NS;
 var HERO = 9 * 20 + 3 * 5 + 2;
-var NB = 7;
-var batchOf = (i) => i < NS ? Math.floor(i / 20) : -1;
+var BATCH = 25;
+var NB = 8;
+var batchOf = (i) => i < NS ? Math.floor(i / BATCH) : -1;
+var KEEP = 86;
 function pilePos(i, out) {
   const layer = Math.floor(i / 20);
   const r = i % 20;
@@ -1319,12 +1321,12 @@ function pilePos(i, out) {
 function towerPos(cat, k, out) {
   const layer = Math.floor(k / PER);
   const r = k % PER;
-  return out.set(TX[cat] + (r % 3 - 1) * GX, BH / 2 + layer * GY, (Math.floor(r / 3) - 0.5) * GZ);
+  return out.set(TX[cat] + (r % 4 - 1.5) * GX, BH / 2 + layer * GY, (Math.floor(r / 4) - 1) * GZ);
 }
 function queuePos(i, out) {
   const b = batchOf(i);
-  const k = i % 20;
-  return out.set(-1.2 + b * 1.6 + (k % 2 - 0.5) * 0.82, BH / 2 + Math.floor(k / 2) * GY, 5.4);
+  const k = i % BATCH;
+  return out.set(-7 + b * 2 + (k % 2 - 0.5) * 0.82, BH / 2 + Math.floor(k / 2) * GY, 5.4);
 }
 function noteTex() {
   return canvasTex(256, 128, (g, w, h) => {
@@ -1344,8 +1346,7 @@ function noteTex() {
   });
 }
 var TOWER_TXT = [
-  ["70%", "标普 500", "140 万 · 长期增长", "blue"],
-  ["30%", "黄金", "60 万 · 对冲 · 抗贬值", "gold"]
+  ["100%", "标普 500", "200 万 · 长期拿住", "blue"]
 ];
 var Bundles = class extends Piece {
   constructor(app2, name, origin, kind) {
@@ -1394,6 +1395,8 @@ var Bundles = class extends Piece {
     this.red = new THREE3.Color(11739178);
     this.cash = new THREE3.Color(12172740);
     this.catC = [3112928, 14724412].map((c) => new THREE3.Color(c));
+    this.lost = new THREE3.Color(4854806);
+    this.tmpC = new THREE3.Color();
     this.batchNow = -1;
     if (kind === "cover") {
       this.lTotal = this.label('<span class="c">200 捆 × 每捆 1 万元</span>', [0, 0, 2.3], "down");
@@ -1502,7 +1505,7 @@ var Bundles = class extends Piece {
         S.arc = 0;
         S.drop = true;
       } else if (mode === "batch") {
-        S.t0 = t + (c === 1 ? k * 8e-3 : i % 20 * 0.025);
+        S.t0 = t + i % BATCH * 0.02;
         S.dur = 0.8;
         S.arc = 1.8;
       } else {
@@ -1559,13 +1562,22 @@ var Bundles = class extends Piece {
       }
       this.P.copy(S.p);
       if (mode === "unit" && i === HERO && k >= 1) this.P.y += Math.sin(time * 1.3) * 0.08;
+      let fallen = 0;
+      if (mode === "crash" && i >= KEEP) {
+        const f = eInOut(clamp01((t - 0.9 - (N - 1 - i) * 4e-3) / 1.3)) - eInOut(clamp01((t - 4 - (i - KEEP) * 6e-3) / 1.6));
+        fallen = f;
+        const j = i - KEEP;
+        const ring = 4.2 + j % 3 * 0.95;
+        const a = j / (N - KEEP) * Math.PI * 1.7 - Math.PI * 0.35;
+        this.P.set(lerp(S.p.x, Math.cos(a) * ring, f), lerp(S.p.y, BH / 2 + Math.floor(j / 57) * GY, f) + Math.sin(Math.PI * f) * 1.2, lerp(S.p.z, Math.sin(a) * ring * 0.55 + 0.6, f));
+      }
       this.E.set(i === HERO && mode === "unit" ? 0.18 : 0, S.r, 0);
       this.Q.setFromEuler(this.E);
-      this.SC.setScalar(S.s);
+      this.SC.setScalar(S.s * (1 - 0.18 * fallen));
       this.M.compose(this.P, this.Q, this.SC);
       this.mesh.setMatrixAt(i, this.M);
       this.band.setMatrixAt(i, this.M);
-      this.mesh.setColorAt(i, S.c);
+      this.mesh.setColorAt(i, fallen > 1e-3 ? this.tmpC.copy(S.c).lerp(this.lost, fallen) : S.c);
     }
     this.mesh.instanceMatrix.needsUpdate = true;
     this.band.instanceMatrix.needsUpdate = true;
@@ -1577,18 +1589,21 @@ var Bundles = class extends Piece {
       this.lHero.pos.set(H2.p.x, H2.p.y + 0.62, H2.p.z);
       this.lHero.target = mode === "unit" && t > 1.7 ? 1 : 0;
     } else {
-      const show = mode === "alloc" ? t > 2.4 : mode === "final" ? t > 1.6 : mode === "batch";
-      for (let c = 0; c < 2; c++) {
+      const show = mode === "alloc" ? t > 2.4 : mode === "final" ? t > 1.6 : mode === "batch" || mode === "crash";
+      for (let c = 0; c < this.lTower.length; c++) {
         const l = this.lTower[c];
         let top = LAYERS[c] * GY;
-        if (mode === "batch" && c === 0) top = Math.ceil((batchNow + 1) * 20 / PER) * GY;
-        l.pos.y = top + 0.3;
-        if (mode === "batch")
+        if (mode === "batch") top = Math.ceil((batchNow + 1) * BATCH / PER) * GY;
+        if (mode === "crash") {
+          const down = t > 1.9 && t < 4.6;
+          top = (down ? Math.ceil(KEEP / PER) : LAYERS[c]) * GY;
           l.set(
-            c === 1 ? '<span class="t gold">黄金 60 万</span><span class="c">没有额度限制，一次买齐</span>' : `<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * 20} 万</span><span class="c">受额度和溢价限制，分批进场</span>`
+            down ? '<span class="v red">86 万</span><span class="c">像 2008 年：一度跌掉 57%</span>' : t >= 4.6 ? '<span class="v green">200 万</span><span class="c">等了 5 年半，才涨回来</span>' : '<span class="v blue">200 万</span><span class="c">全部买了标普 500</span>'
           );
+        } else if (mode === "batch") l.set(`<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * BATCH} 万</span><span class="c">受额度和溢价限制，分批进场</span>`);
         else l.set(`<span class="v ${TOWER_TXT[c][3]}">${TOWER_TXT[c][0]}</span><span class="t">${TOWER_TXT[c][1]}</span><span class="c">${TOWER_TXT[c][2]}</span>`);
-        l.target = show && !(mode === "batch" && c === 0 && batchNow < 0) && !(mode === "batch" && c === 1 && t < 0.8) ? 1 : 0;
+        l.pos.y = top + 0.3;
+        l.target = show && !(mode === "batch" && batchNow < 0) ? 1 : 0;
       }
       if (mode === "batch") {
         const b = batchNow + 1;
@@ -2353,7 +2368,7 @@ var Islands = class extends Piece {
     this.p = new THREE6.Vector3();
     this.lMain = this.label('<span class="t">国内主业</span>', [-0.2, 3.3, -0.4], "up", this.i1);
     this.lSea = this.label('<span class="c">海面起伏 = 国内经济周期</span>', [-1.2, 0.9, 6.2], "mid");
-    this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数 · 黄金</span>', [-0.5, 3.4, 0], "up", this.i2);
+    this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数</span>', [-0.5, 3.4, 0], "up", this.i2);
     this.lBridge = this.label('<span class="t gold">跨海保险</span>', [0, 0, 0]);
     this.i2v = 0;
   }
@@ -3772,81 +3787,6 @@ function stampTex() {
     g.fillText("FINE GOLD · 1000 g", w / 2, 150);
   });
 }
-var Gold = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [1.5, 0, 9, 1.15] });
-    const geo = goldBarGeo();
-    const mat = this.m(new THREE11.MeshPhysicalMaterial({ color: 16765562, metalness: 1, roughness: 0.22, clearcoat: 0.3, clearcoatRoughness: 0.2, envMapIntensity: 1.6 }));
-    const stampMat = this.m(new THREE11.MeshStandardMaterial({ map: stampTex(), transparent: true, metalness: 1, roughness: 0.55, color: 7228952, envMapIntensity: 0.6, depthWrite: false }));
-    const spots = [
-      [0, 0.31, -1.12, 0],
-      [0, 0.31, 0, 0],
-      [0, 0.31, 1.12, 0],
-      [-0.62, 0.93, 0, 1],
-      [0.62, 0.93, 0, 1],
-      [0, 1.55, 0, 0]
-    ];
-    this.bars = spots.map(([x, y, z, rot], i) => {
-      const g = new THREE11.Group();
-      g.rotation.y = rot ? Math.PI / 2 : 0;
-      const m = new THREE11.Mesh(geo, mat);
-      g.add(m);
-      const s = new THREE11.Mesh(new THREE11.PlaneGeometry(1.55, 0.6), stampMat);
-      s.rotation.x = -Math.PI / 2;
-      s.position.y = 0.313;
-      g.add(s);
-      this.add(g);
-      return { g, x, y, z, i };
-    });
-    this.add(blob(this, 7, 6, 0.85));
-    this.mini = new THREE11.Group();
-    this.mini.position.set(4.6, 0, 0.6);
-    this.add(this.mini);
-    const base = 2.4;
-    const ln = new THREE11.Mesh(new THREE11.BoxGeometry(3, 0.02, 0.02), this.m(new THREE11.MeshBasicMaterial({ color: hdr(16777215, 0.8) })));
-    ln.position.y = base;
-    this.mini.add(ln);
-    const bg = new THREE11.BoxGeometry(0.9, 1, 0.9);
-    this.sBar = new THREE11.Mesh(bg, this.m(new THREE11.MeshStandardMaterial({ color: COL.spx, emissive: COL.spx, emissiveIntensity: 0.5, roughness: 0.3 })));
-    this.gBar = new THREE11.Mesh(bg, this.m(new THREE11.MeshStandardMaterial({ color: COL.gold, emissive: COL.gold, emissiveIntensity: 0.4, roughness: 0.3, metalness: 0.3 })));
-    this.sBar.position.x = -0.7;
-    this.gBar.position.x = 0.7;
-    this.mini.add(this.sBar, this.gBar);
-    this.base = base;
-    this.lYear = this.label('<span class="t">2008 年金融危机</span>', [0, base + 1.15, 0], "up", this.mini);
-    this.lS = this.label('<span class="v blue">−37%</span><span class="c">标普 500</span>', [-0.7, 0, 0.5], "down", this.mini);
-    this.lG = this.label('<span class="v gold">+4%</span><span class="c">黄金</span>', [0.7, base + 0.5, 0.5], "up", this.mini);
-    this.lT0 = this.label('<span class="pill">国内黄金 ETF · T+0：当天买，当天就能卖</span>', [0, 0, 2.2], "down");
-  }
-  update(dt, time) {
-    const t = this.t;
-    for (const b of this.bars) {
-      const k = seg(t, 0.3 + b.i * 0.24, 0.85 + b.i * 0.24);
-      const f = k < 0.85 ? (k / 0.85) ** 2 : 1;
-      let y = lerp(b.y + 7, b.y, f);
-      if (k >= 0.85) {
-        const q = (k - 0.85) / 0.15;
-        y += Math.sin(q * Math.PI) * 0.05 * (1 - q);
-      }
-      b.g.position.set(b.x, y, b.z);
-      b.g.visible = k > 0;
-    }
-    this.inner.rotation.y = Math.sin(time * 0.18) * 0.12;
-    const kS = eOut(seg(t, 2.2, 3));
-    const kG = eOut(seg(t, 2.6, 3.2));
-    const hS = 0.37 * 4 * kS;
-    const hG = 0.3 * kG;
-    this.sBar.scale.y = Math.max(1e-3, hS);
-    this.sBar.position.y = this.base - hS / 2;
-    this.gBar.scale.y = Math.max(1e-3, hG);
-    this.gBar.position.y = this.base + hG / 2;
-    this.lS.pos.y = this.base - hS - 0.1;
-    this.lYear.target = t > 2 ? 1 : 0;
-    this.lS.target = kS > 0.9 ? 1 : 0;
-    this.lG.target = kG > 0.9 ? 1 : 0;
-    this.lT0.target = t > 1.8 ? 1 : 0;
-  }
-};
 
 // src/pieces/spx.js
 import * as THREE12 from "three";
@@ -4790,191 +4730,6 @@ var Coaster = class extends Piece {
     for (const l of this.lYears) l.target = t > 0.5 ? 1 : 0;
     this.lTitle.target = step === "all" || step === "recover" ? t > 0.6 ? 1 : 0 : 0;
     this.curtainMat.uniforms.uRed.value = step === "recover" ? lerp(this.curtainMat.uniforms.uRed.value, 0.35, 1 - Math.exp(-2 * dt)) : lerp(this.curtainMat.uniforms.uRed.value, 1, 1 - Math.exp(-2 * dt));
-  }
-};
-var Stampede = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [1, 0, 12, 1] });
-    const fl = new THREE14.Mesh(rbox(14.5, 0.06, 10, 0.03), this.m(new THREE14.MeshStandardMaterial({ color: 1184535, roughness: 0.7, metalness: 0.2 })));
-    fl.position.set(-3.6, 0.03, 0);
-    this.add(fl);
-    const wallMat = this.m(new THREE14.MeshPhysicalMaterial({ color: 1843241, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.75, clearcoat: 1 }));
-    this.DW = 0.8;
-    const len = 5 - this.DW;
-    [1, -1].forEach((s) => {
-      const geo = new THREE14.BoxGeometry(0.3, 1.6, len);
-      const w = new THREE14.Mesh(geo, wallMat);
-      w.position.set(3.5, 0.8, s * (this.DW + len / 2));
-      this.add(w);
-      const e = edges(this, geo, 16777215, 0.18);
-      e.position.copy(w.position);
-      this.add(e);
-    });
-    const glow = this.m(new THREE14.MeshBasicMaterial({ color: hdr(COL.cash, 2.2) }));
-    [1, -1].forEach((s) => {
-      const b = new THREE14.Mesh(new THREE14.BoxGeometry(0.06, 1.6, 0.06), glow);
-      b.position.set(3.5, 0.8, s * this.DW);
-      this.add(b);
-    });
-    const top = new THREE14.Mesh(new THREE14.BoxGeometry(0.06, 0.06, this.DW * 2), glow);
-    top.position.set(3.5, 1.6, 0);
-    this.add(top);
-    this.N = 420;
-    this.mesh = new THREE14.InstancedMesh(new THREE14.SphereGeometry(0.16, 14, 10), this.m(new THREE14.MeshStandardMaterial({ roughness: 0.3, metalness: 0.15 })), this.N);
-    this.mesh.instanceColor = new THREE14.InstancedBufferAttribute(new Float32Array(this.N * 3), 3);
-    this.mesh.instanceMatrix.setUsage(THREE14.DynamicDrawUsage);
-    this.mesh.frustumCulled = false;
-    this.add(this.mesh);
-    const n = this.N;
-    this.x = new Float32Array(n);
-    this.z = new Float32Array(n);
-    this.vx = new Float32Array(n);
-    this.vz = new Float32Array(n);
-    this.tz = new Float32Array(n);
-    this.sp = new Float32Array(n);
-    this.ot = new Float32Array(n);
-    this.type = new Uint8Array(n);
-    this.out = new Uint8Array(n);
-    this.alive = new Uint8Array(n);
-    this.age = new Float32Array(n);
-    this.cB = new THREE14.Color(COL.spx);
-    this.cG = new THREE14.Color(COL.gold);
-    this.cC = new THREE14.Color(13028049);
-    this.c = new THREE14.Color();
-    this.M = new THREE14.Matrix4();
-    this.grid = /* @__PURE__ */ new Map();
-    this.add(blob(this, 22, 12, 0.5));
-    this.lLegend = this.label('<span class="t"><b class="dot blue"></b>标普　<b class="dot gold"></b>黄金</span>', [-9.6, 0.2, -4.2], "right");
-    this.lPanic = this.label('<span class="t">市场一紧张，大家先卖能卖的</span><span class="c">要补保证金、要现金</span>', [-3.2, 2, -2]);
-    this.lDoor = this.label('<span class="t">换现金</span><span class="c">出口就这么宽</span>', [3.5, 2.05, 0]);
-    this.lCash = this.label('<span class="t">现金</span>', [8.2, 1, 0]);
-  }
-  reset(i, left) {
-    this.x[i] = left ? -9.3 + Math.random() * 1.2 : -9 + Math.random() * 10.5;
-    this.z[i] = (Math.random() - 0.5) * 8.8;
-    this.vx[i] = 0;
-    this.vz[i] = 0;
-    this.out[i] = 0;
-    this.ot[i] = 0;
-    this.sp[i] = 2.3 + Math.random() * 1.3;
-    this.type[i] = Math.random() < 0.5 ? 0 : 1;
-    this.alive[i] = 1;
-    this.age[i] = left ? 0 : 1;
-  }
-  enter() {
-    for (let i = 0; i < this.N; i++) {
-      if (i < 330) this.reset(i, false);
-      else this.alive[i] = 0;
-    }
-    this.acc = 0;
-  }
-  update(dt) {
-    dt = Math.min(dt, 1 / 30);
-    const t = this.t;
-    const panic = t > 1;
-    const n = this.N;
-    if (panic) {
-      this.acc += dt * 38;
-      for (let i = 0; i < n && this.acc >= 1; i++) {
-        if (!this.alive[i]) {
-          this.reset(i, true);
-          this.acc -= 1;
-        }
-      }
-      this.acc = Math.min(this.acc, 3);
-    }
-    const cs = 0.5;
-    const grid = this.grid;
-    grid.clear();
-    for (let i = 0; i < n; i++) {
-      if (!this.alive[i]) continue;
-      const key = Math.floor(this.x[i] / cs) * 1e3 + Math.floor(this.z[i] / cs);
-      let a = grid.get(key);
-      if (!a) grid.set(key, a = []);
-      a.push(i);
-    }
-    const R = 0.34;
-    for (let i = 0; i < n; i++) {
-      if (!this.alive[i]) {
-        this.M.makeScale(0, 0, 0);
-        this.mesh.setMatrixAt(i, this.M);
-        continue;
-      }
-      let x = this.x[i];
-      let z = this.z[i];
-      let dx;
-      let dz;
-      if (this.out[i]) {
-        dx = 2.4;
-        dz = (this.tz[i] - z) * 0.8;
-      } else if (!panic) {
-        dx = Math.sin(t * 1.3 + i) * 0.4;
-        dz = Math.cos(t * 1.1 + i * 1.7) * 0.4;
-      } else {
-        const gx = 3.6 - x;
-        const gz = Math.max(-0.45, Math.min(0.45, z)) - z;
-        const L = Math.hypot(gx, gz) || 1;
-        dx = gx / L * this.sp[i];
-        dz = gz / L * this.sp[i];
-      }
-      this.vx[i] += (dx - this.vx[i]) * Math.min(1, dt * 3.2);
-      this.vz[i] += (dz - this.vz[i]) * Math.min(1, dt * 3.2);
-      const cx = Math.floor(x / cs);
-      const cz = Math.floor(z / cs);
-      let px = 0;
-      let pz = 0;
-      for (let ox = -1; ox <= 1; ox++)
-        for (let oz = -1; oz <= 1; oz++) {
-          const a = grid.get((cx + ox) * 1e3 + cz + oz);
-          if (!a) continue;
-          for (const j of a) {
-            if (j === i) continue;
-            const ddx = x - this.x[j];
-            const ddz = z - this.z[j];
-            const d2 = ddx * ddx + ddz * ddz;
-            if (d2 < R * R && d2 > 1e-6) {
-              const d = Math.sqrt(d2);
-              const f = (R - d) / d;
-              px += ddx * f;
-              pz += ddz * f;
-            }
-          }
-        }
-      x += this.vx[i] * dt + px * 0.5;
-      z += this.vz[i] * dt + pz * 0.5;
-      if (!this.out[i]) {
-        if (x > 3.5 - 0.31 && Math.abs(z) > this.DW - 0.17) {
-          x = 3.5 - 0.31;
-          this.vx[i] *= 0.2;
-        }
-        z = Math.max(-4.8, Math.min(4.8, z));
-        x = Math.max(-10.6, x);
-        if (x > 3.75) {
-          this.out[i] = 1;
-          this.tz[i] = (Math.random() - 0.5) * 7;
-        }
-      } else {
-        this.ot[i] = Math.min(1, this.ot[i] + dt * 2.5);
-        if (x > 11) {
-          if (panic) this.reset(i, true);
-          else this.alive[i] = 0;
-        }
-      }
-      this.x[i] = x;
-      this.z[i] = z;
-      this.age[i] = Math.min(1, this.age[i] + dt * 3);
-      const s = (this.out[i] ? 1 - ss(9.5, 11, x) : 1) * ss(0, 1, this.age[i]);
-      this.M.makeScale(s, s, s).setPosition(x, 0.2, z);
-      this.mesh.setMatrixAt(i, this.M);
-      this.c.copy(this.type[i] ? this.cG : this.cB).lerp(this.cC, this.ot[i]);
-      this.mesh.setColorAt(i, this.c);
-    }
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.mesh.instanceColor.needsUpdate = true;
-    this.lLegend.target = t > 0.3 ? 1 : 0;
-    this.lPanic.target = panic ? 1 : 0;
-    this.lDoor.target = t > 0.6 ? 1 : 0;
-    this.lCash.target = t > 2.2 ? 1 : 0;
   }
 };
 var Discount = class extends Piece {
@@ -6086,7 +5841,6 @@ function buildPieces(app2) {
     new Skyline(app2, "skyline", [1450, 0, 0]),
     new TenYear(app2, "tenyear", [1540, 0, 0]),
     // 5 黄金
-    new Gold(app2, "gold", [1810, 0, 0]),
     new GoldFiat(app2, "goldfiat", [1870, 0, 0]),
     new GoldHistory(app2, "goldhist", [1940, 0, 0]),
     // 6 风险
@@ -6095,7 +5849,6 @@ function buildPieces(app2) {
     new Underwater(app2, "underwater", [2275, 0, 0]),
     new Horizon(app2, "horizon", [2350, 0, 0]),
     new Withdraw(app2, "withdraw", [2415, 0, 0]),
-    new Stampede(app2, "stampede", [2480, 0, 0]),
     new Discount(app2, "discount", [2540, 0, 0]),
     new Compound(app2, "compoundB", [2600, 0, 0]),
     new Premium(app2, "premium", [2660, 0, 0]),
@@ -6377,15 +6130,7 @@ var BEATS = [
     act: 5,
     layout: "left",
     eyebrow: "<b>第五幕</b>黄金",
-    h: "第二样：<em>黄金</em>",
-    sub: "股市大跌、打仗、闹危机时，黄金往往扛得住。",
-    cam: { at: "gold", p: [-1.6, 5.4, 17], t: [2.4, 1.5, 0], shift: [0.21, 0] },
-    pieces: { gold: {} }
-  },
-  {
-    act: 5,
-    layout: "left",
-    h: "黄金最重要的作用：<br>对抗“钱变薄”",
+    h: "黄金：能对抗“钱变薄”",
     sub: "钞票能一直印，黄金印不出来：金条没变，变的是钱。",
     cam: { at: "goldfiat", p: [1.8, 6.2, 27.5], t: [1.3, 3, 0], shift: [0.22, 0] },
     pieces: { goldfiat: {} }
@@ -6393,8 +6138,8 @@ var BEATS = [
   {
     act: 5,
     layout: "top",
-    h: "黄金的历史走势",
-    sub: "黄金是“保险”，不是“发动机”：也有过很长的熊市。",
+    h: "但黄金只保值，不生钱",
+    sub: "扣掉通胀，两百年来黄金每年约 +0.6%，股票约 +6.7%。",
     cam: { at: "goldhist", p: [0, 5, 34.5], t: [0, 4.1, 0], shift: [0, 0.15] },
     pieces: { goldhist: {} }
   },
@@ -6468,17 +6213,9 @@ var BEATS = [
     act: 6,
     layout: "top",
     h: "要取钱时正好碰上黑天鹅，怎么办？",
-    extra: '<ol class="risks"><li><b>1</b>快要用的钱，提前分批取</li><li><b>2</b>先取没跌的（比如黄金）</li><li><b>3</b>能晚取就晚取</li></ol>',
+    extra: '<ol class="risks"><li><b>1</b>快要用的钱，提前分批取</li><li><b>2</b>先用存款顶一顶</li><li><b>3</b>能晚取就晚取</li></ol>',
     cam: { at: "withdraw", p: [0, 4.8, 24], t: [0, 3.2, 0], shift: [0, 0.16] },
     pieces: { withdraw: {} }
-  },
-  {
-    act: 6,
-    layout: "top",
-    h: "标普和黄金，也可能一起跌",
-    sub: "市场一慌，能卖的都先卖：这个月标普跌了 6%，黄金跌了 9%。",
-    cam: { at: "stampede", p: [0.5, 17, 18.5], t: [0.5, 0, 0.5], shift: [0, 0.22] },
-    pieces: { stampede: {} }
   },
   {
     act: 6,
@@ -6517,17 +6254,25 @@ var BEATS = [
   {
     act: 7,
     layout: "left",
-    h: "200 万，<br>这样分",
-    sub: "70% 买标普 500，30% 买黄金。",
-    extra: '<p class="note">2006 年至今回测：每年约 11%；最差的 2008 年 −25%（单买标普 −37%）。</p>',
+    h: "200 万：<br>全部买标普 500",
+    sub: "不配黄金，也不加纳指：就这一样，长期拿住。",
+    extra: '<p class="note">2006 年至今回测：每年约 10.8%（含分红、美元计）；最差的 2008 年 −37%。</p>',
     cam: { at: "alloc", p: [11, 9.5, 21], t: [0.6, 3, 0], shift: [0.21, 0.02] },
     pieces: { alloc: { mode: "alloc" } }
   },
   {
     act: 7,
     layout: "left",
-    h: "能一次买齐最好，<br>但标普只能分批进场",
-    sub: "黄金一次买齐；标普受额度和溢价限制，只能分批。",
+    h: "前提：十年以上不用，<br>跌一半也不卖",
+    sub: "做不到这两条，就别全买。",
+    cam: { at: "alloc", p: [11, 9.5, 21], t: [0.6, 3, 0], shift: [0.21, 0.02] },
+    pieces: { alloc: { mode: "crash" } }
+  },
+  {
+    act: 7,
+    layout: "left",
+    h: "标普只能<br>分批进场",
+    sub: "受额度和溢价限制：溢价低时买一批，高了就等一等。",
     cam: { at: "alloc", p: [6, 15.5, 27], t: [2.2, 2, 2.2], shift: [0.21, 0.02] },
     pieces: { alloc: { mode: "batch" } }
   },
@@ -6589,7 +6334,7 @@ var BEATS = [
     layout: "top",
     eyebrow: "最后，一句话",
     h: "不赌方向，不追热点，<em>长期拿住</em>",
-    sub: "70% 标普 500 · 30% 黄金 · 分批进场 · 拿得住",
+    sub: "100% 标普 500 · 分批进场 · 十年不用 · 跌了不卖",
     extra: '<p class="legal">历史不代表未来，不构成投资建议。数据截至 2026 年 11 月 24 日。</p>',
     cam: { at: "finale", p: [0, 9, 33], t: [0, 3, 0], shift: [0, 0.21] },
     pieces: { finale: { mode: "final" } }
