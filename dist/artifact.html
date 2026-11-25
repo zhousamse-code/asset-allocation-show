@@ -805,6 +805,16 @@ body {
   .lbl .c {
     display: none;
   }
+  /* charts are much smaller here while label text is not: step the label sizes down so numbers stop colliding */
+  .lbl .t {
+    font-size: 12px;
+  }
+  .lbl .v {
+    font-size: 17px;
+  }
+  .lbl .v.sm {
+    font-size: 14px;
+  }
   #hint {
     font-size: 13px;
   }
@@ -1600,7 +1610,7 @@ var Bundles = class extends Piece {
           l.set(
             down ? '<span class="v red">86 万</span><span class="c">像 2008 年：一度跌掉 57%</span>' : t >= 4.6 ? '<span class="v green">200 万</span><span class="c">等了 5 年半，才涨回来</span>' : '<span class="v blue">200 万</span><span class="c">全部买了标普 500</span>'
           );
-        } else if (mode === "batch") l.set(`<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * BATCH} 万</span><span class="c">受额度和溢价限制，分批进场</span>`);
+        } else if (mode === "batch") l.set(`<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * BATCH} 万</span><span class="c">看着溢价，分批进场</span>`);
         else l.set(`<span class="v ${TOWER_TXT[c][3]}">${TOWER_TXT[c][0]}</span><span class="t">${TOWER_TXT[c][1]}</span><span class="c">${TOWER_TXT[c][2]}</span>`);
         l.pos.y = top + 0.3;
         l.target = show && !(mode === "batch" && batchNow < 0) ? 1 : 0;
@@ -1622,13 +1632,13 @@ var Stairs = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 10, 1.15] });
     const data = [
-      ["2011 年", 5.5, "5.50%"],
-      ["2015 年", 2.75, "2.75%"],
-      ["如今", 1.3, "1.30%"]
+      ["2011 年", 5.5, "5.50%", "11 万"],
+      ["2015 年", 2.75, "2.75%", "5.5 万"],
+      ["如今", 1.3, "1.30%", "2.6 万"]
     ];
     const W = 3.1;
     const D = 3.2;
-    this.steps = data.map(([yr, r, txt], i) => {
+    this.steps = data.map(([yr, r, txt, per200], i) => {
       const g = new THREE4.Group();
       g.position.x = (i - 1) * (W + 0.1);
       this.add(g);
@@ -1652,7 +1662,7 @@ var Stairs = class extends Piece {
       const e = edges(this, geo, 16777215, 0.12);
       e.position.y = h / 2;
       g.add(e);
-      const lab = this.label(`<span class="c">${yr}</span><span class="v">${txt}</span>`, [g.position.x, h + 0.2, D / 2 - 0.3]);
+      const lab = this.label(`<span class="c">${yr}</span><span class="v">${txt}</span><span class="c">200 万一年利息 ${per200}</span>`, [g.position.x, h + 0.2, D / 2 - 0.3]);
       return { g, h, lab };
     });
     this.add(blob(this, 14, 7, 0.85));
@@ -3023,7 +3033,7 @@ var Tug = class extends Piece {
       chart ? '<span class="t red">往上拉</span>' : '<span class="t red">往上拉 · 人民币升值</span><span class="c">出口企业把赚的美元换回人民币，发工资、付货款</span>'
     );
     this.lR.set(
-      chart ? '<span class="t green">往下拽</span>' : '<span class="t green">往下拽 · 人民币贬值</span><span class="c">美元利息高，加上保出口的政策</span>'
+      chart ? '<span class="t green">往下拽</span>' : '<span class="t green">往下拽 · 人民币贬值</span><span class="c">美元利息高，国家也想保出口</span>'
     );
     this.lL.target = this.lR.target = !chart && t > 0.9 ? 1 : 0;
     this.zoneL.target = this.zoneR.target = t > 1.3 && !chart ? 1 : 0;
@@ -4013,7 +4023,7 @@ var Underwater = class extends Piece {
       q.grp.visible = reached && (deep ? q.step === "deep" : true);
       q.dot.visible = UX(q.yr) <= px;
       q.ld.target = UX(q.yr) <= px && (mine || !deep && q.big) ? t > 0.5 ? 1 : 0 : 0;
-      q.lr.target = reached && mine ? t > 0.8 ? 1 : 0 : 0;
+      q.lr.target = reached && mine && !(q.yr > 2020 && q.yr < 2021 && this.app.ui.narrow()) ? t > 0.8 ? 1 : 0 : 0;
     }
     this.ddLine.visible = deep && t > 1;
     this.lDD.target = deep && t > 1.3 ? 1 : 0;
@@ -4076,10 +4086,13 @@ var TenYear = class extends Piece {
       )
     );
     this.lYr = this.cols.map((c) => this.label(`<span class="c">${c.lb}</span>`, [c.x, 0, 1.45], "down"));
-    this.lUnit = this.label('<span class="c">每捆 = 10 万元 · 含分红 · 单位：万元</span>', [this.cols[0].x - 0.9, top(this.cols[0].n) + 2.3, 0], "right");
+    this.lUnit = this.label('<span class="c">每捆 = 10 万元 · 含分红 · 单位：万元</span>', [this.cols[0].x - 0.9, top(this.cols[0].n) + 2.95, 0], "right");
     this.base100 = dashLine(this, [new THREE12.Vector3(-6, top(10), 0.75), new THREE12.Vector3(7.4, top(10), 0.75)], 16777215, 0.5);
     this.add(this.base100);
     this.lBase = this.label('<span class="c">起点 100 万</span>', [7.5, top(10), 0.75], "right");
+    this.bank = dashLine(this, [new THREE12.Vector3(-6, top(11.4), 0.75), new THREE12.Vector3(7.4, top(11.4), 0.75)], COL.gold, 0.75);
+    this.add(this.bank);
+    this.lBank = this.label('<span class="t gold">存银行十年：约 114 万</span><span class="c">按现在 1.3% 的利息</span>', [7.5, top(11.4) + 0.62, 0.75], "right");
     this.lCmp = this.cmp.map(
       (c, i) => this.label(
         `<span class="v ${c.cls}">≈ ${c.v} 万</span><span class="t">${c.t}</span><span class="c">${c.c}</span>`,
@@ -4123,13 +4136,21 @@ var TenYear = class extends Piece {
     }
     this.set.commit();
     this.cols.forEach((c, i) => {
-      const on = !cmp && t > this.T[i] + c.n * 0.018 + 0.25 ? 1 : 0;
+      const skip = i % 2 === 1 && i < this.cols.length - 1 && this.app.ui.narrow();
+      const on = !cmp && !skip && t > this.T[i] + c.n * 0.018 + 0.25 ? 1 : 0;
       this.lVal[i].target = on;
       this.lYr[i].target = !cmp && t > 0.4 ? 1 : 0;
     });
     this.lUnit.target = !cmp && t > 0.6 ? 1 : 0;
     this.base100.visible = cmp && t > 0.4;
     this.lBase.target = cmp && t > 0.6 ? 1 : 0;
+    this.bank.visible = cmp && t > 2.6;
+    this.lBank.target = cmp && t > 2.8 ? 1 : 0;
+    const nar = this.app.ui.narrow();
+    this.lBank.el.className = nar ? "lbl down" : "lbl right";
+    if (nar) this.lBank.pos.set(0, 0, 1.5);
+    else this.lBank.pos.set(7.5, this.top(11.4) + 0.62, 0.75);
+    this.lBank.set(nar ? '<span class="t gold">虚线：存银行十年，约 114 万</span>' : '<span class="t gold">存银行十年：约 114 万</span><span class="c">按现在 1.3% 的利息</span>');
     this.cmp.forEach((c, i) => this.lCmp[i].target = cmp && t > 0.5 + i * 0.55 + c.n * 0.03 + 0.3 ? 1 : 0);
   }
 };
@@ -4315,7 +4336,7 @@ var NOTES = [
   { yr: 1971.62, p: 42, html: '<span class="t">35 美元</span><span class="c">1971 年美元和黄金脱钩</span>', cls: "up" },
   { yr: 1980.05, p: 850, html: '<span class="t gold">850 美元</span><span class="c">1980 年见顶</span>', cls: "up" },
   { yr: 1999.55, p: 252.8, html: '<span class="t red">252 美元 · 跌了 70%</span><span class="c">1999 年</span>', cls: "down" },
-  { yr: 2011.68, p: 1895, html: '<span class="t gold">1,900 美元</span><span class="c">2011 年见顶</span>', cls: "up" },
+  { yr: 2011.68, p: 1895, html: '<span class="t gold">1,900 美元</span><span class="c">2011 年见顶</span>', cls: "left" },
   { yr: 2015.96, p: 1049.4, html: '<span class="t red">1,050 美元 · 跌了 45%</span><span class="c">2015 年</span>', cls: "down" },
   { yr: 2026.08, p: 5450, html: '<span class="t gold">约 5,600 美元</span><span class="c">今年 1 月见顶</span>', cls: "left" },
   { yr: 2026.9, p: 3552, html: '<span class="t red">约 3,550 美元</span><span class="c">现在 · 比高点跌了三成多</span>', cls: "down" }
@@ -4371,7 +4392,7 @@ var GoldHistory = class extends Piece {
     base.position.set((HX(T02) + HX(T12)) / 2, 0.025, 0);
     this.add(base);
     [100, 1e3].forEach((p) => this.add(dashLine(this, [new THREE13.Vector3(HX(T02), HY(p), -0.05), new THREE13.Vector3(HX(T12), HY(p), -0.05)], 16777215, 0.16)));
-    this.lAx = [100, 1e3].map((p) => this.label(`<span class="c">${p} 美元</span>`, [HX(T02) - 0.3, HY(p), 0], "left"));
+    this.lAx = [1e3].map((p) => this.label(`<span class="c">${p} 美元</span>`, [HX(T02) - 0.3, HY(p), 0], "left"));
     this.lYears = [1971, 1980, 1990, 2e3, 2011, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [HX(y), 0, 0.5], "down"));
     this.notes = NOTES.map((n) => {
       const p = new THREE13.Vector3(HX(n.yr), HY(n.p), 0);
@@ -4398,7 +4419,7 @@ var GoldHistory = class extends Piece {
       });
       this.add(grp);
       const l = this.label(`<span class="t red">${b.txt}</span>`, [(x0 + x1) / 2, y + 0.05, 0]);
-      return { grp, l, x1 };
+      return { grp, l, x1, txt: b.txt, narrowHide: b.a > 2e3 };
     });
     this.add(blob(this, 34, 6, 0.6));
   }
@@ -4416,7 +4437,8 @@ var GoldHistory = class extends Piece {
     for (const b of this.brackets) {
       const on = b.x1 <= px;
       b.grp.visible = on;
-      b.l.target = on ? 1 : 0;
+      b.l.target = on && !(b.narrowHide && this.app.ui.narrow()) ? 1 : 0;
+      if (!b.narrowHide) b.l.set(`<span class="t red">${this.app.ui.narrow() ? "28 年才回来" : b.txt}</span>`);
     }
     const ax = t > 0.4 ? 1 : 0;
     for (const l of this.lAx) l.target = ax;
@@ -4581,7 +4603,7 @@ var Coaster = class extends Piece {
       { ...mk(2026.76, COL.ok), html: '<span class="t green">2026 年 10 月 6 日</span><span class="v">约 7,800 点</span><span class="c">历史新高</span>' }
     ];
     this.recs.forEach((q, k) => q.l = this.label(q.html, k === 2 ? [q.p.x - 0.5, q.p.y, 0.3] : [q.p.x, q.p.y + 0.4, 0.3], k === 2 ? "left" : "up"));
-    this.lYears = [2e3, 2008, 2020, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [CX(y), 0, 0.6], "down"));
+    this.lYears = [2e3, 2020, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [CX(y), 0, 0.6], "down"));
     this.lTitle = this.label('<span class="t">标普 500 指数 · 2000 – 2026 年</span><span class="c">按比例画（对数坐标），关键点位为真实收盘价</span>', [CX(2001), CY(7800), 0], "right");
     this.p = 0;
   }
@@ -4605,10 +4627,11 @@ var Coaster = class extends Piece {
       else if (step === "2020") on = q.tag === "2020" ? 1 : 0;
       q.l.target = on;
     }
-    for (const q of this.recs) {
+    const nar = this.app.ui.narrow();
+    this.recs.forEach((q, k) => {
       q.s.visible = step === "recover";
-      q.l.target = step === "recover" && t > 0.8 ? 1 : 0;
-    }
+      q.l.target = step === "recover" && t > 0.8 && !(nar && k === 1) ? 1 : 0;
+    });
     for (const l of this.lYears) l.target = t > 0.5 ? 1 : 0;
     this.lTitle.target = step === "all" || step === "recover" ? t > 0.6 ? 1 : 0 : 0;
     this.curtainMat.uniforms.uRed.value = step === "recover" ? lerp(this.curtainMat.uniforms.uRed.value, 0.35, 1 - Math.exp(-2 * dt)) : lerp(this.curtainMat.uniforms.uRed.value, 1, 1 - Math.exp(-2 * dt));
@@ -4713,7 +4736,7 @@ var Premium = class extends Piece {
     this.add(this.line);
     this.add(blob(this, 9, 5, 0.6));
     this.lA = this.label('<span class="c">基金实际值（净值）</span><span class="v">1.00 元</span>', [-1.6, 0, 1.9], "down");
-    this.lB = this.label('<span class="c">场内成交价</span><span class="v">1.10 元</span>', [1.6, 0, 1.9], "down");
+    this.lB = this.label('<span class="c">买入时的成交价</span><span class="v">1.10 元</span>', [1.6, 0, 1.9], "down");
     this.lP = this.label('<span class="v red">溢价 10%</span><span class="c">多花的冤枉钱</span>', [2.75, 0.3 + this.H + 0.25, 0], "right");
   }
   update(dt, time) {
@@ -5857,7 +5880,7 @@ var BEATS = [
     act: 1,
     layout: "left",
     h: "不是没钱，<br>是钱不敢动",
-    sub: "钱放出来了，大多趴在银行里。",
+    sub: "钱放出来了，大多趴在银行里：东西没涨价，生意也没好起来。",
     cam: { at: "tank", p: [-3.5, 7.2, 22.5], t: [1, 4.2, 0], shift: [0.21, 0] },
     pieces: { tank: {} }
   },
@@ -5899,8 +5922,8 @@ var BEATS = [
     act: 2,
     layout: "top",
     h: "里面都是谁？",
-    sub: "很多是您天天在用的。前十大加起来约占四成。",
-    cam: { at: "skyline", p: [0, 8.2, 24.5], t: [0, 2.4, -2.2], shift: [0, 0.16] },
+    sub: "很多是您天天在用的，生意做遍全世界。前十大约占四成。",
+    cam: { at: "skyline", p: [0, 8.7, 26.4], t: [0, 2.4, -2.2], shift: [0, 0.14] },
     pieces: { skyline: { mode: "spx" } }
   },
   {
@@ -5923,7 +5946,7 @@ var BEATS = [
     act: 2,
     layout: "left",
     h: "巴菲特的十年赌约",
-    sub: "最普通的指数基金，十年赢了华尔街的专业组合。",
+    sub: "连专业的人也挑不赢：最普通的指数基金，十年赢了华尔街。",
     cam: { at: "bet", p: [-2.2, 5, 17], t: [0.5, 3, 0], shift: [0.21, 0] },
     pieces: { bet: {} }
   },
@@ -5932,14 +5955,14 @@ var BEATS = [
     layout: "top",
     h: "十年前投 100 万，<br>现在是多少？",
     sub: "2016 年买入、拿到今天：约 369 万。这十年特别好，不能当常态。",
-    cam: { at: "tenyear", p: [0, 6, 29.5], t: [0, 4.2, 0], shift: [0, 0.17] },
+    cam: { at: "tenyear", p: [0, 6, 30.8], t: [0, 4.2, 0], shift: [0, 0.14] },
     pieces: { tenyear: { step: "path" } }
   },
   {
     act: 2,
     layout: "top",
     h: "换个十年，结果可能差很多",
-    sub: "1926 年以来，约 95% 的十年是赚钱的；最差的十年每年 −4%。",
+    sub: "1926 年以来，约 95% 的十年是赚钱的；最差的十年，还不如存银行。",
     cam: { at: "tenyear", p: [0, 5.4, 26], t: [0, 3.5, 0], shift: [0, 0.23] },
     pieces: { tenyear: { step: "compare" } }
   },
@@ -6088,7 +6111,7 @@ var BEATS = [
     layout: "left",
     h: "风险三：<br>买的时候有溢价",
     sub: "份额有限、大家抢着买：价格常比实际价值贵 5%–10%。",
-    cam: { at: "premium", p: [-1.8, 4.6, 16.5], t: [0.6, 3, 0], shift: [0.21, 0] },
+    cam: { at: "premium", p: [-1.8, 4.6, 16.5], t: [0.6, 3, 0], shift: [0.21, -0.035] },
     pieces: { premium: {} }
   },
   /* ---------- 第五幕：方案 ---------- */
@@ -6122,7 +6145,7 @@ var BEATS = [
     act: 5,
     layout: "left",
     h: "标普只能<br>分批进场",
-    sub: "受额度和溢价限制：溢价低时买一批，高了就等一等。",
+    sub: "溢价时高时低：低的时候买一批，高了就等一等。",
     cam: { at: "alloc", p: [6, 15.5, 27], t: [2.2, 2, 2.2], shift: [0.21, 0.02] },
     pieces: { alloc: { mode: "batch" } }
   },

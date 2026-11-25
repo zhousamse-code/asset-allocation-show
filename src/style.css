@@ -802,6 +802,16 @@ body {
   .lbl .c {
     display: none;
   }
+  /* charts are much smaller here while label text is not: step the label sizes down so numbers stop colliding */
+  .lbl .t {
+    font-size: 12px;
+  }
+  .lbl .v {
+    font-size: 17px;
+  }
+  .lbl .v.sm {
+    font-size: 14px;
+  }
   #hint {
     font-size: 13px;
   }

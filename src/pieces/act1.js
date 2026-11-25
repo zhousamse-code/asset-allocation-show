@@ -6,13 +6,13 @@ export class Stairs extends Piece {
   constructor(app, name, origin) {
     super(app, name, origin, { spot: [0, 0, 10, 1.15] });
     const data = [
-      ['2011 年', 5.5, '5.50%'],
-      ['2015 年', 2.75, '2.75%'],
-      ['如今', 1.3, '1.30%'],
+      ['2011 年', 5.5, '5.50%', '11 万'],
+      ['2015 年', 2.75, '2.75%', '5.5 万'],
+      ['如今', 1.3, '1.30%', '2.6 万'],
     ];
     const W = 3.1;
     const D = 3.2;
-    this.steps = data.map(([yr, r, txt], i) => {
+    this.steps = data.map(([yr, r, txt, per200], i) => {
       const g = new THREE.Group();
       g.position.x = (i - 1) * (W + 0.1);
       this.add(g);
@@ -36,7 +36,8 @@ export class Stairs extends Piece {
       const e = edges(this, geo, 0xffffff, 0.12);
       e.position.y = h / 2;
       g.add(e);
-      const lab = this.label(`<span class="c">${yr}</span><span class="v">${txt}</span>`, [g.position.x, h + 0.2, D / 2 - 0.3]);
+      // what that rate pays on the 200 万 of the title (simple interest per year)
+      const lab = this.label(`<span class="c">${yr}</span><span class="v">${txt}</span><span class="c">200 万一年利息 ${per200}</span>`, [g.position.x, h + 0.2, D / 2 - 0.3]);
       return { g, h, lab };
     });
     this.add(blob(this, 14, 7, 0.85));

@@ -179,7 +179,7 @@ export class Tug extends Piece {
         : '<span class="t red">往上拉 · 人民币升值</span><span class="c">出口企业把赚的美元换回人民币，发工资、付货款</span>',
     );
     this.lR.set(
-      chart ? '<span class="t green">往下拽</span>' : '<span class="t green">往下拽 · 人民币贬值</span><span class="c">美元利息高，加上保出口的政策</span>',
+      chart ? '<span class="t green">往下拽</span>' : '<span class="t green">往下拽 · 人民币贬值</span><span class="c">美元利息高，国家也想保出口</span>',
     );
     this.lL.target = this.lR.target = !chart && t > 0.9 ? 1 : 0;
     this.zoneL.target = this.zoneR.target = t > 1.3 && !chart ? 1 : 0;

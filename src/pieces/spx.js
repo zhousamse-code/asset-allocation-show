@@ -281,7 +281,8 @@ export class Underwater extends Piece {
       q.grp.visible = reached && (deep ? q.step === 'deep' : true);
       q.dot.visible = UX(q.yr) <= px;
       q.ld.target = UX(q.yr) <= px && (mine || (!deep && q.big)) ? (t > 0.5 ? 1 : 0) : 0;
-      q.lr.target = reached && mine ? (t > 0.8 ? 1 : 0) : 0;
+      // phones: the half-year bracket of 2020 is a sliver right beside the 2022 one, its caption would cover it
+      q.lr.target = reached && mine && !(q.yr > 2020 && q.yr < 2021 && this.app.ui.narrow()) ? (t > 0.8 ? 1 : 0) : 0;
     }
     this.ddLine.visible = deep && t > 1.0;
     this.lDD.target = deep && t > 1.3 ? 1 : 0;
@@ -351,10 +352,14 @@ export class TenYear extends Piece {
       ),
     );
     this.lYr = this.cols.map((c) => this.label(`<span class="c">${c.lb}</span>`, [c.x, 0, 1.45], 'down'));
-    this.lUnit = this.label('<span class="c">每捆 = 10 万元 · 含分红 · 单位：万元</span>', [this.cols[0].x - 0.9, top(this.cols[0].n) + 2.3, 0], 'right');
+    this.lUnit = this.label('<span class="c">每捆 = 10 万元 · 含分红 · 单位：万元</span>', [this.cols[0].x - 0.9, top(this.cols[0].n) + 2.95, 0], 'right');
     this.base100 = dashLine(this, [new THREE.Vector3(-6.0, top(10), 0.75), new THREE.Vector3(7.4, top(10), 0.75)], 0xffffff, 0.5);
     this.add(this.base100);
     this.lBase = this.label('<span class="c">起点 100 万</span>', [7.5, top(10), 0.75], 'right');
+    // the alternative she is comparing against: ten years at today's 1.3% deposit rate, 100 × 1.013^10 ≈ 114
+    this.bank = dashLine(this, [new THREE.Vector3(-6.0, top(11.4), 0.75), new THREE.Vector3(7.4, top(11.4), 0.75)], COL.gold, 0.75);
+    this.add(this.bank);
+    this.lBank = this.label('<span class="t gold">存银行十年：约 114 万</span><span class="c">按现在 1.3% 的利息</span>', [7.5, top(11.4) + 0.62, 0.75], 'right');
     this.lCmp = this.cmp.map((c, i) =>
       this.label(
         `<span class="v ${c.cls}">≈ ${c.v} 万</span><span class="t">${c.t}</span><span class="c">${c.c}</span>`,
@@ -398,13 +403,23 @@ export class TenYear extends Piece {
     }
     this.set.commit();
     this.cols.forEach((c, i) => {
-      const on = !cmp && t > this.T[i] + c.n * 0.018 + 0.25 ? 1 : 0;
+      // phones: every other in-between value, so neighbours stop touching (the first and last always show)
+      const skip = i % 2 === 1 && i < this.cols.length - 1 && this.app.ui.narrow();
+      const on = !cmp && !skip && t > this.T[i] + c.n * 0.018 + 0.25 ? 1 : 0;
       this.lVal[i].target = on;
       this.lYr[i].target = !cmp && t > 0.4 ? 1 : 0;
     });
     this.lUnit.target = !cmp && t > 0.6 ? 1 : 0;
     this.base100.visible = cmp && t > 0.4;
     this.lBase.target = cmp && t > 0.6 ? 1 : 0;
+    this.bank.visible = cmp && t > 2.6;
+    this.lBank.target = cmp && t > 2.8 ? 1 : 0;
+    // phones: the right end of the line is off screen, so the caption goes under the chart instead
+    const nar = this.app.ui.narrow();
+    this.lBank.el.className = nar ? 'lbl down' : 'lbl right';
+    if (nar) this.lBank.pos.set(0, 0, 1.5);
+    else this.lBank.pos.set(7.5, this.top(11.4) + 0.62, 0.75);
+    this.lBank.set(nar ? '<span class="t gold">虚线：存银行十年，约 114 万</span>' : '<span class="t gold">存银行十年：约 114 万</span><span class="c">按现在 1.3% 的利息</span>');
     this.cmp.forEach((c, i) => (this.lCmp[i].target = cmp && t > 0.5 + i * 0.55 + c.n * 0.03 + 0.3 ? 1 : 0));
   }
 }

@@ -328,7 +328,7 @@ export class Bundles extends Piece {
                 ? '<span class="v green">200 万</span><span class="c">等了 5 年半，才涨回来</span>'
                 : '<span class="v blue">200 万</span><span class="c">全部买了标普 500</span>',
           );
-        } else if (mode === 'batch') l.set(`<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * BATCH} 万</span><span class="c">受额度和溢价限制，分批进场</span>`);
+        } else if (mode === 'batch') l.set(`<span class="t blue">标普 500 · 已买 ${Math.max(0, batchNow + 1) * BATCH} 万</span><span class="c">看着溢价，分批进场</span>`);
         else l.set(`<span class="v ${TOWER_TXT[c][3]}">${TOWER_TXT[c][0]}</span><span class="t">${TOWER_TXT[c][1]}</span><span class="c">${TOWER_TXT[c][2]}</span>`);
         l.pos.y = top + 0.3;
         l.target = show && !(mode === 'batch' && batchNow < 0) ? 1 : 0;

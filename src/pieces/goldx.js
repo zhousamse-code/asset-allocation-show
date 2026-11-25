@@ -110,7 +110,7 @@ const NOTES = [
   { yr: 1971.62, p: 42, html: '<span class="t">35 美元</span><span class="c">1971 年美元和黄金脱钩</span>', cls: 'up' },
   { yr: 1980.05, p: 850, html: '<span class="t gold">850 美元</span><span class="c">1980 年见顶</span>', cls: 'up' },
   { yr: 1999.55, p: 252.8, html: '<span class="t red">252 美元 · 跌了 70%</span><span class="c">1999 年</span>', cls: 'down' },
-  { yr: 2011.68, p: 1895, html: '<span class="t gold">1,900 美元</span><span class="c">2011 年见顶</span>', cls: 'up' },
+  { yr: 2011.68, p: 1895, html: '<span class="t gold">1,900 美元</span><span class="c">2011 年见顶</span>', cls: 'left' },
   { yr: 2015.96, p: 1049.4, html: '<span class="t red">1,050 美元 · 跌了 45%</span><span class="c">2015 年</span>', cls: 'down' },
   { yr: 2026.08, p: 5450, html: '<span class="t gold">约 5,600 美元</span><span class="c">今年 1 月见顶</span>', cls: 'left' },
   { yr: 2026.9, p: 3552, html: '<span class="t red">约 3,550 美元</span><span class="c">现在 · 比高点跌了三成多</span>', cls: 'down' },
@@ -167,7 +167,7 @@ export class GoldHistory extends Piece {
     base.position.set((HX(T0) + HX(T1)) / 2, 0.025, 0);
     this.add(base);
     [100, 1000].forEach((p) => this.add(dashLine(this, [new THREE.Vector3(HX(T0), HY(p), -0.05), new THREE.Vector3(HX(T1), HY(p), -0.05)], 0xffffff, 0.16)));
-    this.lAx = [100, 1000].map((p) => this.label(`<span class="c">${p} 美元</span>`, [HX(T0) - 0.3, HY(p), 0], 'left'));
+    this.lAx = [1000].map((p) => this.label(`<span class="c">${p} 美元</span>`, [HX(T0) - 0.3, HY(p), 0], 'left'));
     this.lYears = [1971, 1980, 1990, 2000, 2011, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [HX(y), 0, 0.5], 'down'));
     this.notes = NOTES.map((n) => {
       const p = new THREE.Vector3(HX(n.yr), HY(n.p), 0);
@@ -194,7 +194,7 @@ export class GoldHistory extends Piece {
       });
       this.add(grp);
       const l = this.label(`<span class="t red">${b.txt}</span>`, [(x0 + x1) / 2, y + 0.05, 0]);
-      return { grp, l, x1 };
+      return { grp, l, x1, txt: b.txt, narrowHide: b.a > 2000 };
     });
     this.add(blob(this, 34, 6, 0.6));
   }
@@ -212,7 +212,9 @@ export class GoldHistory extends Piece {
     for (const b of this.brackets) {
       const on = b.x1 <= px;
       b.grp.visible = on;
-      b.l.target = on ? 1 : 0;
+      // phones: the second bracket's caption has no room between the 2011 and 2026 peaks
+      b.l.target = on && !(b.narrowHide && this.app.ui.narrow()) ? 1 : 0;
+      if (!b.narrowHide) b.l.set(`<span class="t red">${this.app.ui.narrow() ? '28 年才回来' : b.txt}</span>`);
     }
     const ax = t > 0.4 ? 1 : 0;
     for (const l of this.lAx) l.target = ax;

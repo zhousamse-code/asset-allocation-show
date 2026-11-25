@@ -103,7 +103,8 @@ export class Coaster extends Piece {
       { ...mk(2026.76, COL.ok), html: '<span class="t green">2026 年 10 月 6 日</span><span class="v">约 7,800 点</span><span class="c">历史新高</span>' },
     ];
     this.recs.forEach((q, k) => (q.l = this.label(q.html, k === 2 ? [q.p.x - 0.5, q.p.y, 0.3] : [q.p.x, q.p.y + 0.4, 0.3], k === 2 ? 'left' : 'up')));
-    this.lYears = [2000, 2008, 2020, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [CX(y), 0, 0.6], 'down'));
+    // no 2008 tick: the −57% caption right above it already names the year, and the two collided
+    this.lYears = [2000, 2020, 2026].map((y) => this.label(`<span class="c">${y}</span>`, [CX(y), 0, 0.6], 'down'));
     this.lTitle = this.label('<span class="t">标普 500 指数 · 2000 – 2026 年</span><span class="c">按比例画（对数坐标），关键点位为真实收盘价</span>', [CX(2001), CY(7800), 0], 'right');
     this.p = 0;
   }
@@ -127,10 +128,12 @@ export class Coaster extends Piece {
       else if (step === '2020') on = q.tag === '2020' ? 1 : 0;
       q.l.target = on;
     }
-    for (const q of this.recs) {
+    const nar = this.app.ui.narrow();
+    this.recs.forEach((q, k) => {
       q.s.visible = step === 'recover';
-      q.l.target = step === 'recover' && t > 0.8 ? 1 : 0;
-    }
+      // phones: the 2020 caption sits under the "new high" one; keep the dot, drop the words
+      q.l.target = step === 'recover' && t > 0.8 && !(nar && k === 1) ? 1 : 0;
+    });
     for (const l of this.lYears) l.target = t > 0.5 ? 1 : 0;
     this.lTitle.target = step === 'all' || step === 'recover' ? (t > 0.6 ? 1 : 0) : 0;
     this.curtainMat.uniforms.uRed.value = step === 'recover' ? lerp(this.curtainMat.uniforms.uRed.value, 0.35, 1 - Math.exp(-2 * dt)) : lerp(this.curtainMat.uniforms.uRed.value, 1, 1 - Math.exp(-2 * dt));
@@ -429,7 +432,7 @@ export class Premium extends Piece {
     this.add(this.line);
     this.add(blob(this, 9, 5, 0.6));
     this.lA = this.label('<span class="c">基金实际值（净值）</span><span class="v">1.00 元</span>', [-1.6, 0, 1.9], 'down');
-    this.lB = this.label('<span class="c">场内成交价</span><span class="v">1.10 元</span>', [1.6, 0, 1.9], 'down');
+    this.lB = this.label('<span class="c">买入时的成交价</span><span class="v">1.10 元</span>', [1.6, 0, 1.9], 'down');
     this.lP = this.label('<span class="v red">溢价 10%</span><span class="c">多花的冤枉钱</span>', [2.75, 0.3 + this.H + 0.25, 0], 'right');
   }
   update(dt, time) {
