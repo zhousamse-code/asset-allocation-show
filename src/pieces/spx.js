@@ -154,7 +154,7 @@ const PITS = [
   { yr: 1987.92, d: -33.5, a: 1987.65, b: 1989.55, name: '1987 股灾', rec: '约 2 年' },
   { yr: 2002.77, d: -49.1, a: 2000.23, b: 2007.41, name: '2000 互联网泡沫', rec: '7 年' },
   { yr: 2009.19, d: -56.8, a: 2007.77, b: 2013.24, name: '2008 金融危机', rec: '5 年半' },
-  { yr: 2020.22, d: -33.9, a: 2020.13, b: 2020.63, name: '2020 疫情', rec: '5 个月', side: 'left' },
+  { yr: 2020.22, d: -33.9, a: 2020.13, b: 2020.63, name: '2020 疫情', rec: '半年', side: 'left' },
   { yr: 2022.78, d: -25.4, a: 2022.0, b: 2024.05, name: '2022 加息', rec: '2 年', side: 'right' },
 ];
 export class Underwater extends Piece {
@@ -258,6 +258,10 @@ export class Underwater extends Piece {
       const lr = this.label(`<span class="${p.big ? 'v sm gold' : 't gold'}">${p.rec}</span>${p.big ? '<span class="c">1929 → 1954，按指数点位算</span>' : ''}`, [(x0 + x1) / 2, yb + 0.05, 0]);
       return { ...p, grp, dot, ld, lr, x1 };
     });
+    // what the two words mean: the depth of a pit is the 最大回撤, its width the 回本时间
+    this.ddLine = dashLine(this, [new THREE.Vector3(UX(1932.42), SURF, 0.15), new THREE.Vector3(UX(1932.42), UY(-86.2), 0.15)], 0xffd27a, 0.9, 0.18, 0.12);
+    this.add(this.ddLine);
+    this.lDD = this.label('<span class="t gold">最大回撤 ↓</span><span class="c">从最高点跌到最低点</span>', [UX(1929.6) - 0.25, UY(-48), 0.2], 'left');
     this.add(blob(this, 40, 8, 0.5));
     this.p = 0;
   }
@@ -279,6 +283,8 @@ export class Underwater extends Piece {
       q.ld.target = UX(q.yr) <= px && (mine || (!deep && q.big)) ? (t > 0.5 ? 1 : 0) : 0;
       q.lr.target = reached && mine ? (t > 0.8 ? 1 : 0) : 0;
     }
+    this.ddLine.visible = deep && t > 1.0;
+    this.lDD.target = deep && t > 1.3 ? 1 : 0;
     const axOn = t > 0.4 ? 1 : 0;
     this.lNow.target = !deep && t > 0.8 ? 1 : 0;
     this.lSurf.target = axOn;

@@ -87,8 +87,8 @@ export class Scale extends Piece {
     this.Mx = new THREE.Matrix4();
     this.Z = new THREE.Matrix4().makeScale(0, 0, 0);
     this.lGoods = this.label('<span class="t">东西多了</span><span class="c">前些年拼命扩产 · 出口受阻转内销</span>', [0, -0.2, 0], 'down', this.pans[0].g);
-    this.lMoney = this.label('<span class="t">买的人少了</span><span class="c">房价跌了 · 大家捂紧钱包</span>', [0, -0.2, 0], 'down', this.pans[1].g);
-    this.lResult = this.label('<span class="v red">供大于求</span><span class="c">只能比谁更便宜：价格战</span>', [0, this.PY + 0.75, 0]);
+    this.lMoney = this.label('<span class="t">买的人少了</span><span class="c">房价跌了 · 收入、养老没底</span>', [0, -0.2, 0], 'down', this.pans[1].g);
+    this.lResult = this.label('<span class="v red">供大于求</span><span class="c">价格战：出厂价连跌了 41 个月</span>', [0, this.PY + 0.75, 0]);
     this.ang = 0;
     this.vel = 0;
   }

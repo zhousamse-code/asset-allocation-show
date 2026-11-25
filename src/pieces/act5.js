@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Piece, rbox, COL, hdr, lerp, clamp01, seg, ss, eOut, eInOut, blob, edges, dashLine, progTube, monotone, textPlane, rng } from '../lib.js';
 
 /* S&P 500 price index, key closes 2000 – 24 Nov 2026 (peaks/troughs are actual closes; curve between them is smoothed) */
-const SPX = [
+export const SPX = [
   [2000.0, 1469], [2000.23, 1527], [2000.99, 1320], [2001.72, 966], [2001.99, 1148], [2002.77, 777], [2002.99, 880],
   [2003.99, 1112], [2004.99, 1212], [2005.99, 1248], [2006.99, 1418], [2007.77, 1565], [2007.99, 1468],
   [2008.7, 1166], [2008.89, 752], [2008.99, 903], [2009.19, 677], [2009.99, 1115], [2010.3, 1217], [2010.51, 1022],

@@ -294,9 +294,9 @@ export class Piece {
   m(mat) {
     return fadeable(mat, this.fade);
   }
-  add(o) {
-    this.inner.add(o);
-    return o;
+  add(...o) {
+    this.inner.add(...o);
+    return o[0];
   }
   label(html, pos, cls = 'up', obj = null) {
     const l = this.app.labels.add(html, pos, cls, this, obj);

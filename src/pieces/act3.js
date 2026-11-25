@@ -12,7 +12,7 @@ function seaH(x, z, t, amp, sx, sz, ss_) {
 }
 const SEA_Y = 0.62;
 
-function factory(piece, mat, win) {
+export function factory(piece, mat, win) {
   const g = new THREE.Group();
   const main = new THREE.Mesh(rbox(2.8, 1.3, 2.0, 0.05), mat);
   main.position.y = 0.65;
@@ -37,7 +37,7 @@ function factory(piece, mat, win) {
   g.add(w);
   return g;
 }
-function house(piece, mat, roofMat, win) {
+export function house(piece, mat, roofMat, win) {
   const g = new THREE.Group();
   const b = new THREE.Mesh(rbox(1.6, 1.1, 1.4, 0.04), mat);
   b.position.y = 0.55;

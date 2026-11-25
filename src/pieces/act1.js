@@ -353,7 +353,7 @@ function percentTex() {
     g.fillText('%', 128, 138);
   });
 }
-function containerTex() {
+export function containerTex() {
   return canvasTex(512, 256, (g, w, h) => {
     g.fillStyle = '#3b7cae';
     g.fillRect(0, 0, w, h);
