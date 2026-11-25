@@ -9,6 +9,8 @@ import { bankModel } from './fx.js';
           'few'  business is hard, they leave → the rent falls
           'cut'  降息: the central bank pushes the rent down directly → borrowing is cheaper, some come back
           'rrr'  降准: the bank gets back part of the money it must park at the central bank → more to lend
+          'stuck' why the rent cannot go back up: it is already low and still almost nobody borrows; whenever it
+                 tries to rise, one of the few borrowers backs away (and those already in debt could not pay)
    All schematic: no rates are read off the gauge. */
 const P_CB = new THREE.Vector3(-8.2, 0, -0.8);
 const P_VAULT = new THREE.Vector3(-8.2, 0, 2.3);
@@ -117,15 +119,25 @@ export class Rates extends Piece {
     this.lCut = this.label('<span class="t gold">降息：直接把“租金”调低</span>', [-2.6, 5.6, 0.5]);
     this.lVault = this.label('<span class="t">押在央行的钱</span><span class="c">银行不能借出去</span>', [P_VAULT.x, 0.05, P_VAULT.z + 1.5], 'down');
     this.lRrr = this.label('<span class="t gold">降准：少押一点</span>', [-3.9, 3.9, 1.6]);
+    this.lDebt = this.label('<span class="t">已经背着债的</span><span class="c">利息一高，就还不起</span>', [(QX(0) + QX(1)) / 2, 2.35, 0.4]);
   }
   update(dt, time) {
     const t = this.t;
     const st = this.st.step || 'many';
     const on = (c) => (c ? 1 : 0);
 
+    // 'stuck': every few seconds the rent tries to climb; the second borrower backs away, so it sinks again
+    let bump = 0;
+    let away = 0;
+    if (st === 'stuck' && t > 1.8) {
+      const ph = (t - 1.8) % 6.2;
+      bump = eInOut(seg(ph, 0, 0.9)) * (1 - eInOut(seg(ph, 2.9, 3.8)));
+      away = eInOut(seg(ph, 0.8, 1.6)) * (1 - eInOut(seg(ph, 3.9, 4.7)));
+    }
     // who is in the queue (0 = gone, 1 = there); the first companies stand nearest the bank
     const pres = (i) => {
       const arrive = (t0) => eOut(seg(t, t0, t0 + 0.45));
+      if (st === 'stuck') return i === 0 ? arrive(0.3) : i === 1 ? arrive(0.5) * (1 - 0.8 * away) : 0;
       if (st === 'many') return arrive(0.5 + i * 0.42);
       if (st === 'few') return i < 2 ? 1 : 1 - eInOut(seg(t, 0.6 + (5 - i) * 0.55, 1.05 + (5 - i) * 0.55));
       if (st === 'cut') return i < 2 ? 1 : i < 4 ? arrive(2.7 + (i - 2) * 0.5) : 0;
@@ -135,9 +147,12 @@ export class Rates extends Piece {
     this.q.forEach((c, i) => {
       const p = pres(i);
       sum += p;
-      c.f.position.set(QX(i) + (1 - p) * 7, 0.24, 0.35);
-      c.f.scale.setScalar(Math.max(0.001, 0.5 * p));
-      c.f.visible = p > 0.01;
+      // 'stuck': the second borrower only steps back a few paces (still in view), it does not leave the stage
+      const back = st === 'stuck' && i === 1 ? away : 0;
+      const k = back ? p / (1 - 0.8 * away) : p;
+      c.f.position.set(QX(i) + (1 - k) * 7 + back * 3.4, 0.24, 0.35);
+      c.f.scale.setScalar(Math.max(0.001, 0.5 * k * (1 - 0.3 * back)));
+      c.f.visible = k > 0.01;
     });
 
     // the rent gauge
@@ -145,9 +160,25 @@ export class Rates extends Piece {
     if (st === 'many') r = 0.32 + 0.52 * (sum / NQ);
     else if (st === 'few') r = 0.42 + 0.42 * ((sum - 2) / 4);
     else if (st === 'cut') r = lerp(0.42, 0.2, eInOut(seg(t, 1.8, 2.5)));
+    else if (st === 'stuck') r = 0.2 + 0.15 * bump;
     else r = 0.2;
     this.fill.scale.y = Math.max(0.01, r * (GH - 0.2));
-    const arrow = st === 'many' ? (t > 1.2 ? '<span class="t red">↑ 涨</span>' : '') : st === 'few' ? (t > 1.0 ? '<span class="t green">↓ 降</span>' : '') : st === 'cut' ? (t > 2.0 ? '<span class="t green">↓ 降</span>' : '') : '';
+    const arrow =
+      st === 'many'
+        ? t > 1.2
+          ? '<span class="t red">↑ 涨</span>'
+          : ''
+        : st === 'few'
+          ? t > 1.0
+            ? '<span class="t green">↓ 降</span>'
+            : ''
+          : st === 'cut'
+            ? t > 2.0
+              ? '<span class="t green">↓ 降</span>'
+              : ''
+            : st === 'stuck'
+              ? '<span class="t red">涨不上去</span>'
+              : '';
     this.lGauge.set(`<span class="t gold">借钱的“租金”</span><span class="c">也就是利息</span>${arrow}`);
 
     // money lent out: a stream from the bank to each company that is there
@@ -203,9 +234,11 @@ export class Rates extends Piece {
           ? '<span class="t green">生意难做，不敢借钱扩张 → 租金降</span>'
           : st === 'cut'
             ? '<span class="t">借钱便宜了，又有人来借</span>'
-            : '<span class="t">能借出去的钱多了</span>';
+            : st === 'stuck'
+              ? '<span class="t">租金一涨，借钱的人更少</span>'
+              : '<span class="t">能借出去的钱多了</span>';
     this.lMsg.set(msg);
-    this.lMsg.target = on(st === 'many' ? t > 3.2 : st === 'few' ? t > 1.2 : st === 'cut' ? t > 3.2 : t > 3.2);
+    this.lMsg.target = on(st === 'many' ? t > 3.2 : st === 'few' ? t > 1.2 : st === 'stuck' ? t > 2.4 : t > 3.2);
     this.lBank.target = on(t > 0.3);
     this.lGauge.target = on(t > 0.5);
     this.lQueue.target = on(st === 'many' && t > 1.4);
@@ -213,5 +246,6 @@ export class Rates extends Piece {
     this.lCut.target = on(st === 'cut' && t > 1.6 && !this.app.ui.narrow());
     this.lVault.target = on(st === 'rrr' && t > 0.4);
     this.lRrr.target = on(st === 'rrr' && t > 1.5);
+    this.lDebt.target = on(st === 'stuck' && t > 1.0);
   }
 }

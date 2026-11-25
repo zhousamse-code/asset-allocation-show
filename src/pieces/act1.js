@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Piece, rbox, COL, hdr, lerp, seg, ss, eOut, eIn, eInOut, canvasTex, blob, edges, textPlane, FONT } from '../lib.js';
+import { Piece, rbox, COL, hdr, lerp, seg, ss, eOut, eIn, eInOut, canvasTex, blob, edges } from '../lib.js';
 
 /* ---------- 1.1  Deposit-rate staircase: 5.50% -> 2.75% -> 1.30% ---------- */
 export class Stairs extends Piece {
@@ -342,17 +342,7 @@ export class Tank extends Piece {
   }
 }
 
-/* ---------- 1.3 / 1.4  Seesaw: rates up -> exports down; the iron plate "保出口 · 稳汇率" pins rates down ---------- */
-function percentTex() {
-  return canvasTex(256, 256, (g) => {
-    g.clearRect(0, 0, 256, 256);
-    g.fillStyle = '#ffffff';
-    g.font = `700 200px ${FONT}`;
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillText('%', 128, 138);
-  });
-}
+/* corrugated shipping-container texture (used by the FX scene's export cartons) */
 export function containerTex() {
   return canvasTex(512, 256, (g, w, h) => {
     g.fillStyle = '#3b7cae';
@@ -369,121 +359,4 @@ export function containerTex() {
     g.fillRect(0, 0, w, 14);
     g.fillRect(0, h - 14, w, 14);
   });
-}
-
-export class Seesaw extends Piece {
-  constructor(app, name, origin) {
-    super(app, name, origin, { spot: [0, 0, 12, 1.0] });
-    const steel = this.m(new THREE.MeshStandardMaterial({ color: 0x3a3d45, metalness: 0.85, roughness: 0.3 }));
-    const tri = new THREE.Shape();
-    tri.moveTo(-1.25, 0);
-    tri.lineTo(1.25, 0);
-    tri.lineTo(0, 2.3);
-    tri.closePath();
-    const fg = new THREE.ExtrudeGeometry(tri, { depth: 2.0, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 });
-    fg.translate(0, 0, -1.0);
-    this.add(new THREE.Mesh(fg, steel));
-
-    this.pivot = new THREE.Group();
-    this.pivot.position.y = 2.42;
-    this.add(this.pivot);
-    const beam = new THREE.Mesh(rbox(17, 0.32, 2.1, 0.06), this.m(new THREE.MeshStandardMaterial({ color: 0x2a2c33, metalness: 0.6, roughness: 0.32 })));
-    this.pivot.add(beam);
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(16.8, 0.03, 0.03), this.m(new THREE.MeshBasicMaterial({ color: hdr(0xffffff, 0.9) })));
-    strip.position.set(0, 0.16, 1.05);
-    this.pivot.add(strip);
-
-    this.rate = new THREE.Group();
-    this.rate.position.set(-6.6, 1.16, 0);
-    this.pivot.add(this.rate);
-    this.rate.add(
-      new THREE.Mesh(rbox(2.0, 2.0, 2.0, 0.12), this.m(new THREE.MeshPhysicalMaterial({ color: COL.rmb, roughness: 0.28, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.2 }))),
-    );
-    const pct = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), this.m(new THREE.MeshBasicMaterial({ map: percentTex(), transparent: true, depthWrite: false, color: hdr(0xffffff, 1.3) })));
-    pct.position.z = 1.005;
-    this.rate.add(pct);
-
-    this.box = new THREE.Group();
-    this.box.position.set(6.4, 1.01, 0);
-    this.pivot.add(this.box);
-    this.box.add(new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.7, 1.9), this.m(new THREE.MeshStandardMaterial({ map: containerTex(), roughness: 0.55, metalness: 0.35 }))));
-
-    this.plate = new THREE.Group();
-    this.restY = 1.16 + 1.0 + 0.55;
-    this.plate.position.set(-6.6, this.restY + 10, 0);
-    this.pivot.add(this.plate);
-    this.plate.add(new THREE.Mesh(rbox(4.2, 1.1, 2.6, 0.08), this.m(new THREE.MeshStandardMaterial({ color: 0x2b2c31, metalness: 0.9, roughness: 0.42 }))));
-    const txt = textPlane(this, '保出口 · 稳汇率', { w: 3.9, h: 0.8, px: 150, color: '#efe6cf', weight: 800, glow: 0.28, metal: true });
-    txt.position.z = 1.31;
-    this.plate.add(txt);
-    const txtTop = textPlane(this, '保出口 · 稳汇率', { w: 3.9, h: 0.9, px: 130, color: '#d9d0ba', weight: 800, glow: 0.12, metal: true });
-    txtTop.rotation.x = -Math.PI / 2;
-    txtTop.position.y = 0.555;
-    this.plate.add(txtTop);
-
-    this.add(blob(this, 20, 6, 0.8));
-    this.lFul = this.label('<span class="t">人民币汇率</span><span class="c">把两头连在一起</span>', [0, 0, 1.4], 'down');
-    this.lRate = this.label('', [0, 1.35, 0], 'up', this.rate);
-    this.lBox = this.label('', [0, 1.15, 0], 'up', this.box);
-    this.ang = 0;
-    this.vel = 0;
-    this.hit = false;
-  }
-  enter(st, prev, fresh) {
-    this.hit = false;
-    if (st.step === 'press') {
-      if (fresh || prev.step !== 'tilt') {
-        this.ang = -0.19;
-        this.vel = 0;
-      }
-    } else if (fresh) {
-      this.ang = 0;
-      this.vel = 0;
-    }
-  }
-  update(dt) {
-    const t = this.t;
-    const st = this.st;
-    let target = 0;
-    let plateY = this.restY + 12;
-    if (st.step === 'tilt') {
-      target = t < 0.7 ? 0 : -0.19;
-      this.lRate.set('<span class="t">利率</span><span class="v red">↑ 涨</span>');
-      // wide screens: beside the cube, not above it (above, it ran into the cause chain under the slide text);
-      // narrow screens: above it, since beside it falls off the left edge
-      const nar = this.app.ui.narrow();
-      this.lRate.el.className = nar ? 'lbl up' : 'lbl left';
-      this.lRate.pos.set(nar ? 0 : -1.25, nar ? 1.35 : 0, 0);
-      this.lBox.set('<span class="t">出口</span><span class="v">↓ 难</span>');
-    } else {
-      const k = seg(t, 0.55, 1.1);
-      plateY = this.restY + 10 * (1 - k * k);
-      target = k < 1 ? -0.19 : 0.19;
-      if (k >= 1 && !this.hit) {
-        this.hit = true;
-        this.app.shake = 1;
-        this.vel += 2.2;
-      }
-      this.lRate.set('<span class="t">利率</span><span class="v red">被压在低位</span>');
-      // the plate lands on top of the cube, so never above it; on narrow screens the left side is off screen
-      const nar = this.app.ui.narrow();
-      this.lRate.el.className = nar ? 'lbl right' : 'lbl left';
-      this.lRate.pos.set(nar ? 1.25 : -1.25, 0, 0);
-      this.lBox.set('<span class="t">出口</span><span class="v green">稳住了</span>');
-    }
-    const K = this.hit ? 70 : 24;
-    const C = this.hit ? 8 : 7.5;
-    const n = 4;
-    const h = dt / n;
-    for (let i = 0; i < n; i++) {
-      this.vel += ((target - this.ang) * K - this.vel * C) * h;
-      this.ang += this.vel * h;
-    }
-    this.pivot.rotation.z = this.ang;
-    this.plate.position.y = plateY;
-    this.plate.visible = st.step === 'press';
-    this.lFul.target = t > 0.4 ? 1 : 0;
-    this.lRate.target = st.step === 'tilt' ? (t > 1.2 ? 1 : 0) : t > 1.4 ? 1 : 0;
-    this.lBox.target = this.lRate.target;
-  }
 }

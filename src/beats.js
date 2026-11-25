@@ -2,9 +2,22 @@
    who is not a finance person. Data as of 24 Nov 2026.
    cam: camera position p and look-at t, relative to the origin of piece `at`; shift moves the subject on screen
    (x > 0 to the right, y > 0 downward) to leave room for the text block; nsy overrides the downward shift on
-   narrow screens (default 0.16) for pages whose text runs long there. */
+   narrow screens (default 0.16) for pages whose text runs long there.
 
-export const ACTS = ['开场', '大环境', '汇率', '思路', '标普 500', '黄金', '风险', '方案', '怎么买'];
+   The line of argument, one question per act:
+     大环境   why the money should not just sit in the bank: business is cut-throat → weak demand → interest falls →
+              the central bank "releases water" → money gets thinner, yet nobody dares to move it → interest will
+              not come back → so: put this idle money abroad
+     标普 500 what to buy: what it is → how much it has returned → who is inside → the list renews itself →
+              a century of changing leaders → Buffett's bet → ten-year examples → why not the Nasdaq
+     黄金     why not gold
+     风险     what can go wrong while holding it: crashes (how deep, how long, how long can the money stay),
+              then the exchange rate (why it swings, why compounding covers it), then the premium when buying
+     方案     the plan, its two conditions, buying in batches
+     怎么买   the three legal routes
+   A term is never used before the page that explains it. */
+
+export const ACTS = ['开场', '大环境', '标普 500', '黄金', '风险', '方案', '怎么买'];
 
 const chain = (items) => `<div class="chain">${items.map((s) => `<span>${s}</span>`).join('<i>→</i>')}</div>`;
 const spec = (rows, tags = '') =>
@@ -16,7 +29,7 @@ export const BEATS = [
     act: 0,
     layout: 'left cover',
     h: '200 万闲钱，<br>怎么<em>投资</em>？',
-    sub: '从眼下的利息说起，一直讲到具体怎么买。',
+    sub: '从这几年的大环境说起，一直讲到具体怎么买。',
     cam: { at: 'cover', p: [6.2, 7.2, 18.5], t: [0.4, 1.0, 0], shift: [0.24, 0.03] },
     pieces: { cover: { mode: 'pile' } },
   },
@@ -57,6 +70,14 @@ export const BEATS = [
   },
   {
     act: 1,
+    layout: 'left',
+    h: '这些年，存款的利息<br>也一降再降',
+    sub: '这和生意难做，其实是同一件事。',
+    cam: { at: 'stairs', p: [-2.6, 6.8, 20.5], t: [1.2, 2.5, 0], shift: [0.21, 0.02] },
+    pieces: { stairs: {} },
+  },
+  {
+    act: 1,
     layout: 'top',
     h: '利息，就是借钱的“租金”',
     sub: '借钱的人多，租金就涨。',
@@ -67,17 +88,9 @@ export const BEATS = [
     act: 1,
     layout: 'top',
     h: '生意难做，借钱的人少了',
-    sub: '租金只好往下降。',
+    sub: '租金往下降，银行给存款的利息也跟着降。',
     cam: { at: 'rates', p: [7.6, 6.6, 22.5], t: [7.6, 2.2, 0], shift: [0, 0.12] },
     pieces: { rates: { step: 'few' } },
-  },
-  {
-    act: 1,
-    layout: 'left',
-    h: '存款的利息，<br>也一降再降',
-    sub: '银行收的租金少了，给存款的利息也就少了。',
-    cam: { at: 'stairs', p: [-2.6, 6.8, 20.5], t: [1.2, 2.5, 0], shift: [0.21, 0.02] },
-    pieces: { stairs: {} },
   },
   {
     act: 1,
@@ -122,110 +135,32 @@ export const BEATS = [
   {
     act: 1,
     layout: 'top',
-    h: '利息为什么<br>涨不回去？',
-    extra: '<ol class="risks"><li><b>1</b>内需不足，借钱的人少</li><li><b>2</b>到处背着债，利息高了还不起</li><li><b>3</b>汇率：利息一涨，出口难做</li></ol>',
-    cam: { at: 'seesaw', p: [0, 5.6, 24.5], t: [0, 2.0, 0], shift: [0, 0.19] },
-    pieces: { seesaw: { step: 'tilt' } },
+    h: '利息为什么涨不回去？',
+    sub: '借钱的人不回来，高息存款的时代就很难再回来。',
+    cam: { at: 'rates', p: [7.6, 6.6, 22.5], t: [7.6, 2.2, 0], shift: [0, 0.12] },
+    pieces: { rates: { step: 'stuck' } },
   },
   {
     act: 1,
     layout: 'top',
-    h: '“保出口、稳汇率”，<br>把利率压在低位',
-    sub: '所以，高息存款的时代，很难再回来了。',
-    cam: { at: 'seesaw', p: [-1.5, 6.6, 22.5], t: [-0.6, 2.6, 0], shift: [0, 0.15] },
-    pieces: { seesaw: { step: 'press' } },
-  },
-
-  /* ---------- 第二幕：汇率 ---------- */
-  {
-    act: 2,
-    layout: 'top',
-    eyebrow: '<b>第二幕</b>汇率',
-    h: '人民币汇率，<br>是一场长期拔河',
-    sub: '一边往上拉，一边往下拽。',
-    cam: { at: 'tug', p: [0, 5.0, 20.5], t: [0, 1.6, 0], shift: [0, 0.15] },
-    pieces: { tug: { step: 'pull' } },
-  },
-  {
-    act: 2,
-    layout: 'top',
-    h: '往上拉：出口企业要换人民币',
-    sub: '卖货收回的是美元，发工资、付货款得用人民币。',
-    cam: { at: 'fx', p: [-1.8, 7.0, 24.2], t: [-1.8, 2.3, 0], shift: [0, 0.14] },
-    pieces: { fx: { step: 'up' } },
-  },
-  {
-    act: 2,
-    layout: 'top',
-    h: '往下拽：美元的利息更高',
-    sub: '存美元利息高，很多人就愿意换美元、攒美元。',
-    cam: { at: 'fx', p: [-1.2, 7.6, 25], t: [-1.2, 2.8, -1.2], shift: [0, 0.13] },
-    pieces: { fx: { step: 'down' } },
-  },
-  {
-    act: 2,
-    layout: 'top',
-    h: '谁也拉不倒谁：<br>未来大概率双向、大幅波动',
-    sub: '十年来在 6.3 到 7.3 之间来回拉锯。',
-    cam: { at: 'tug', p: [0, 6.8, 26.5], t: [0, 4.2, -2.2], shift: [0, 0.13] },
-    pieces: { tug: { step: 'chart' } },
-  },
-  {
-    act: 2,
-    layout: 'top',
-    h: '想盖过汇率波动，<br>得靠长期复利',
-    sub: '汇率只是来回晃，复利会越滚越大。',
-    cam: { at: 'compoundA', p: [0, 4.6, 21.5], t: [0, 3.7, 0], shift: [0, 0.12] },
-    pieces: { compoundA: {} },
-  },
-
-  /* ---------- 第三幕：思路 ---------- */
-  {
-    act: 3,
-    layout: 'top',
-    eyebrow: '<b>第三幕</b>思路',
-    h: '拿一部分闲钱配到全球，<br>给主业上一份“保险”',
+    h: '所以：把这笔闲钱配到全球，<br>给主业上一份“保险”',
     sub: '两边不同步：这边起风浪，那边未必。',
     cam: { at: 'islands', p: [2.4, 10.5, 29], t: [1.8, 1.8, -1.5], shift: [0, 0.14] },
     pieces: { islands: { step: 2 } },
   },
-  {
-    act: 3,
-    layout: 'top',
-    h: '买指数，自带“末位淘汰”',
-    sub: '不行的调出去，新的补进来：每年换二十多家。',
-    cam: { at: 'roster', p: [0, 6.4, 25], t: [0, 2.9, 0], shift: [0, 0.16] },
-    pieces: { roster: {} },
-  },
-  {
-    act: 3,
-    layout: 'top',
-    h: '一百多年来，每个时代的龙头都换过',
-    sub: '上一次革命的龙头，不少已经被“扫地出门”。',
-    cam: { at: 'eras', p: [0, 6.4, 25], t: [0, 3.0, 0], shift: [0, 0.13] },
-    pieces: { eras: {} },
-  },
-  {
-    act: 3,
-    layout: 'left',
-    h: '巴菲特的十年赌约',
-    sub: '最普通的指数基金，十年赢了华尔街的专业组合。',
-    cam: { at: 'bet', p: [-2.2, 5.0, 17], t: [0.5, 3.0, 0], shift: [0.21, 0] },
-    pieces: { bet: {} },
-  },
 
-  /* ---------- 第四幕：标普 500 ---------- */
+  /* ---------- 第二幕：标普 500 ---------- */
   {
-    act: 4,
+    act: 2,
     layout: 'top',
-    eyebrow: '<b>第四幕</b>标普 500',
+    eyebrow: '<b>第二幕</b>标普 500',
     h: '标普 500：<br>美国 500 家头部大公司',
     sub: '买一份基金，就等于一次买下这 500 家公司。',
     cam: { at: 'city', p: [-4, 19, 36], t: [1, 0.4, 0], shift: [0, 0.14] },
     pieces: { city: { step: 'rise' } },
   },
   {
-    act: 4,
+    act: 2,
     layout: 'left',
     h: '长期平均，<br>每年约 <em class="blue">10%</em>',
     sub: '近百年平均（含分红、按美元算），不是年年都赚。',
@@ -233,7 +168,7 @@ export const BEATS = [
     pieces: { city: { step: 'aerial' } },
   },
   {
-    act: 4,
+    act: 2,
     layout: 'top',
     h: '里面都是谁？',
     sub: '很多是您天天在用的。前十大加起来约占四成。',
@@ -241,23 +176,31 @@ export const BEATS = [
     pieces: { skyline: { mode: 'spx' } },
   },
   {
-    act: 4,
+    act: 2,
     layout: 'top',
-    h: '纳斯达克 100：<br>科技巨头扎堆的指数',
-    sub: '前十大差不多占一半；过去十年每年约 19%。',
-    cam: { at: 'skyline', p: [0, 8.2, 24.5], t: [0, 2.4, -2.2], shift: [0, 0.16] },
-    pieces: { skyline: { mode: 'ndx' } },
+    h: '这份名单，自带“末位淘汰”',
+    sub: '不行的调出去，新的补进来：每年换二十多家。',
+    cam: { at: 'roster', p: [0, 6.4, 25], t: [0, 2.9, 0], shift: [0, 0.16] },
+    pieces: { roster: {} },
   },
   {
-    act: 4,
+    act: 2,
     layout: 'top',
-    h: '为什么主角是标普，<br>不是纳指？',
-    sub: '纳指涨得猛，跌得也狠；标普更均衡，适合当压舱石。',
-    cam: { at: 'city', p: [12, 22, 50], t: [12, 1, 0], shift: [0, 0.12] },
-    pieces: { city: { step: 'vs' } },
+    h: '一百多年来，每个时代的龙头都换过',
+    sub: '上一次革命的龙头，不少已经被“扫地出门”。',
+    cam: { at: 'eras', p: [0, 6.4, 25], t: [0, 3.0, 0], shift: [0, 0.13] },
+    pieces: { eras: {} },
   },
   {
-    act: 4,
+    act: 2,
+    layout: 'left',
+    h: '巴菲特的十年赌约',
+    sub: '最普通的指数基金，十年赢了华尔街的专业组合。',
+    cam: { at: 'bet', p: [-2.2, 5.0, 17], t: [0.5, 3.0, 0], shift: [0.21, 0] },
+    pieces: { bet: {} },
+  },
+  {
+    act: 2,
     layout: 'top',
     h: '十年前投 100 万，<br>现在是多少？',
     sub: '2016 年买入、拿到今天：约 369 万。这十年特别好，不能当常态。',
@@ -265,26 +208,42 @@ export const BEATS = [
     pieces: { tenyear: { step: 'path' } },
   },
   {
-    act: 4,
+    act: 2,
     layout: 'top',
     h: '换个十年，结果可能差很多',
     sub: '1926 年以来，约 95% 的十年是赚钱的；最差的十年每年 −4%。',
     cam: { at: 'tenyear', p: [0, 5.4, 26], t: [0, 3.5, 0], shift: [0, 0.23] },
     pieces: { tenyear: { step: 'compare' } },
   },
-
-  /* ---------- 第五幕：黄金 ---------- */
   {
-    act: 5,
+    act: 2,
+    layout: 'top',
+    h: '纳斯达克 100：<br>涨得更猛的科技指数',
+    sub: '科技巨头扎堆，前十大差不多占一半；过去十年每年约 19%。',
+    cam: { at: 'skyline', p: [0, 8.2, 24.5], t: [0, 2.4, -2.2], shift: [0, 0.16] },
+    pieces: { skyline: { mode: 'ndx' } },
+  },
+  {
+    act: 2,
+    layout: 'top',
+    h: '为什么主角是标普，<br>不是纳指？',
+    sub: '纳指涨得猛，跌得也狠；标普更均衡，更拿得住。',
+    cam: { at: 'city', p: [12, 22, 50], t: [12, 1, 0], shift: [0, 0.12] },
+    pieces: { city: { step: 'vs' } },
+  },
+
+  /* ---------- 第三幕：黄金 ---------- */
+  {
+    act: 3,
     layout: 'left',
-    eyebrow: '<b>第五幕</b>黄金',
+    eyebrow: '<b>第三幕</b>黄金',
     h: '黄金：能对抗“钱变薄”',
     sub: '钞票能一直印，黄金印不出来：金条没变，变的是钱。',
     cam: { at: 'goldfiat', p: [1.8, 6.2, 27.5], t: [1.3, 3.0, 0], shift: [0.22, 0] },
     pieces: { goldfiat: {} },
   },
   {
-    act: 5,
+    act: 3,
     layout: 'top',
     h: '但黄金只保值，不生钱',
     sub: '扣掉通胀，两百年来黄金每年约 +0.6%，股票约 +6.7%。',
@@ -292,18 +251,18 @@ export const BEATS = [
     pieces: { goldhist: {} },
   },
 
-  /* ---------- 第六幕：风险 ---------- */
+  /* ---------- 第四幕：风险 ---------- */
   {
-    act: 6,
+    act: 4,
     layout: 'top',
-    eyebrow: '<b>第六幕</b>风险',
+    eyebrow: '<b>第四幕</b>风险',
     h: '可能的风险',
-    extra: '<ol class="risks"><li><b>1</b>会大跌</li><li><b>2</b>汇率会波动</li><li><b>3</b>场内 ETF 有溢价</li></ol>',
+    extra: '<ol class="risks"><li><b>1</b>会大跌</li><li><b>2</b>汇率会波动</li><li><b>3</b>买的时候有溢价</li></ol>',
     cam: { at: 'coaster', p: [0, 9.5, 64], t: [0, 6.4, 0], shift: [0, 0.1] },
     pieces: { coaster: { step: 'all' } },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '风险一：会大跌',
     sub: '2008 年金融危机：100 万一度只剩 43 万。',
@@ -311,7 +270,7 @@ export const BEATS = [
     pieces: { coaster: { step: '2008' } },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '2020 年：一个月跌掉三成多',
     sub: '疫情恐慌，美股两周之内 4 次熔断。',
@@ -319,7 +278,7 @@ export const BEATS = [
     pieces: { coaster: { step: '2020' } },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '但每一次，最后都涨了回来',
     sub: '而且都创了新高。但要等多久，每次差很多。',
@@ -327,7 +286,7 @@ export const BEATS = [
     pieces: { coaster: { step: 'recover' } },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '《黑天鹅》：这种大跌预测不了，但迟早会来',
     sub: '所以要想的不是它哪天来，而是来了等不等得起。',
@@ -335,7 +294,7 @@ export const BEATS = [
     pieces: { turkey: {} },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'left',
     h: '跌多深：<br><em class="red">最大回撤</em>',
     sub: '从最高点跌到最低点，一共跌掉多少。最深的一次：1929 年，−86%。',
@@ -343,7 +302,7 @@ export const BEATS = [
     pieces: { underwater: { step: 'deep' } },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '多久回来：回本时间',
     sub: '跌下去以后，多久才涨回原来的最高点。',
@@ -351,7 +310,7 @@ export const BEATS = [
     pieces: { underwater: { step: 'modern' } },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '所以：这笔钱干什么用、能放多久？',
     sub: '放得比回本时间久，黑天鹅来了也等得回来。',
@@ -359,7 +318,7 @@ export const BEATS = [
     pieces: { horizon: {} },
   },
   {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '要取钱时正好碰上黑天鹅，怎么办？',
     extra: '<ol class="risks"><li><b>1</b>快要用的钱，提前分批取</li><li><b>2</b>先用存款顶一顶</li><li><b>3</b>能晚取就晚取</li></ol>',
@@ -367,42 +326,66 @@ export const BEATS = [
     pieces: { withdraw: {} },
   },
   {
-    act: 6,
-    layout: 'left',
-    h: '还没买完的钱，<br>碰上下跌是好事',
-    sub: '分批买的话，后面的钱能买得更便宜。',
-    cam: { at: 'discount', p: [-1.0, 4.8, 17], t: [0.4, 2.3, 1.0], shift: [0.23, 0] },
-    pieces: { discount: {} },
-  },
-  {
-    act: 6,
+    act: 4,
     layout: 'top',
     h: '风险二：汇率会波动',
-    sub: '短期上下几个点很正常，靠时间和复利去覆盖。',
-    cam: { at: 'compoundB', p: [0, 4.6, 21.5], t: [0, 3.7, 0], shift: [0, 0.12] },
-    pieces: { compoundB: {} },
+    sub: '买的是美元资产：人民币升值就少赚，贬值就多赚。',
+    cam: { at: 'tug', p: [0, 5.0, 20.5], t: [0, 1.6, 0], shift: [0, 0.15] },
+    pieces: { tug: { step: 'pull' } },
   },
   {
-    act: 6,
+    act: 4,
+    layout: 'top',
+    h: '往上拉：出口企业要换人民币',
+    sub: '卖货收回的是美元，发工资、付货款得用人民币。',
+    cam: { at: 'fx', p: [-1.8, 7.0, 24.2], t: [-1.8, 2.3, 0], shift: [0, 0.14] },
+    pieces: { fx: { step: 'up' } },
+  },
+  {
+    act: 4,
+    layout: 'top',
+    h: '往下拽：美元的利息更高',
+    sub: '存美元利息高，很多人就愿意换美元、攒美元。',
+    cam: { at: 'fx', p: [-1.2, 7.6, 25], t: [-1.2, 2.8, -1.2], shift: [0, 0.13] },
+    pieces: { fx: { step: 'down' } },
+  },
+  {
+    act: 4,
+    layout: 'top',
+    h: '谁也拉不倒谁：<br>未来大概率双向、大幅波动',
+    sub: '十年来在 6.3 到 7.3 之间来回拉锯。',
+    cam: { at: 'tug', p: [0, 6.8, 26.5], t: [0, 4.2, -2.2], shift: [0, 0.13] },
+    pieces: { tug: { step: 'chart' } },
+  },
+  {
+    act: 4,
+    layout: 'top',
+    h: '想盖过汇率波动，<br>得靠长期复利',
+    sub: '汇率只是来回晃，复利会越滚越大。',
+    cam: { at: 'compound', p: [0, 4.6, 21.5], t: [0, 3.7, 0], shift: [0, 0.12] },
+    pieces: { compound: {} },
+  },
+  {
+    act: 4,
     layout: 'left',
-    h: '风险三：<br>场内 ETF 的溢价',
-    sub: '额度用完，只能在场内互相抢：现在常贵 5%–10%。',
+    h: '风险三：<br>买的时候有溢价',
+    sub: '份额有限、大家抢着买：价格常比实际价值贵 5%–10%。',
     cam: { at: 'premium', p: [-1.8, 4.6, 16.5], t: [0.6, 3.0, 0], shift: [0.21, 0] },
     pieces: { premium: {} },
   },
 
-  /* ---------- 第七幕：方案 ---------- */
+  /* ---------- 第五幕：方案 ---------- */
   {
-    act: 7,
+    act: 5,
     layout: 'left',
-    eyebrow: '<b>第七幕</b>方案',
+    eyebrow: '<b>第五幕</b>方案',
     h: '拿得越久，<br>赚钱的把握越大',
     sub: '随便哪天买入标普 500，拿住几年后赚钱的概率：',
     cam: { at: 'glasses', p: [-1.8, 6.0, 22.5], t: [0.6, 3.1, 0], shift: [0.21, 0] },
     pieces: { glasses: {} },
   },
   {
-    act: 7,
+    act: 5,
     layout: 'left',
     h: '200 万：<br>全部买标普 500',
     sub: '不配黄金，也不加纳指：就这一样，长期拿住。',
@@ -411,7 +394,7 @@ export const BEATS = [
     pieces: { alloc: { mode: 'alloc' } },
   },
   {
-    act: 7,
+    act: 5,
     layout: 'left',
     h: '前提：十年以上不用，<br>跌一半也不卖',
     sub: '做不到这两条，就别全买。',
@@ -419,26 +402,34 @@ export const BEATS = [
     pieces: { alloc: { mode: 'crash' } },
   },
   {
-    act: 7,
+    act: 5,
     layout: 'left',
     h: '标普只能<br>分批进场',
     sub: '受额度和溢价限制：溢价低时买一批，高了就等一等。',
     cam: { at: 'alloc', p: [6, 15.5, 27], t: [2.2, 2.0, 2.2], shift: [0.21, 0.02] },
     pieces: { alloc: { mode: 'batch' } },
   },
-
-  /* ---------- 第八幕：怎么买 ---------- */
   {
-    act: 8,
+    act: 5,
+    layout: 'left',
+    h: '还没买完的钱，<br>碰上下跌是好事',
+    sub: '分批买的话，后面的钱能买得更便宜。',
+    cam: { at: 'discount', p: [-1.0, 4.8, 17], t: [0.4, 2.3, 1.0], shift: [0.23, 0] },
+    pieces: { discount: {} },
+  },
+
+  /* ---------- 第六幕：怎么买 ---------- */
+  {
+    act: 6,
     layout: 'top',
-    eyebrow: '<b>第八幕</b>怎么买',
+    eyebrow: '<b>第六幕</b>怎么买',
     h: '买标普 500，有三条合规的路',
     sub: '路一最方便，但买之前一定先看溢价率。',
     cam: { at: 'paths', p: [0, 20, 32], t: [0, 0, -2.6], shift: [0, 0.15] },
     pieces: { paths: { focus: 0 } },
   },
   {
-    act: 8,
+    act: 6,
     layout: 'left',
     h: '路一：A 股证券账户',
     sub: '和买股票一样，用人民币直接买。',
@@ -447,7 +438,7 @@ export const BEATS = [
     pieces: { paths: { focus: 1 } },
   },
   {
-    act: 8,
+    act: 6,
     layout: 'left',
     h: '路二：银行 / 基金 APP',
     sub: '买场外的 QDII 基金。',
@@ -456,7 +447,7 @@ export const BEATS = [
     pieces: { paths: { focus: 2 } },
   },
   {
-    act: 8,
+    act: 6,
     layout: 'left',
     h: '路三：本人赴港开户',
     sub: '直接买美股 VOO（跟踪标普 500）。',
@@ -465,7 +456,7 @@ export const BEATS = [
     pieces: { paths: { focus: 3 } },
   },
   {
-    act: 8,
+    act: 6,
     layout: 'center table',
     h: '三条路，一张表',
     extra: `<div class="cmpwrap"><table class="cmp">
@@ -482,7 +473,7 @@ export const BEATS = [
 
   /* ---------- 收尾 ---------- */
   {
-    act: 8,
+    act: 6,
     layout: 'top',
     eyebrow: '最后，一句话',
     h: '不赌方向，不追热点，<em>长期拿住</em>',
