@@ -15,6 +15,7 @@ import { Rates } from './rates.js';
 import { FxFlow } from './fx.js';
 import { Turkey, Horizon, Withdraw } from './swan.js';
 import { Calc } from './calc.js';
+import { Lend } from './lend.js';
 
 /* World layout: set pieces are laid out along +x in story order; the camera flies between them.
    Only the pieces named by the current beat are visible, so a piece that is visited twice (rates, city, skyline,
@@ -26,8 +27,9 @@ export function buildPieces(app) {
     new Scale(app, 'scale', [200, 0, 0]),
     new Stairs(app, 'stairs', [250, 0, 0]),
     new Rates(app, 'rates', [300, 0, 0]),
-    new MoneyStack(app, 'money', [345, 0, 0]),
-    new Dilute(app, 'dilute', [400, 0, 0]),
+    new Lend(app, 'lend', [335, 0, 0]),
+    new MoneyStack(app, 'money', [368, 0, 0]),
+    new Dilute(app, 'dilute', [410, 0, 0]),
     new Tank(app, 'tank', [455, 0, 0]),
     new Islands(app, 'islands', [590, 0, 0]),
     // 2 标普 500

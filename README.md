@@ -8,6 +8,8 @@ Open `dist/200万闲钱怎么投资.html` directly in a browser. This standalone
 
 `dist/artifact.html` is the web fragment version and loads Three.js from a CDN.
 
+`讲稿.md` is the page-by-page speaker script (Chinese), numbered like the page counter.
+
 ## Build
 
 ```sh

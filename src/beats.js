@@ -6,7 +6,8 @@
 
    The line of argument, one question per act:
      大环境   why the money should not just sit in the bank: business is cut-throat → weak demand → interest falls →
-              the central bank "releases water" → money gets thinner → where it went: into the bank (normally it
+              cheaper loans → every loan a bank makes is new money (the borrower gets it, the depositor still has theirs),
+              and it comes back as a deposit to be lent again → that is "releasing water" → money gets thinner → where it went: into the bank (normally it
               flows out again, now nobody dares to move it) → interest will not come back → so: put this idle money abroad
      标普 500 what to buy: what it is → how much it has returned → who is inside → the list renews itself →
               a century of changing leaders → Buffett's bet → ten-year examples → a calculator to try other
@@ -103,9 +104,25 @@ export const BEATS = [
   },
   {
     act: 1,
+    layout: 'top',
+    h: '银行每借出一笔，市面上就多出一笔钱',
+    sub: '存钱的人一分没少，借钱的人手里又多了一笔。',
+    cam: { at: 'lend', p: [-1.95, 6.6, 23], t: [-1.95, 2.0, 0.6], shift: [0, 0.04] },
+    pieces: { lend: { step: 'lend' } },
+  },
+  {
+    act: 1,
+    layout: 'top',
+    h: '借来的钱花出去，又会被存回银行',
+    sub: '银行再借出去：一圈一圈，钱越转越多。',
+    cam: { at: 'lend', p: [1.05, 7.4, 28.5], t: [1.05, 2.2, 0.6], shift: [0, 0.07] },
+    pieces: { lend: { step: 'loop' } },
+  },
+  {
+    act: 1,
     layout: 'left',
-    h: '降息，<br>就是常说的“放水”',
-    sub: '就是让市面上的钱变多。',
+    h: '所以降息，<br>就是常说的“放水”',
+    sub: '借钱便宜了，借的人多了，市面上的钱就多了。',
     cam: { at: 'money', p: [1, 6.6, 33.5], t: [0.6, 4.9, 0], shift: [0.2, 0] },
     pieces: { money: {} },
   },

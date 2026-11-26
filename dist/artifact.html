@@ -1024,7 +1024,7 @@ body {
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module">
 // src/main.js
-import * as THREE21 from "three";
+import * as THREE22 from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -1047,6 +1047,10 @@ var ss = (a, b, x) => {
 var eOut = (t) => 1 - (1 - t) ** 3;
 var eIn = (t) => t * t * t;
 var eInOut = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+var eOutBack = (t, s = 1.7) => {
+  const c = s + 1;
+  return 1 + c * (t - 1) ** 3 + s * (t - 1) ** 2;
+};
 function rng(seed = 1) {
   let s = seed >>> 0;
   return () => {
@@ -4299,7 +4303,7 @@ var Underwater = class extends Piece {
       DD.map((p) => p[1])
     );
     this.f = f;
-    const N2 = 900;
+    const N3 = 900;
     const T02 = DD[0][0];
     const T12 = DD[DD.length - 1][0];
     this.T0 = T02;
@@ -4308,8 +4312,8 @@ var Underwater = class extends Piece {
     const pos = [];
     const at = [];
     const dep = [];
-    for (let i = 0; i <= N2; i++) {
-      const yr = T02 + (T12 - T02) * i / N2;
+    for (let i = 0; i <= N3; i++) {
+      const yr = T02 + (T12 - T02) * i / N3;
       const d = Math.min(0, f(yr));
       const x = UX(yr);
       const y = UY(d);
@@ -4321,7 +4325,7 @@ var Underwater = class extends Piece {
     this.line = progTube(pts, 0.075, this.m(new THREE12.MeshBasicMaterial({ color: hdr(16765128, 1.25) })), 8);
     this.add(this.line);
     const idx = [];
-    for (let i = 0; i < N2; i++) {
+    for (let i = 0; i < N3; i++) {
       const a = i * 2;
       idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
     }
@@ -4746,12 +4750,12 @@ var GoldHistory = class extends Piece {
     const T12 = GOLD[GOLD.length - 1][0];
     this.T0 = T02;
     this.T1 = T12;
-    const N2 = 700;
+    const N3 = 700;
     const pts = [];
     const pos = [];
     const at = [];
-    for (let i = 0; i <= N2; i++) {
-      const yr = T02 + (T12 - T02) * i / N2;
+    for (let i = 0; i <= N3; i++) {
+      const yr = T02 + (T12 - T02) * i / N3;
       const y = HY(10 ** f(yr));
       const x = HX(yr);
       pts.push(new THREE13.Vector3(x, y, 0));
@@ -4761,7 +4765,7 @@ var GoldHistory = class extends Piece {
     this.line = progTube(pts, 0.075, this.m(new THREE13.MeshBasicMaterial({ color: hdr(16769696, 1.3) })), 8);
     this.add(this.line);
     const idx = [];
-    for (let i = 0; i < N2; i++) {
+    for (let i = 0; i < N3; i++) {
       const a = i * 2;
       idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
     }
@@ -4914,15 +4918,15 @@ var logAt = monotone(
 var Coaster = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 30, 0.9] });
-    const N2 = 540;
+    const N3 = 540;
     const pts = [];
     const pos = [];
     const at = [];
     const dd = [];
     const xs = [];
     let peak = 0;
-    for (let i = 0; i <= N2; i++) {
-      const yr = T0 + (T1 - T0) * i / N2;
+    for (let i = 0; i <= N3; i++) {
+      const yr = T0 + (T1 - T0) * i / N3;
       const v = 10 ** logAt(yr);
       peak = Math.max(peak, v);
       const x = CX(yr);
@@ -4937,7 +4941,7 @@ var Coaster = class extends Piece {
     this.line = progTube(pts, 0.07, this.m(new THREE14.MeshBasicMaterial({ color: hdr(15266047, 1.75) })), 8);
     this.add(this.line);
     const idx = [];
-    for (let i = 0; i < N2; i++) {
+    for (let i = 0; i < N3; i++) {
       const a = i * 2;
       idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
     }
@@ -5916,11 +5920,11 @@ var Turkey = class extends Piece {
     this.Y = Y;
     const R = rng(9);
     const val = (d) => 0.35 + 4.7 * (d / 1e3) ** 0.8;
-    const N2 = 160;
+    const N3 = 160;
     const pts = [];
-    for (let i = 0; i <= N2; i++) {
-      const d = i / N2 * 1e3;
-      const jit = i > 0 && i < N2 ? (R() - 0.5) * 0.1 : 0;
+    for (let i = 0; i <= N3; i++) {
+      const d = i / N3 * 1e3;
+      const jit = i > 0 && i < N3 ? (R() - 0.5) * 0.1 : 0;
       pts.push(new THREE19.Vector3(X2(d), Y(val(d) + jit), 0));
     }
     this.pts = pts;
@@ -6073,11 +6077,11 @@ var Withdraw = class extends Piece {
       data.map((p) => p[0]),
       data.map((p) => Math.log10(100 * p[1] / PEAK2))
     );
-    const N2 = 420;
+    const N3 = 420;
     const a0 = 2007.77;
     const pts = [];
-    for (let i = 0; i <= N2; i++) {
-      const yr = a0 + (W1 - a0) * i / N2;
+    for (let i = 0; i <= N3; i++) {
+      const yr = a0 + (W1 - a0) * i / N3;
       pts.push(new THREE19.Vector3(WX(yr), WY(10 ** f(yr)), 0));
     }
     this.yrOf = (p) => a0 + (W1 - a0) * p;
@@ -6546,6 +6550,165 @@ var Calc = class extends Piece {
   }
 };
 
+// src/pieces/lend.js
+import * as THREE21 from "three";
+var PAD2 = 0.24;
+var XH = -8.5;
+var XB = -2.2;
+var XF = 4.6;
+var XS = 10.6;
+var ZS = 2;
+var N2 = 10;
+var RMB2 = new THREE21.Color(14239803);
+var slots = (x) => Array.from({ length: N2 }, (_, k) => new THREE21.Vector3(x + (k % 2 - 0.5) * 0.96, PAD2 + 0.09 + Math.floor(k / 2) * 0.165, ZS));
+var SH = slots(XH);
+var SB = slots(XB);
+var SF = slots(XF);
+var SS = slots(XS);
+var arc3 = (a, b, u, h, out) => out.set(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u + 4 * h * u * (1 - u), a.z + (b.z - a.z) * u);
+var fly = (t, t0, dur, i) => eInOut(seg(t, t0 + i * 0.07, t0 + dur + i * 0.07));
+var Lend = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [1, 0, 16, 1.05] });
+    const stone = this.m(new THREE21.MeshStandardMaterial({ color: 11709859, roughness: 0.6, metalness: 0.05 }));
+    const roof = this.m(new THREE21.MeshStandardMaterial({ color: 8010288, roughness: 0.7 }));
+    const roof2 = this.m(new THREE21.MeshStandardMaterial({ color: 3104122, roughness: 0.7 }));
+    const win = this.m(new THREE21.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
+    const padMat = this.m(new THREE21.MeshStandardMaterial({ color: 1710880, metalness: 0.6, roughness: 0.4 }));
+    const pad = (x, rim, parent) => {
+      const m = new THREE21.Mesh(rbox(4.6, PAD2, 5, 0.08), padMat);
+      m.position.set(x, PAD2 / 2, 0.7);
+      const r = new THREE21.Mesh(rbox(4.66, 0.06, 5.06, 0.03), this.m(new THREE21.MeshBasicMaterial({ color: hdr(rim, 1.3) })));
+      r.position.set(x, 0.06, 0.7);
+      parent.add(m, r);
+    };
+    const put = (obj, x, s, parent = this.inner) => {
+      obj.position.set(x, PAD2, -0.4);
+      obj.scale.setScalar(s);
+      parent.add(obj);
+    };
+    pad(XH, 15909198, this.inner);
+    pad(XB, 10133674, this.inner);
+    pad(XF, 15222844, this.inner);
+    put(house(this, stone, roof, win), XH, 1.4);
+    put(bankModel(this, stone), XB, 1.15);
+    put(factory(this, stone, win), XF, 0.95);
+    this.shop = new THREE21.Group();
+    this.shop.position.set(XS, 0, 0);
+    this.add(this.shop);
+    pad(0, 15909198, this.shop);
+    put(house(this, stone, roof2, win), 0, 1.4, this.shop);
+    const book = (x) => {
+      const g = new THREE21.Group();
+      const card = new THREE21.Mesh(rbox(1.5, 0.95, 0.08, 0.03), this.m(new THREE21.MeshStandardMaterial({ color: 9379106, emissive: 3803660, roughness: 0.5 })));
+      g.add(card);
+      const txt = textPlane(this, "存折", { w: 1.3, h: 0.6, px: 300, color: "#f2c14e", glow: 0.5 });
+      txt.position.z = 0.045;
+      g.add(txt);
+      g.position.set(x, PAD2 + 0.52, ZS);
+      g.rotation.x = -0.22;
+      this.add(g);
+      return g;
+    };
+    this.book1 = book(XH);
+    this.book2 = book(XS);
+    this.bills = bundleSet(this, N2, { w: 0.86, h: 0.15, d: 0.42 });
+    this.add(this.bills.mesh, this.bills.band);
+    this.P = new THREE21.Vector3();
+    this.add(blob(this, 30, 10, 0.6));
+    this.lHouse = this.label('<span class="t">存钱的人</span>', [XH, 3.15, -0.4]);
+    this.lBank = this.label('<span class="t">银行</span>', [XB, 3.6, -0.4]);
+    this.lFac = this.label('<span class="t">借钱的人</span>', [XF, 3.2, -0.4]);
+    this.lShop = this.label('<span class="t">收到货款的人</span>', [XS, 3.15, -0.4]);
+    this.lBook1 = this.label("", [XH, 0.1, ZS + 0.75], "down");
+    this.lBook2 = this.label('<span class="v sm gold">存折 90 万</span><span class="c">货款存进了银行</span>', [XS, 0.1, ZS + 0.75], "down");
+    this.lKeep = this.label("", [XB, 0.1, ZS + 0.75], "down");
+    this.lGot = this.label("", [XF, 0.1, ZS + 0.75], "down");
+    this.pill = [
+      this.label('<span class="pill">① 存进 100 万 →</span>', [(XH + XB) / 2, 4.3, 1]),
+      this.label('<span class="pill">② 借出 90 万 →</span>', [(XB + XF) / 2, 4.3, 1]),
+      this.label('<span class="pill">③ 花出去：付货款 90 万 →</span>', [(XF + XS) / 2, 4.3, 1]),
+      this.label('<span class="pill">← ④ 又存进银行</span>', [(XS + XB) / 2, 6.3, 1.4]),
+      this.label('<span class="pill">⑤ 再借出 80 万 →</span>', [(XB + XF) / 2, 4.3, 1])
+    ];
+    this.lSum = this.label("", [-1.95, 0.1, 6.4], "down");
+    this.kShop = 0;
+    this.cx = -1.95;
+  }
+  enter(st, prev, fresh) {
+    if (fresh) {
+      this.kShop = st.step === "loop" ? 1 : 0;
+      this.cx = st.step === "loop" ? 1.05 : -1.95;
+    }
+  }
+  /* where bundle i is at time t of a step */
+  place(i, loop, t, out) {
+    if (!loop) {
+      if (i > 0) {
+        const u22 = fly(t, 3.2, 0.9, i);
+        if (u22 > 0) return arc3(SB[i], SF[i - 1], u22, 2.2, out);
+      }
+      return arc3(SH[i], SB[i], fly(t, 0.9, 0.9, i), 2.2, out);
+    }
+    if (i === 0) return out.copy(SB[0]);
+    if (i > 1) {
+      const u3 = fly(t, 5.3, 0.9, i);
+      if (u3 > 0) return arc3(SB[i], SF[i - 2], u3, 2.2, out);
+    }
+    const u2 = fly(t, 2.9, 1.2, i);
+    if (u2 > 0) return arc3(SS[i - 1], SB[i], u2, 4.4, out);
+    return arc3(SF[i - 1], SS[i - 1], fly(t, 0.7, 0.9, i), 2, out);
+  }
+  update(dt) {
+    const t = this.t;
+    const loop = this.st.step === "loop";
+    const on = (c) => c ? 1 : 0;
+    const nar = this.app.ui.narrow();
+    for (let i = 0; i < N2; i++) {
+      this.place(i, loop, t, this.P);
+      this.bills.set(i, this.P.x, this.P.y, this.P.z, 1, RMB2, 0);
+    }
+    this.bills.commit();
+    this.kShop = damp(this.kShop, loop ? 1 : 0, 4, dt);
+    this.shop.visible = this.kShop > 0.01;
+    this.shop.scale.setScalar(Math.max(1e-3, this.kShop));
+    const b1 = loop ? 1 : eOutBack(seg(t, 2.3, 2.8));
+    const b2 = loop ? eOutBack(seg(t, 4.5, 5)) : 0;
+    this.book1.visible = b1 > 0.01;
+    this.book1.scale.setScalar(Math.max(1e-3, b1));
+    this.book2.visible = b2 > 0.01;
+    this.book2.scale.setScalar(Math.max(1e-3, b2));
+    const lent = loop || t > 4.8;
+    const pre = nar ? ["", ""] : ["存折 ", "现金 "];
+    this.lBook1.set(`<span class="v sm gold">${pre[0]}100 万</span>${lent ? '<span class="c">一分没少，随时能花</span>' : ""}`);
+    this.lBook1.target = on(b1 > 0.9);
+    this.lBook2.set(`<span class="v sm gold">${pre[0]}90 万</span><span class="c">货款存进了银行</span>`);
+    this.lShop.set(nar ? '<span class="t">收款的人</span>' : '<span class="t">收到货款的人</span>');
+    this.lBook2.target = on(b2 > 0.9);
+    this.lHouse.target = this.lBank.target = this.lFac.target = on(t > 0.3 || loop);
+    this.lShop.target = on(loop && this.kShop > 0.8);
+    this.lKeep.set(loop && t > 6.9 ? '<span class="c">每次留 10 万备用</span>' : '<span class="c">留 10 万备用</span>');
+    this.lKeep.target = on(lent);
+    this.lGot.set(loop && t > 2 ? `<span class="v sm">${pre[1]}80 万</span><span class="c">又借到一笔</span>` : `<span class="v sm">${pre[1]}90 万</span><span class="c">借来的，拿去用</span>`);
+    this.lGot.target = on(loop ? t < 0.7 || t > 6.9 : t > 4.8);
+    this.pill[0].target = on(!loop && t > 0.9 && !nar);
+    this.pill[1].target = on(!loop && t > 3.2 && !nar);
+    this.pill[2].target = on(loop && t > 0.7 && !nar);
+    this.pill[3].target = on(loop && t > 2.9 && !nar);
+    this.pill[4].target = on(loop && t > 5.3 && !nar);
+    this.cx = damp(this.cx, loop ? 1.05 : -1.95, 3, dt);
+    this.lSum.pos.x = this.cx;
+    this.lSum.pos.z = 5.6 + (this.cx + 1.95) / 3 * 0.8 + (nar ? 2.2 : 0);
+    const arrow = ' <span class="muted">→</span> ';
+    let sum = "100 万";
+    if (lent) sum += arrow + (loop && t > 7.2 ? "190 万" : '<span class="green">190 万</span>');
+    if (loop && t > 7.2) sum += arrow + '<span class="green">270 万</span>' + arrow + "…";
+    const note = loop && t > 7.2 ? "每转一圈，就多出一笔" : lent ? "存折上的 100 万还在，又多出借走的 90 万" : "";
+    this.lSum.set(`<span class="c">市面上的钱</span><span class="v">${sum}</span>${note ? `<span class="c">${note}</span>` : ""}`);
+    this.lSum.target = on(t > 0.5 || loop);
+  }
+};
+
 // src/pieces/index.js
 function buildPieces(app2) {
   const list = [
@@ -6554,8 +6717,9 @@ function buildPieces(app2) {
     new Scale(app2, "scale", [200, 0, 0]),
     new Stairs(app2, "stairs", [250, 0, 0]),
     new Rates(app2, "rates", [300, 0, 0]),
-    new MoneyStack(app2, "money", [345, 0, 0]),
-    new Dilute(app2, "dilute", [400, 0, 0]),
+    new Lend(app2, "lend", [335, 0, 0]),
+    new MoneyStack(app2, "money", [368, 0, 0]),
+    new Dilute(app2, "dilute", [410, 0, 0]),
     new Tank(app2, "tank", [455, 0, 0]),
     new Islands(app2, "islands", [590, 0, 0]),
     // 2 标普 500
@@ -6673,9 +6837,25 @@ var BEATS = [
   },
   {
     act: 1,
+    layout: "top",
+    h: "银行每借出一笔，市面上就多出一笔钱",
+    sub: "存钱的人一分没少，借钱的人手里又多了一笔。",
+    cam: { at: "lend", p: [-1.95, 6.6, 23], t: [-1.95, 2, 0.6], shift: [0, 0.04] },
+    pieces: { lend: { step: "lend" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "借来的钱花出去，又会被存回银行",
+    sub: "银行再借出去：一圈一圈，钱越转越多。",
+    cam: { at: "lend", p: [1.05, 7.4, 28.5], t: [1.05, 2.2, 0.6], shift: [0, 0.07] },
+    pieces: { lend: { step: "loop" } }
+  },
+  {
+    act: 1,
     layout: "left",
-    h: "降息，<br>就是常说的“放水”",
-    sub: "就是让市面上的钱变多。",
+    h: "所以降息，<br>就是常说的“放水”",
+    sub: "借钱便宜了，借的人多了，市面上的钱就多了。",
     cam: { at: "money", p: [1, 6.6, 33.5], t: [0.6, 4.9, 0], shift: [0.2, 0] },
     pieces: { money: {} }
   },
@@ -7139,7 +7319,7 @@ function boot() {
   const canvas = document.getElementById("gl");
   let renderer;
   try {
-    renderer = new THREE21.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: QA });
+    renderer = new THREE22.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: QA });
     if (!renderer.capabilities.isWebGL2) throw new Error("WebGL2 unavailable");
   } catch (err) {
     document.documentElement.classList.add("nogl");
@@ -7147,25 +7327,25 @@ function boot() {
     return;
   }
   renderer.setClearColor(0, 1);
-  renderer.toneMapping = THREE21.NeutralToneMapping;
+  renderer.toneMapping = THREE22.NeutralToneMapping;
   renderer.toneMappingExposure = 1;
-  renderer.outputColorSpace = THREE21.SRGBColorSpace;
+  renderer.outputColorSpace = THREE22.SRGBColorSpace;
   app.renderer = renderer;
-  const scene = new THREE21.Scene();
-  scene.background = new THREE21.Color(0);
-  scene.fog = new THREE21.FogExp2(0, FOG);
-  const pmrem = new THREE21.PMREMGenerator(renderer);
+  const scene = new THREE22.Scene();
+  scene.background = new THREE22.Color(0);
+  scene.fog = new THREE22.FogExp2(0, FOG);
+  const pmrem = new THREE22.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.42;
   app.scene = scene;
-  scene.add(new THREE21.HemisphereLight(10135752, 657936, 0.42));
-  const key = new THREE21.DirectionalLight(16773342, 2.5);
+  scene.add(new THREE22.HemisphereLight(10135752, 657936, 0.42));
+  const key = new THREE22.DirectionalLight(16773342, 2.5);
   key.position.set(-0.55, 1, 0.75);
   scene.add(key);
-  const rim = new THREE21.DirectionalLight(9418495, 1.9);
+  const rim = new THREE22.DirectionalLight(9418495, 1.9);
   rim.position.set(0.8, 0.55, -1);
   scene.add(rim);
-  const camera = new THREE21.PerspectiveCamera(34, 1, 0.1, 700);
+  const camera = new THREE22.PerspectiveCamera(34, 1, 0.1, 700);
   app.camera = camera;
   app.labels = new Labels(document.getElementById("labels"));
   app.floor = makeFloor(scene);
@@ -7173,7 +7353,7 @@ function boot() {
   const { list, map } = buildPieces(app);
   app.pieces = map;
   app.list = list;
-  const rt = new THREE21.WebGLRenderTarget(4, 4, { type: THREE21.HalfFloatType, samples: 4 });
+  const rt = new THREE22.WebGLRenderTarget(4, 4, { type: THREE22.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(
@@ -7183,7 +7363,7 @@ function boot() {
       fragmentShader: "uniform sampler2D tDiffuse; varying vec2 vUv; void main(){ vec4 c = texture2D(tDiffuse, vUv); bvec4 bad = bvec4(isnan(c.r) || isinf(c.r), isnan(c.g) || isinf(c.g), isnan(c.b) || isinf(c.b), isnan(c.a) || isinf(c.a)); if (any(bad)) c = vec4(0.0, 0.0, 0.0, 1.0); gl_FragColor = clamp(c, vec4(0.0), vec4(48.0)); }"
     })
   );
-  const bloom = new UnrealBloomPass(new THREE21.Vector2(256, 256), 0.55, 0.45, 1.35);
+  const bloom = new UnrealBloomPass(new THREE22.Vector2(256, 256), 0.55, 0.45, 1.35);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
   app.composer = composer;
@@ -7228,8 +7408,8 @@ function boot() {
   };
   window.addEventListener("resize", resize);
   const cs = {
-    pos: new THREE21.Vector3(-30, 14, 40),
-    tgt: new THREE21.Vector3(0, 1, 0),
+    pos: new THREE22.Vector3(-30, 14, 40),
+    tgt: new THREE22.Vector3(0, 1, 0),
     fov: 34,
     fovT: 34,
     sx: 0,
@@ -7238,15 +7418,15 @@ function boot() {
     syT: 0,
     tw: null
   };
-  const UP = new THREE21.Vector3(0, 1, 0);
-  const fwd = new THREE21.Vector3();
-  const right = new THREE21.Vector3();
-  const up2 = new THREE21.Vector3();
+  const UP = new THREE22.Vector3(0, 1, 0);
+  const fwd = new THREE22.Vector3();
+  const right = new THREE22.Vector3();
+  const up2 = new THREE22.Vector3();
   function camGoal(b) {
     const c = b.cam;
-    const o = map[c.at] ? map[c.at].origin : new THREE21.Vector3();
-    const P = new THREE21.Vector3(...c.p).add(o);
-    const T = new THREE21.Vector3(...c.t).add(o);
+    const o = map[c.at] ? map[c.at].origin : new THREE22.Vector3();
+    const P = new THREE22.Vector3(...c.p).add(o);
+    const T = new THREE22.Vector3(...c.t).add(o);
     const asp = app.W / app.H;
     const narrow = ui.narrow();
     let k = 1;
@@ -7338,8 +7518,8 @@ function boot() {
     } catch (e) {
     }
   };
-  const focus = new THREE21.Vector3();
-  const lastCam = new THREE21.Vector3();
+  const focus = new THREE22.Vector3();
+  const lastCam = new THREE22.Vector3();
   let boost = 0;
   function step(dt) {
     app.time += dt;
@@ -7368,7 +7548,7 @@ function boot() {
   camera.position.set(0, 10, 30);
   camera.lookAt(0, 0, 0);
   try {
-    const warm = new THREE21.WebGLRenderTarget(64, 64);
+    const warm = new THREE22.WebGLRenderTarget(64, 64);
     const flags = [];
     scene.traverse((o) => {
       flags.push([o, o.visible, o.frustumCulled]);
