@@ -14,6 +14,7 @@ import { Paths } from './act7.js';
 import { Rates } from './rates.js';
 import { FxFlow } from './fx.js';
 import { Turkey, Horizon, Withdraw } from './swan.js';
+import { Calc } from './calc.js';
 
 /* World layout: set pieces are laid out along +x in story order; the camera flies between them.
    Only the pieces named by the current beat are visible, so a piece that is visited twice (rates, city, skyline,
@@ -36,6 +37,7 @@ export function buildPieces(app) {
     new Eras(app, 'eras', [1005, 0, 0]),
     new Bet(app, 'bet', [1060, 0, 0]),
     new TenYear(app, 'tenyear', [1150, 0, 0]),
+    new Calc(app, 'calc', [1240, 0, 0]),
     // 3 黄金
     new GoldFiat(app, 'goldfiat', [1330, 0, 0]),
     new GoldHistory(app, 'goldhist', [1400, 0, 0]),

@@ -6,10 +6,11 @@
 
    The line of argument, one question per act:
      大环境   why the money should not just sit in the bank: business is cut-throat → weak demand → interest falls →
-              the central bank "releases water" → money gets thinner, yet nobody dares to move it → interest will
-              not come back → so: put this idle money abroad
+              the central bank "releases water" → money gets thinner → where it went: into the bank (normally it
+              flows out again, now nobody dares to move it) → interest will not come back → so: put this idle money abroad
      标普 500 what to buy: what it is → how much it has returned → who is inside → the list renews itself →
-              a century of changing leaders → Buffett's bet → ten-year examples → why not the Nasdaq (one page)
+              a century of changing leaders → Buffett's bet → ten-year examples → a calculator to try other
+              years and ways of paying in → why not the Nasdaq (one page)
      黄金     why not gold
      风险     what can go wrong while holding it: crashes (how deep, how long, how long can the money stay),
               then the exchange rate (why it swings, why compounding covers it), then the premium when buying
@@ -119,10 +120,26 @@ export const BEATS = [
   {
     act: 1,
     layout: 'left',
-    h: '不是没钱，<br>是钱不敢动',
-    sub: '钱放出来了，大多趴在银行里：东西没涨价，生意也没好起来。',
-    cam: { at: 'tank', p: [-3.5, 7.2, 22.5], t: [1.0, 4.2, 0], shift: [0.21, 0] },
-    pieces: { tank: {} },
+    h: '放出来的钱，<br>去哪儿了？',
+    sub: '大多存进了银行。',
+    cam: { at: 'tank', p: [-2.4, 7.2, 23.5], t: [2.5, 4.2, 0], shift: [0.2, 0] },
+    pieces: { tank: { step: 'fill' } },
+  },
+  {
+    act: 1,
+    layout: 'top',
+    h: '正常的时候：钱会从银行流出去',
+    sub: '有人花、有人投，生意才转得起来。',
+    cam: { at: 'tank', p: [6.7, 6.2, 26.5], t: [6.7, 3.9, 0], shift: [0, 0.13] },
+    pieces: { tank: { step: 'flow' } },
+  },
+  {
+    act: 1,
+    layout: 'top',
+    h: '现在：不是没钱，是钱不敢动',
+    sub: '龙头都拧紧了：钱趴在银行里，生意转不起来。',
+    cam: { at: 'tank', p: [6.7, 6.2, 26.5], t: [6.7, 3.9, 0], shift: [0, 0.13] },
+    pieces: { tank: { step: 'stuck' } },
   },
   {
     act: 1,
@@ -209,10 +226,19 @@ export const BEATS = [
   },
   {
     act: 2,
+    layout: 'left calcpage',
+    h: '自己算一算',
+    sub: '换个年份、换种投法，看拿到今天会怎样。',
+    extra: '<div class="calc-slot"></div>', // the Calc piece puts its control panel in here
+    cam: { at: 'calc', p: [0.7, 5.3, 31], t: [0.7, 4.7, 0], shift: [0.222, 0.01], nsy: 0.3 },
+    pieces: { calc: {} },
+  },
+  {
+    act: 2,
     layout: 'top',
     h: '为什么不买涨得更猛的<br>纳斯达克 100？',
     sub: '科技股扎堆：过去十年每年约 19%，但跌得更狠、回本更久。',
-    cam: { at: 'city', p: [12, 22, 50], t: [12, 1, 0], shift: [0, 0.12] },
+    cam: { at: 'city', p: [12, 22, 50], t: [12, 1, 0], shift: [0, 0.14] },
     pieces: { city: { step: 'vs' } },
   },
 

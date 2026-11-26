@@ -91,20 +91,47 @@ function boot() {
   const ui = new UI(app, BEATS, ACTS);
   app.ui = ui;
 
-  /* ---------- sizing & adaptive quality ---------- */
-  let dprCap = Math.min(window.devicePixelRatio || 1, 2);
-  if (QA) dprCap = 1;
+  /* ---------- sizing & adaptive quality ----------
+     The 3D stage does not have to be drawn at a Retina display's full resolution: the scene is dark and soft and
+     all text is HTML, which stays sharp. So the canvas gets a pixel budget (a 13" MacBook at 2x would otherwise
+     push 5+ million pixels through MSAA and bloom every frame), and the loop below lowers it further, then drops
+     MSAA and finally bloom, whenever frames still take too long. */
+  const quality = { budget: 2.3e6, scale: 1, msaa: 4, level: 0 };
+  app.quality = quality;
+  const ratio = () => {
+    if (QA) return quality.qaRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const fit = Math.sqrt(quality.budget / Math.max(1, window.innerWidth * window.innerHeight));
+    return clamp(Math.min(dpr, fit) * quality.scale, 0.5, 2);
+  };
   const resize = () => {
     app.W = window.innerWidth;
     app.H = window.innerHeight;
-    app.px = dprCap;
-    renderer.setPixelRatio(dprCap);
+    app.px = ratio();
+    renderer.setPixelRatio(app.px);
     renderer.setSize(app.W, app.H, false);
-    composer.setPixelRatio(dprCap);
+    composer.setPixelRatio(app.px);
     composer.setSize(app.W, app.H);
     camera.aspect = app.W / app.H;
     camera.updateProjectionMatrix();
     if (app.beat >= 0) camTo(BEATS[app.beat], false, true);
+  };
+  const setMsaa = (n) => {
+    quality.msaa = n;
+    composer.renderTarget1.samples = n;
+    composer.renderTarget2.samples = n;
+    composer.renderTarget1.dispose();
+    composer.renderTarget2.dispose();
+  };
+  // one step down; returns false when there is nothing left to give up
+  const lower = () => {
+    if (quality.scale > 0.6) quality.scale *= 0.8;
+    else if (quality.msaa > 0) setMsaa(0);
+    else if (bloom.enabled) bloom.enabled = false;
+    else return false;
+    quality.level++;
+    resize();
+    return true;
   };
   window.addEventListener('resize', resize);
 
@@ -253,16 +280,56 @@ function boot() {
   }
 
   resize();
-  // compile every material once so the first visit to a scene does not stutter
-  for (const p of list) p.root.visible = true;
+  // Compile every shader and upload every geometry and texture now, behind the loading screen: otherwise a
+  // scene pays for all of that on its first visit, in the middle of a camera move (a stutter in the transition).
+  // It has to be a real render into a render target: the composer draws into one too, and shaders compiled for
+  // the screen (tone mapping, sRGB output) are a different variant that the show never uses.
   camera.position.set(0, 10, 30);
   camera.lookAt(0, 0, 0);
   try {
-    renderer.compile(scene, camera);
+    const warm = new THREE.WebGLRenderTarget(64, 64);
+    const flags = [];
+    scene.traverse((o) => {
+      flags.push([o, o.visible, o.frustumCulled]);
+      o.visible = true;
+      o.frustumCulled = false;
+    });
+    renderer.setRenderTarget(warm);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    for (const [o, v, f] of flags) {
+      o.visible = v;
+      o.frustumCulled = f;
+    }
+    warm.dispose();
   } catch (e) {
-    /* compile is an optimisation only */
+    /* warm-up is an optimisation only */
   }
   for (const p of list) p.root.visible = false;
+  // A quick look at how fast this GPU is: a strong one may draw more pixels than the default budget.
+  // (Timed with a read-back, which waits for the GPU; the first two frames only compile the post-processing.)
+  if (!QA) {
+    try {
+      const gl = renderer.getContext();
+      const px = new Uint8Array(4);
+      const frame = () => {
+        composer.render();
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      };
+      frame();
+      frame();
+      const t0 = performance.now();
+      for (let k = 0; k < 4; k++) frame();
+      const ms = (performance.now() - t0) / 4;
+      quality.bootMs = ms;
+      if (ms < 4.6) {
+        quality.budget = ms < 2.6 ? 8.4e6 : 4.2e6;
+        resize();
+      }
+    } catch (e) {
+      /* stays on the default budget */
+    }
+  }
 
   const m = /^#b(\d+)$/.exec(location.hash);
   const start = m ? clamp(parseInt(m[1], 10) - 1, 0, BEATS.length - 1) : 0;
@@ -359,10 +426,12 @@ function boot() {
   let last = performance.now();
   let frames = 0;
   let acc = 0;
+  let grace = 30; // frames to skip after start-up or a quality change before measuring again
   let firstFrame = true;
   function loop(now) {
     requestAnimationFrame(loop);
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const raw = (now - last) / 1000;
+    const dt = Math.min(0.05, raw);
     last = now;
     step(dt);
     render();
@@ -370,19 +439,19 @@ function boot() {
       firstFrame = false;
       document.getElementById('loading').classList.add('gone');
     }
-    // adaptive resolution: step down if the machine struggles
-    frames++;
-    acc += dt;
-    if (frames >= 90) {
-      const avg = acc / frames;
-      if (avg > 0.026 && dprCap > 1) {
-        dprCap = Math.max(1, dprCap - 0.25);
-        resize();
-      } else if (avg > 0.034 && dprCap <= 1 && bloom.enabled) {
-        bloom.enabled = false;
+    // adaptive quality: average real frame time over about a second (pauses such as a hidden tab do not count)
+    if (grace > 0) grace--;
+    else if (raw < 0.25) {
+      frames++;
+      acc += raw;
+      if (frames >= 50) {
+        if (acc / frames > 0.0215) {
+          lower();
+          grace = 30;
+        }
+        frames = 0;
+        acc = 0;
       }
-      frames = 0;
-      acc = 0;
     }
   }
   if (QA) {
@@ -406,6 +475,39 @@ function boot() {
         const steps = Math.round(sec * 30);
         for (let s = 0; s < steps; s++) step(1 / 30);
         render();
+      },
+      // frame cost of beat i at a given canvas pixel ratio: [ms of simulation, ms of rendering] per frame.
+      // from >= 0 measures the transition from that beat instead of the settled page.
+      bench(i, { ratio: r = 1, frames: n = 30, msaa = 4, bloom: bl = true, from = -1 } = {}) {
+        quality.qaRatio = r;
+        if (msaa !== quality.msaa) setMsaa(msaa);
+        bloom.enabled = bl;
+        resize();
+        const gl = renderer.getContext();
+        const px = new Uint8Array(4);
+        const sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        if (from >= 0) {
+          app.go(from, true);
+          for (let s = 0; s < 90; s++) step(1 / 30);
+          app.go(i);
+        } else {
+          app.go(i, true);
+          for (let s = 0; s < 90; s++) step(1 / 30);
+        }
+        render();
+        sync();
+        let a = 0;
+        let b = 0;
+        for (let s = 0; s < n; s++) {
+          const t0 = performance.now();
+          step(1 / 60);
+          const t1 = performance.now();
+          render();
+          sync();
+          a += t1 - t0;
+          b += performance.now() - t1;
+        }
+        return [a / n, b / n];
       },
     };
   } else requestAnimationFrame(loop);

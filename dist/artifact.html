@@ -10,7 +10,8 @@
   --ink-2: #b7b7be;
   --ink-3: #7d7d86;
   --line: rgba(255, 255, 255, 0.14);
-  --panel: rgba(18, 18, 22, 0.66);
+  /* no backdrop blur anywhere: over a canvas that repaints every frame it is re-blurred every frame */
+  --panel: rgba(18, 18, 22, 0.84);
   --spx: #2997ff;
   --spx-2: #8cc8ff;
   --gold: #f2c14e;
@@ -121,23 +122,23 @@ body {
   text-align: center;
   align-items: center;
 }
+/* Only opacity and transform are animated: both run on the compositor, so the text keeps moving smoothly while
+   the 3D scene is busy. (An animated blur filter is re-rasterised every frame and stuttered on laptops.) */
 .slide > * {
   opacity: 0;
   transform: translateY(26px);
-  filter: blur(8px);
-  transition: opacity 0.9s var(--ease), transform 1.1s var(--ease), filter 0.9s ease;
+  transition: opacity 0.9s var(--ease), transform 1.1s var(--ease);
   transition-delay: calc(var(--i, 0) * 110ms + 240ms);
+  will-change: opacity, transform;
 }
 .slide.in > * {
   opacity: 1;
   transform: none;
-  filter: blur(0);
 }
 .slide.out > * {
   opacity: 0;
   transform: translateY(-14px);
-  filter: blur(6px);
-  transition-duration: 0.45s, 0.5s, 0.45s;
+  transition-duration: 0.45s, 0.5s;
   transition-delay: calc(var(--i, 0) * 25ms);
 }
 .qa .slide > * {
@@ -329,8 +330,6 @@ body {
   border-radius: 20px;
   background: var(--panel);
   border: 1px solid var(--line);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   font-size: clamp(15px, 1.2vw, 20px);
   line-height: 1.5;
 }
@@ -372,8 +371,6 @@ body {
   border-radius: 20px;
   background: var(--panel);
   border: 1px solid var(--line);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 }
 .cmp {
   width: 100%;
@@ -423,6 +420,181 @@ body {
 }
 .cmp thead th:nth-child(2) {
   background: rgba(41, 151, 255, 0.1);
+}
+
+/* ---------- calculator page: the control panel sits in the text column, the chart is 3D ---------- */
+.slide.calcpage {
+  gap: clamp(8px, 1.3vh, 16px);
+}
+.slide.left.calcpage {
+  width: min(38vw, 600px);
+}
+.calc {
+  pointer-events: auto;
+  cursor: default;
+  display: grid;
+  gap: clamp(8px, 1.3vh, 13px);
+  padding: clamp(14px, 1.9vh, 20px) clamp(14px, 1.4vw, 22px);
+  border-radius: 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-size: clamp(13px, 1.08vw, 17px);
+  line-height: 1.4;
+  text-align: left;
+}
+.calc-row {
+  display: grid;
+  grid-template-columns: 4.4em minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.calc-k {
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.calc button {
+  all: unset;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.calc button:focus-visible,
+.calc input:focus-visible {
+  outline: 2px solid var(--spx);
+  outline-offset: 2px;
+}
+.calc-year {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.calc-year input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  margin: 0;
+  accent-color: var(--spx);
+  cursor: pointer;
+}
+.calc-year output {
+  min-width: 4.3em;
+  text-align: right;
+  font: 700 1.5em/1 var(--num);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.calc-step {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+}
+.calc-step:hover,
+.calc-chips button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.calc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88em;
+  color: var(--ink-3);
+}
+.calc-chips button {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.calc-chips button.on {
+  background: rgba(41, 151, 255, 0.2);
+  border-color: rgba(41, 151, 255, 0.6);
+  color: var(--spx-2);
+}
+.calc-seg {
+  justify-self: start;
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+}
+.calc-seg button {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.calc-seg button.on {
+  background: var(--spx);
+  color: #00172e;
+}
+.calc-amt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.calc-amt input {
+  width: 4.6em;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+  font: 700 1.15em/1.2 var(--num);
+  text-align: right;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.calc-amt .calc-chips {
+  margin-left: 6px;
+}
+.calc-out {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: clamp(8px, 1.3vh, 13px);
+  border-top: 1px solid var(--line);
+}
+.calc-res .k {
+  display: block;
+  font-size: 0.88em;
+  color: var(--ink-3);
+}
+.calc-res b {
+  display: block;
+  margin: 2px 0 4px;
+  font: 700 clamp(21px, 2vw, 32px) / 1.2 var(--num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.calc-res b.blue {
+  color: var(--spx-2);
+}
+.calc-res b.red {
+  color: var(--risk);
+}
+.calc-res .d {
+  display: block;
+  font-size: 0.9em;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.calc-foot {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 /* ---------- 3D-anchored labels ---------- */
@@ -569,10 +741,8 @@ body {
   pointer-events: auto;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(28, 28, 32, 0.55);
+  background: rgba(24, 24, 28, 0.86);
   border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
 }
 #acts button {
   all: unset;
@@ -683,10 +853,8 @@ body {
   transform: translateX(-50%);
   padding: 9px 18px;
   border-radius: 999px;
-  background: rgba(28, 28, 32, 0.6);
+  background: rgba(24, 24, 28, 0.86);
   border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   font-size: 14px;
   color: var(--ink-2);
   white-space: nowrap;
@@ -821,7 +989,6 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .slide > * {
-    filter: none !important;
     transform: none !important;
     transition-duration: 0.3s !important;
   }
@@ -857,7 +1024,7 @@ body {
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module">
 // src/main.js
-import * as THREE20 from "three";
+import * as THREE21 from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -1627,422 +1794,10 @@ var Bundles = class extends Piece {
 };
 
 // src/pieces/act1.js
-import * as THREE4 from "three";
-var Stairs = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 10, 1.15] });
-    const data = [
-      ["2011 年", 5.5, "5.50%", "11 万"],
-      ["2015 年", 2.75, "2.75%", "5.5 万"],
-      ["如今", 1.3, "1.30%", "2.6 万"]
-    ];
-    const W = 3.1;
-    const D = 3.2;
-    this.steps = data.map(([yr, r, txt, per200], i) => {
-      const g = new THREE4.Group();
-      g.position.x = (i - 1) * (W + 0.1);
-      this.add(g);
-      const h = r * 0.95;
-      const geo = rbox(W, h, D, 0.06, 3);
-      const body = new THREE4.Mesh(
-        geo,
-        this.m(new THREE4.MeshPhysicalMaterial({ color: 1513501, roughness: 0.3, metalness: 0.25, clearcoat: 1, clearcoatRoughness: 0.3 }))
-      );
-      body.position.y = h / 2;
-      g.add(body);
-      const top = new THREE4.Mesh(
-        new THREE4.BoxGeometry(W - 0.14, 0.03, D - 0.14),
-        this.m(new THREE4.MeshStandardMaterial({ color: 2755594, emissive: COL.rmb, emissiveIntensity: lerp(0.32, 0.14, i / 2), roughness: 0.25, metalness: 0.2 }))
-      );
-      top.position.y = h + 0.012;
-      g.add(top);
-      const edge = new THREE4.Mesh(new THREE4.BoxGeometry(W - 0.12, 0.035, 0.035), this.m(new THREE4.MeshBasicMaterial({ color: hdr(COL.rmb, lerp(3.2, 1.6, i / 2)) })));
-      edge.position.set(0, h + 0.02, D / 2 - 0.06);
-      g.add(edge);
-      const e = edges(this, geo, 16777215, 0.12);
-      e.position.y = h / 2;
-      g.add(e);
-      const lab = this.label(`<span class="c">${yr}</span><span class="v">${txt}</span><span class="c">200 万一年利息 ${per200}</span>`, [g.position.x, h + 0.2, D / 2 - 0.3]);
-      return { g, h, lab };
-    });
-    this.add(blob(this, 14, 7, 0.85));
-    this.coin = new THREE4.Mesh(
-      new THREE4.CylinderGeometry(0.44, 0.44, 0.09, 48),
-      this.m(new THREE4.MeshStandardMaterial({ color: COL.gold, metalness: 1, roughness: 0.22 }))
-    );
-    this.add(this.coin);
-    this.cap = this.label('<span class="c">国有大行 5 年期定期存款挂牌利率</span>', [0, 0, D / 2 + 0.5], "down");
-  }
-  update(dt, time) {
-    const t = this.t;
-    this.steps.forEach((s, i) => {
-      const k = eOut(seg(t, 0.15 + i * 0.25, 1.15 + i * 0.25));
-      s.g.scale.y = Math.max(1e-3, k);
-      s.lab.pos.y = s.h * k + 0.2;
-      s.lab.target = k > 0.85 ? 1 : 0;
-    });
-    this.cap.target = t > 1.2 ? 1 : 0;
-    const xs = this.steps.map((s) => s.g.position.x);
-    const tops = this.steps.map((s) => s.h + 0.065);
-    const c = this.coin;
-    const t0 = 2.1;
-    const L = 5.4;
-    if (t < t0) {
-      c.visible = false;
-      return;
-    }
-    const u = (t - t0) % L;
-    const hop = (a, b, ya, yb, H2, s) => [lerp(a, b, s), lerp(ya, yb, s) + 4 * H2 * s * (1 - s)];
-    let x;
-    let y;
-    let rz = 0;
-    let sc = 1;
-    c.visible = true;
-    if (u < 0.5) {
-      x = xs[0];
-      y = lerp(tops[0] + 3.5, tops[0], eIn(u / 0.5));
-    } else if (u < 0.95) {
-      const b = (u - 0.5) / 0.45;
-      x = xs[0];
-      y = tops[0] + Math.max(0, Math.sin(b * Math.PI * 2) * 0.12 * (1 - b));
-    } else if (u < 1.55) {
-      const s = (u - 0.95) / 0.6;
-      [x, y] = hop(xs[0], xs[1], tops[0], tops[1], 0.9, s);
-      rz = -s * Math.PI * 2;
-    } else if (u < 1.95) {
-      x = xs[1];
-      y = tops[1];
-    } else if (u < 2.55) {
-      const s = (u - 1.95) / 0.6;
-      [x, y] = hop(xs[1], xs[2], tops[1], tops[2], 0.8, s);
-      rz = -s * Math.PI * 2;
-    } else if (u < 3) {
-      x = xs[2];
-      y = tops[2];
-    } else if (u < 3.75) {
-      const s = (u - 3) / 0.75;
-      [x, y] = hop(xs[2], xs[2] + 3.2, tops[2], 0.05, 0.7, s);
-      rz = -s * Math.PI * 3;
-    } else if (u < 4.6) {
-      const s = (u - 3.75) / 0.85;
-      x = xs[2] + 3.2 + eOut(s) * 1.4;
-      y = 0.05;
-      sc = 1 - ss(0.4, 1, s);
-    } else {
-      c.visible = false;
-      return;
-    }
-    c.position.set(x, y, 0.4);
-    c.rotation.set(0, 0, rz);
-    c.scale.setScalar(Math.max(1e-3, sc));
-  }
-};
-var W_BLUE = new THREE4.Color(2060272);
-var W_EM = new THREE4.Color(801434);
-var S_BLUE = new THREE4.Color(4888063);
-var S_EM = new THREE4.Color(1922756);
-var W_DULL = new THREE4.Color(2900560);
-var W_DEM = new THREE4.Color(660763);
-var S_DULL = new THREE4.Color(3888483);
-var S_DEM = new THREE4.Color(924192);
-var Tank = class extends Piece {
-  constructor(app2, name, origin) {
-    super(app2, name, origin, { spot: [0, 0, 11, 1] });
-    const W = 8.2;
-    const H2 = 6.4;
-    const D = 4.6;
-    const B = 0.36;
-    Object.assign(this, { W, H: H2, D, B });
-    const base = new THREE4.Mesh(rbox(W + 0.7, B, D + 0.7, 0.08), this.m(new THREE4.MeshStandardMaterial({ color: 1710880, metalness: 0.7, roughness: 0.35 })));
-    base.position.y = B / 2;
-    this.add(base);
-    const wgeo = new THREE4.BoxGeometry(W - 0.16, 1, D - 0.16);
-    wgeo.translate(0, 0.5, 0);
-    this.wMat = this.m(
-      new THREE4.MeshStandardMaterial({ color: W_BLUE.clone(), emissive: W_EM.clone(), emissiveIntensity: 0.7, roughness: 0.25, transparent: true, opacity: 0.55, depthWrite: false })
-    );
-    this.water = new THREE4.Mesh(wgeo, this.wMat);
-    this.water.position.y = B;
-    this.water.renderOrder = 2;
-    this.add(this.water);
-    const sgeo = new THREE4.PlaneGeometry(W - 0.16, D - 0.16, 60, 34);
-    sgeo.rotateX(-Math.PI / 2);
-    this.sBase = sgeo.attributes.position.array.slice();
-    this.sMat = this.m(
-      new THREE4.MeshStandardMaterial({
-        color: S_BLUE.clone(),
-        emissive: S_EM.clone(),
-        emissiveIntensity: 0.8,
-        roughness: 0.06,
-        metalness: 0.1,
-        transparent: true,
-        opacity: 0.9,
-        depthWrite: false,
-        side: THREE4.DoubleSide
-      })
-    );
-    this.surf = new THREE4.Mesh(sgeo, this.sMat);
-    this.surf.renderOrder = 3;
-    this.add(this.surf);
-    const ggeo = new THREE4.BoxGeometry(W, H2, D);
-    ggeo.translate(0, H2 / 2 + B + 0.012, 0);
-    const glass = new THREE4.Mesh(
-      ggeo,
-      this.m(
-        new THREE4.MeshPhysicalMaterial({ color: 14215423, roughness: 0.04, metalness: 0, transparent: true, opacity: 0.07, depthWrite: false, side: THREE4.DoubleSide, envMapIntensity: 1.6, clearcoat: 1 })
-      )
-    );
-    glass.renderOrder = 6;
-    this.add(glass);
-    const ed = edges(this, ggeo, 14083839, 0.45);
-    ed.renderOrder = 7;
-    this.add(ed);
-    const mouth = new THREE4.Vector3(-1.3, B + H2 + 1.25, 0.2);
-    this.mouth = mouth;
-    const steel = this.m(new THREE4.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.28 }));
-    const path = new THREE4.CatmullRomCurve3([
-      new THREE4.Vector3(-1.3, B + H2 + 2.5, -8),
-      new THREE4.Vector3(-1.3, B + H2 + 2.5, -1.3),
-      new THREE4.Vector3(-1.3, B + H2 + 2.25, -0.3),
-      new THREE4.Vector3(-1.3, B + H2 + 1.6, 0.15),
-      new THREE4.Vector3(-1.3, B + H2 + 1.3, 0.2)
-    ]);
-    this.add(new THREE4.Mesh(new THREE4.TubeGeometry(path, 80, 0.3, 20, false), steel));
-    const ring = new THREE4.Mesh(new THREE4.TorusGeometry(0.33, 0.07, 10, 32), steel);
-    ring.rotation.x = Math.PI / 2;
-    ring.position.copy(mouth).setY(mouth.y + 0.05);
-    this.add(ring);
-    const cg = new THREE4.CylinderGeometry(0.17, 0.25, 1, 20, 1, true);
-    cg.translate(0, -0.5, 0);
-    this.col = new THREE4.Mesh(
-      cg,
-      this.m(new THREE4.MeshBasicMaterial({ color: hdr(5939967, 1.2), transparent: true, opacity: 0.42, blending: THREE4.AdditiveBlending, depthWrite: false }))
-    );
-    this.col.position.copy(mouth);
-    this.col.renderOrder = 4;
-    this.add(this.col);
-    this.NP = 240;
-    this.drops = new THREE4.InstancedMesh(new THREE4.SphereGeometry(0.07, 8, 6), this.m(new THREE4.MeshBasicMaterial({ color: hdr(8042751, 1.8) })), this.NP);
-    this.drops.frustumCulled = false;
-    this.drops.instanceMatrix.setUsage(THREE4.DynamicDrawUsage);
-    this.add(this.drops);
-    this.P = new Float32Array(this.NP * 7);
-    this.alive = new Uint8Array(this.NP);
-    this.cursor = 0;
-    this.acc = 0;
-    this.M = new THREE4.Matrix4();
-    this.zero = new THREE4.Matrix4().makeScale(0, 0, 0);
-    const thin = this.m(new THREE4.MeshStandardMaterial({ color: 8225677, metalness: 1, roughness: 0.35 }));
-    this.outs = [B + 2.6, B + 1].map((yy) => {
-      const p = new THREE4.CatmullRomCurve3([
-        new THREE4.Vector3(W / 2 - 0.1, yy, 0.8),
-        new THREE4.Vector3(W / 2 + 1.3, yy, 0.8),
-        new THREE4.Vector3(W / 2 + 1.85, yy - 0.35, 0.8),
-        new THREE4.Vector3(W / 2 + 1.95, yy - 0.8, 0.8)
-      ]);
-      this.add(new THREE4.Mesh(new THREE4.TubeGeometry(p, 40, 0.15, 14), thin));
-      return new THREE4.Vector3(W / 2 + 1.95, yy - 0.85, 0.8);
-    });
-    this.drip = new THREE4.InstancedMesh(new THREE4.SphereGeometry(0.075, 8, 6), this.m(new THREE4.MeshBasicMaterial({ color: hdr(8042751, 1.5) })), 2);
-    this.drip.frustumCulled = false;
-    this.add(this.drip);
-    this.add(blob(this, 15, 8, 0.8));
-    this.lTap = this.label('<span class="t">央行放水</span><span class="c">钱一直在往里放</span>', [-1.3, B + H2 + 2.9, -4.2], "left");
-    this.lOut1 = this.label('<span class="t">消费</span><span class="c">不敢花</span>', [W / 2 + 2.25, B + 2.2, 0.8], "right");
-    this.lOut2 = this.label('<span class="t">投资</span><span class="c">不敢投</span>', [W / 2 + 2.25, B + 0.55, 0.8], "right");
-    this.lDep = this.label('<span class="c">居民存款 · 2026 年 6 月</span><span class="v">超 170 万亿</span>', [0.4, B + 2.3, D / 2 + 0.05], "mid");
-    this.lDead = this.label('<span class="t muted">一池“死水”</span>', [0.4, B + H2 + 0.2, D / 2]);
-  }
-  enter() {
-    this.alive.fill(0);
-  }
-  update(dt, time) {
-    const t = this.t;
-    const { B, H: H2 } = this;
-    const level = lerp(0.45, H2 - 1.05, eInOut(seg(t, 0.6, 4.8)));
-    const top = B + level;
-    this.water.scale.y = level;
-    const sg = ss(5.2, 7.6, t);
-    this.wMat.color.copy(W_BLUE).lerp(W_DULL, sg);
-    this.wMat.emissive.copy(W_EM).lerp(W_DEM, sg);
-    this.sMat.color.copy(S_BLUE).lerp(S_DULL, sg);
-    this.sMat.emissive.copy(S_EM).lerp(S_DEM, sg);
-    const pos = this.surf.geometry.attributes.position;
-    const a = pos.array;
-    const b0 = this.sBase;
-    const A = lerp(0.1, 0.01, sg);
-    const R = lerp(0.13, 0.02, sg);
-    const ix = this.mouth.x;
-    const iz = this.mouth.z;
-    for (let k = 0; k < a.length; k += 3) {
-      const x = b0[k];
-      const z = b0[k + 2];
-      const d = Math.hypot(x - ix, z - iz);
-      a[k + 1] = A * (Math.sin(x * 1.25 + time * 2) * 0.55 + Math.sin(z * 2 - time * 1.6 + x * 0.3) * 0.45) + R * Math.sin(d * 5.5 - time * 7.5) * Math.exp(-d * 0.7);
-    }
-    pos.needsUpdate = true;
-    this.surf.geometry.computeVertexNormals();
-    this.surf.position.y = top;
-    const pouring = t > 0.35;
-    this.col.scale.set(1, pouring ? Math.max(0.01, (this.mouth.y - top) * ss(0.35, 0.8, t)) : 1e-3, 1);
-    const P = this.P;
-    if (pouring) this.acc += dt * 100;
-    while (this.acc >= 1) {
-      this.acc -= 1;
-      const i = this.cursor;
-      this.cursor = (this.cursor + 1) % this.NP;
-      const o = i * 7;
-      const ang = Math.random() * Math.PI * 2;
-      const rr = Math.random() * 0.16;
-      P[o] = this.mouth.x + Math.cos(ang) * rr;
-      P[o + 1] = this.mouth.y - 0.1;
-      P[o + 2] = this.mouth.z + Math.sin(ang) * rr;
-      P[o + 3] = (Math.random() - 0.5) * 0.5;
-      P[o + 4] = -2 - Math.random() * 0.8;
-      P[o + 5] = (Math.random() - 0.5) * 0.5;
-      P[o + 6] = 0;
-      this.alive[i] = 1;
-    }
-    for (let i = 0; i < this.NP; i++) {
-      if (!this.alive[i]) {
-        this.drops.setMatrixAt(i, this.zero);
-        continue;
-      }
-      const o = i * 7;
-      P[o + 4] -= 14 * dt;
-      P[o] += P[o + 3] * dt;
-      P[o + 1] += P[o + 4] * dt;
-      P[o + 2] += P[o + 5] * dt;
-      if (P[o + 1] < top) {
-        if (P[o + 6] === 0 && Math.random() < 0.35 * (1 - sg * 0.8)) {
-          P[o + 1] = top;
-          P[o + 4] = 1.1 + Math.random() * 1.6;
-          P[o + 3] *= 3;
-          P[o + 5] *= 3;
-          P[o + 6] = 1;
-        } else {
-          this.alive[i] = 0;
-          this.drops.setMatrixAt(i, this.zero);
-          continue;
-        }
-      }
-      this.M.makeTranslation(P[o], P[o + 1], P[o + 2]);
-      this.drops.setMatrixAt(i, this.M);
-    }
-    this.drops.instanceMatrix.needsUpdate = true;
-    for (let j = 0; j < 2; j++) {
-      const per = lerp(1.6, 3.4, sg) + j * 0.4;
-      const u = (t + j * 0.7) % per / per;
-      const o = this.outs[j];
-      const fall = u * u * (o.y + 0.2) * 1;
-      this.M.makeTranslation(o.x, o.y - fall, o.z);
-      this.drip.setMatrixAt(j, t > 1.2 && u < 0.6 ? this.M : this.zero);
-    }
-    this.drip.instanceMatrix.needsUpdate = true;
-    this.lTap.target = t > 0.5 ? 1 : 0;
-    this.lOut1.target = this.lOut2.target = t > 1.4 ? 1 : 0;
-    this.lDep.target = t > 3.6 ? 1 : 0;
-    this.lDead.target = t > 6 ? 1 : 0;
-  }
-};
-function containerTex() {
-  return canvasTex(512, 256, (g, w, h) => {
-    g.fillStyle = "#3b7cae";
-    g.fillRect(0, 0, w, h);
-    for (let x = 0; x < w; x += 18) {
-      const gr = g.createLinearGradient(x, 0, x + 18, 0);
-      gr.addColorStop(0, "rgba(0,0,0,0.28)");
-      gr.addColorStop(0.45, "rgba(255,255,255,0.10)");
-      gr.addColorStop(1, "rgba(0,0,0,0.28)");
-      g.fillStyle = gr;
-      g.fillRect(x, 14, 18, h - 28);
-    }
-    g.fillStyle = "rgba(0,0,0,0.35)";
-    g.fillRect(0, 0, w, 14);
-    g.fillRect(0, h - 14, w, 14);
-  });
-}
-
-// src/pieces/macro.js
-import * as THREE7 from "three";
-
-// src/pieces/kit.js
 import * as THREE5 from "three";
-function bundleSet(piece, n, { w = BW, h = BH, d = BD } = {}) {
-  const mat = piece.m(new THREE5.MeshStandardMaterial({ color: 16777215, map: noteTex(), roughness: 0.5, metalness: 0.05 }));
-  const mesh = new THREE5.InstancedMesh(rbox(w, h, d, 0.035, 2), mat, n);
-  mesh.instanceMatrix.setUsage(THREE5.DynamicDrawUsage);
-  mesh.instanceColor = new THREE5.InstancedBufferAttribute(new Float32Array(n * 3), 3);
-  mesh.instanceColor.setUsage(THREE5.DynamicDrawUsage);
-  mesh.frustumCulled = false;
-  const band = new THREE5.InstancedMesh(
-    new THREE5.BoxGeometry(w * 0.19, h + 0.014, d + 0.016),
-    piece.m(new THREE5.MeshStandardMaterial({ color: 13483935, roughness: 0.78 })),
-    n
-  );
-  band.instanceMatrix.setUsage(THREE5.DynamicDrawUsage);
-  band.frustumCulled = false;
-  const M = new THREE5.Matrix4();
-  const Q = new THREE5.Quaternion();
-  const E = new THREE5.Euler();
-  const P = new THREE5.Vector3();
-  const S = new THREE5.Vector3();
-  const Z = new THREE5.Matrix4().makeScale(0, 0, 0);
-  for (let i = 0; i < n; i++) {
-    mesh.setMatrixAt(i, Z);
-    band.setMatrixAt(i, Z);
-  }
-  return {
-    mesh,
-    band,
-    h,
-    set(i, x, y, z, s = 1, color = null, rotY = 0, rotZ = 0) {
-      if (s <= 1e-3) {
-        mesh.setMatrixAt(i, Z);
-        band.setMatrixAt(i, Z);
-        return;
-      }
-      E.set(0, rotY, rotZ);
-      Q.setFromEuler(E);
-      M.compose(P.set(x, y, z), Q, S.setScalar(s));
-      mesh.setMatrixAt(i, M);
-      band.setMatrixAt(i, M);
-      if (color) mesh.setColorAt(i, color);
-    },
-    hide(i) {
-      mesh.setMatrixAt(i, Z);
-      band.setMatrixAt(i, Z);
-    },
-    commit() {
-      mesh.instanceMatrix.needsUpdate = true;
-      band.instanceMatrix.needsUpdate = true;
-      mesh.instanceColor.needsUpdate = true;
-    }
-  };
-}
-function glowTower(piece, color, { w = 1.3, d = 1.3, em = 0.35 } = {}) {
-  const g = new THREE5.Group();
-  const geo = new THREE5.BoxGeometry(w, 1, d);
-  geo.translate(0, 0.5, 0);
-  const bm = piece.m(
-    new THREE5.MeshPhysicalMaterial({ color: 726566, emissive: new THREE5.Color(color), emissiveIntensity: em, roughness: 0.22, metalness: 0.35, clearcoat: 1, clearcoatRoughness: 0.25 })
-  );
-  const body = new THREE5.Mesh(geo, bm);
-  g.add(body);
-  const cm = piece.m(new THREE5.MeshBasicMaterial({ color: new THREE5.Color(color).multiplyScalar(2) }));
-  const cap = new THREE5.Mesh(new THREE5.BoxGeometry(w + 0.02, 0.06, d + 0.02), cm);
-  g.add(cap);
-  const t = { g, body, cap, bm, cm, h: 1 };
-  t.setH = (h) => {
-    t.h = h;
-    body.scale.y = Math.max(1e-3, h);
-    cap.position.y = h;
-  };
-  return t;
-}
 
 // src/pieces/act3.js
-import * as THREE6 from "three";
+import * as THREE4 from "three";
 function seaH(x, z, t, amp, sx, sz, ss_) {
   let h = amp * (0.35 * Math.sin(x * 0.35 + t * 0.9) + 0.25 * Math.sin(z * 0.5 - t * 0.7 + x * 0.2) + 0.12 * Math.sin((x + z) * 0.9 + t * 1.6));
   const dx = x - sx;
@@ -2052,49 +1807,49 @@ function seaH(x, z, t, amp, sx, sz, ss_) {
 }
 var SEA_Y = 0.62;
 function factory(piece, mat, win) {
-  const g = new THREE6.Group();
-  const main = new THREE6.Mesh(rbox(2.8, 1.3, 2, 0.05), mat);
+  const g = new THREE4.Group();
+  const main = new THREE4.Mesh(rbox(2.8, 1.3, 2, 0.05), mat);
   main.position.y = 0.65;
   g.add(main);
-  const tri = new THREE6.Shape();
+  const tri = new THREE4.Shape();
   tri.moveTo(0, 0);
   tri.lineTo(0.93, 0);
   tri.lineTo(0, 0.55);
   tri.closePath();
-  const tg = new THREE6.ExtrudeGeometry(tri, { depth: 2, bevelEnabled: false });
+  const tg = new THREE4.ExtrudeGeometry(tri, { depth: 2, bevelEnabled: false });
   tg.translate(0, 0, -1);
   for (let i = 0; i < 3; i++) {
-    const r = new THREE6.Mesh(tg, mat);
+    const r = new THREE4.Mesh(tg, mat);
     r.position.set(-1.4 + i * 0.93, 1.3, 0);
     g.add(r);
   }
-  const ch = new THREE6.Mesh(new THREE6.CylinderGeometry(0.15, 0.19, 1.7, 20), mat);
+  const ch = new THREE4.Mesh(new THREE4.CylinderGeometry(0.15, 0.19, 1.7, 20), mat);
   ch.position.set(-1, 1.95, -0.55);
   g.add(ch);
-  const w = new THREE6.Mesh(new THREE6.BoxGeometry(2.3, 0.16, 0.02), win);
+  const w = new THREE4.Mesh(new THREE4.BoxGeometry(2.3, 0.16, 0.02), win);
   w.position.set(0, 0.75, 1.01);
   g.add(w);
   return g;
 }
 function house(piece, mat, roofMat, win) {
-  const g = new THREE6.Group();
-  const b = new THREE6.Mesh(rbox(1.6, 1.1, 1.4, 0.04), mat);
+  const g = new THREE4.Group();
+  const b = new THREE4.Mesh(rbox(1.6, 1.1, 1.4, 0.04), mat);
   b.position.y = 0.55;
   g.add(b);
-  const tri = new THREE6.Shape();
+  const tri = new THREE4.Shape();
   tri.moveTo(-0.92, 0);
   tri.lineTo(0.92, 0);
   tri.lineTo(0, 0.75);
   tri.closePath();
-  const rg = new THREE6.ExtrudeGeometry(tri, { depth: 1.55, bevelEnabled: false });
+  const rg = new THREE4.ExtrudeGeometry(tri, { depth: 1.55, bevelEnabled: false });
   rg.translate(0, 0, -0.775);
-  const roof = new THREE6.Mesh(rg, roofMat);
+  const roof = new THREE4.Mesh(rg, roofMat);
   roof.position.y = 1.1;
   g.add(roof);
-  const w = new THREE6.Mesh(new THREE6.BoxGeometry(0.34, 0.34, 0.02), win);
+  const w = new THREE4.Mesh(new THREE4.BoxGeometry(0.34, 0.34, 0.02), win);
   w.position.set(0.35, 0.65, 0.71);
   g.add(w);
-  const d = new THREE6.Mesh(new THREE6.BoxGeometry(0.3, 0.55, 0.02), win);
+  const d = new THREE4.Mesh(new THREE4.BoxGeometry(0.3, 0.55, 0.02), win);
   d.position.set(-0.35, 0.28, 0.71);
   g.add(d);
   return g;
@@ -2102,18 +1857,18 @@ function house(piece, mat, roofMat, win) {
 var Islands = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 1, 0], rise: 1.4 });
-    const sg = new THREE6.PlaneGeometry(90, 56, 180, 112);
+    const sg = new THREE4.PlaneGeometry(90, 56, 180, 112);
     sg.rotateX(-Math.PI / 2);
-    this.seaMat = new THREE6.ShaderMaterial({
+    this.seaMat = new THREE4.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uAmp: { value: 0.8 },
-        uStorm: { value: new THREE6.Vector3(-6.5, 1.5, 0) },
-        uCam: { value: new THREE6.Vector3() },
+        uStorm: { value: new THREE4.Vector3(-6.5, 1.5, 0) },
+        uCam: { value: new THREE4.Vector3() },
         uFade: this.fade,
-        uDeep: { value: new THREE6.Color(4e-3, 0.011, 0.026) },
-        uSky: { value: new THREE6.Color(0.07, 0.11, 0.19) },
-        uL: { value: new THREE6.Vector3(-0.3, 0.55, -1) },
+        uDeep: { value: new THREE4.Color(4e-3, 0.011, 0.026) },
+        uSky: { value: new THREE4.Color(0.07, 0.11, 0.19) },
+        uL: { value: new THREE4.Vector3(-0.3, 0.55, -1) },
         uFog: { value: FOG }
       },
       vertexShader: (
@@ -2157,19 +1912,19 @@ var Islands = class extends Piece {
         }`
       )
     });
-    this.sea = new THREE6.Mesh(sg, this.seaMat);
+    this.sea = new THREE4.Mesh(sg, this.seaMat);
     this.sea.position.y = SEA_Y;
     this.add(this.sea);
-    const white = this.m(new THREE6.MeshStandardMaterial({ color: 11117722, roughness: 0.6, metalness: 0.04 }));
-    const roof = this.m(new THREE6.MeshStandardMaterial({ color: 9203544, roughness: 0.6 }));
-    const win = this.m(new THREE6.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
-    const gold = this.m(new THREE6.MeshStandardMaterial({ color: COL.gold, metalness: 1, roughness: 0.25 }));
-    this.i1 = new THREE6.Group();
-    this.i1.base = new THREE6.Vector3(-6.5, 0, 1.5);
+    const white = this.m(new THREE4.MeshStandardMaterial({ color: 11117722, roughness: 0.6, metalness: 0.04 }));
+    const roof = this.m(new THREE4.MeshStandardMaterial({ color: 9203544, roughness: 0.6 }));
+    const win = this.m(new THREE4.MeshBasicMaterial({ color: hdr(16767392, 1.6) }));
+    const gold = this.m(new THREE4.MeshStandardMaterial({ color: COL.gold, metalness: 1, roughness: 0.25 }));
+    this.i1 = new THREE4.Group();
+    this.i1.base = new THREE4.Vector3(-6.5, 0, 1.5);
     this.add(this.i1);
-    const hull = new THREE6.Mesh(rbox(9, 0.8, 5.6, 0.28), white);
+    const hull = new THREE4.Mesh(rbox(9, 0.8, 5.6, 0.28), white);
     this.i1.add(hull);
-    const stripe = new THREE6.Mesh(rbox(9.06, 0.12, 5.66, 0.05), this.m(new THREE6.MeshStandardMaterial({ color: COL.rmb, roughness: 0.4 })));
+    const stripe = new THREE4.Mesh(rbox(9.06, 0.12, 5.66, 0.05), this.m(new THREE4.MeshStandardMaterial({ color: COL.rmb, roughness: 0.4 })));
     stripe.position.y = -0.18;
     this.i1.add(stripe);
     const fac = factory(this, white, win);
@@ -2178,10 +1933,10 @@ var Islands = class extends Piece {
     const hs = house(this, white, roof, win);
     hs.position.set(1.9, 0.4, -1);
     this.i1.add(hs);
-    const net = new THREE6.Group();
+    const net = new THREE4.Group();
     net.position.set(1.7, 0.4, 1.4);
     this.i1.add(net);
-    const nodeMat = this.m(new THREE6.MeshBasicMaterial({ color: hdr(COL.spxHi, 1.8) }));
+    const nodeMat = this.m(new THREE4.MeshBasicMaterial({ color: hdr(COL.spxHi, 1.8) }));
     const np = [
       [-0.7, 0.5, 0],
       [0.1, 1.2, -0.3],
@@ -2190,7 +1945,7 @@ var Islands = class extends Piece {
       [0.5, 1.6, 0.4]
     ];
     np.forEach((p) => {
-      const s = new THREE6.Mesh(new THREE6.SphereGeometry(0.15, 16, 12), nodeMat);
+      const s = new THREE4.Mesh(new THREE4.SphereGeometry(0.15, 16, 12), nodeMat);
       s.position.set(...p);
       net.add(s);
     });
@@ -2203,34 +1958,34 @@ var Islands = class extends Piece {
       [1, 4],
       [2, 4],
       [0, 2]
-    ].forEach(([a, b]) => lp.push(new THREE6.Vector3(...np[a]), new THREE6.Vector3(...np[b])));
-    net.add(new THREE6.LineSegments(new THREE6.BufferGeometry().setFromPoints(lp), this.m(new THREE6.LineBasicMaterial({ color: COL.spxHi, transparent: true, opacity: 0.7 }))));
-    const coins = new THREE6.Group();
+    ].forEach(([a, b]) => lp.push(new THREE4.Vector3(...np[a]), new THREE4.Vector3(...np[b])));
+    net.add(new THREE4.LineSegments(new THREE4.BufferGeometry().setFromPoints(lp), this.m(new THREE4.LineBasicMaterial({ color: COL.spxHi, transparent: true, opacity: 0.7 }))));
+    const coins = new THREE4.Group();
     coins.position.set(-2.6, 0.4, 1.6);
     this.i1.add(coins);
     for (let i = 0; i < 6; i++) {
-      const c = new THREE6.Mesh(new THREE6.CylinderGeometry(0.42, 0.42, 0.1, 40), gold);
+      const c = new THREE4.Mesh(new THREE4.CylinderGeometry(0.42, 0.42, 0.1, 40), gold);
       c.position.set(i % 2 * 0.03, 0.06 + i * 0.11, 0);
       coins.add(c);
     }
-    this.i2 = new THREE6.Group();
-    this.i2.base = new THREE6.Vector3(9.5, 0, -4.5);
+    this.i2 = new THREE4.Group();
+    this.i2.base = new THREE4.Vector3(9.5, 0, -4.5);
     this.add(this.i2);
-    this.i2.add(new THREE6.Mesh(rbox(6.6, 0.7, 4.2, 0.25), white));
-    const st2 = new THREE6.Mesh(rbox(6.66, 0.12, 4.26, 0.05), this.m(new THREE6.MeshStandardMaterial({ color: COL.spx, roughness: 0.4 })));
+    this.i2.add(new THREE4.Mesh(rbox(6.6, 0.7, 4.2, 0.25), white));
+    const st2 = new THREE4.Mesh(rbox(6.66, 0.12, 4.26, 0.05), this.m(new THREE4.MeshStandardMaterial({ color: COL.spx, roughness: 0.4 })));
     st2.position.y = -0.16;
     this.i2.add(st2);
-    const towerMat = this.m(new THREE6.MeshStandardMaterial({ color: 858668, roughness: 0.3, metalness: 0.6, emissive: COL.spx, emissiveIntensity: 0.25 }));
-    const capMat = this.m(new THREE6.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) }));
+    const towerMat = this.m(new THREE4.MeshStandardMaterial({ color: 858668, roughness: 0.3, metalness: 0.6, emissive: COL.spx, emissiveIntensity: 0.25 }));
+    const capMat = this.m(new THREE4.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) }));
     const R = rng(5);
     for (let i = 0; i < 9; i++) {
       const h = 0.6 + R() * 2.2;
       const x = -2.4 + i % 3 * 0.75 + R() * 0.1;
       const z = -1.2 + Math.floor(i / 3) * 0.8;
-      const tw = new THREE6.Mesh(new THREE6.BoxGeometry(0.55, h, 0.55), towerMat);
+      const tw = new THREE4.Mesh(new THREE4.BoxGeometry(0.55, h, 0.55), towerMat);
       tw.position.set(x, 0.35 + h / 2, z);
       this.i2.add(tw);
-      const cp = new THREE6.Mesh(new THREE6.BoxGeometry(0.57, 0.05, 0.57), capMat);
+      const cp = new THREE4.Mesh(new THREE4.BoxGeometry(0.57, 0.05, 0.57), capMat);
       cp.position.set(x, 0.35 + h, z);
       this.i2.add(cp);
     }
@@ -2240,24 +1995,24 @@ var Islands = class extends Piece {
       [1.3, 0.55, 0.3],
       [1.3, 0.95, -0.1]
     ].forEach((p) => {
-      const b = new THREE6.Mesh(barGeo, gold);
+      const b = new THREE4.Mesh(barGeo, gold);
       b.position.set(...p);
       this.i2.add(b);
     });
     this.NB = 64;
-    this.bridgeGeo = new THREE6.BufferGeometry();
-    this.bridgeGeo.setAttribute("position", new THREE6.BufferAttribute(new Float32Array(this.NB * 3), 3));
-    this.bridge = new THREE6.Line(this.bridgeGeo, this.m(new THREE6.LineBasicMaterial({ color: hdr(COL.gold, 1.4), transparent: true, opacity: 0.85 })));
+    this.bridgeGeo = new THREE4.BufferGeometry();
+    this.bridgeGeo.setAttribute("position", new THREE4.BufferAttribute(new Float32Array(this.NB * 3), 3));
+    this.bridge = new THREE4.Line(this.bridgeGeo, this.m(new THREE4.LineBasicMaterial({ color: hdr(COL.gold, 1.4), transparent: true, opacity: 0.85 })));
     this.bridge.frustumCulled = false;
     this.add(this.bridge);
-    this.pulses = new THREE6.InstancedMesh(new THREE6.SphereGeometry(0.11, 12, 8), this.m(new THREE6.MeshBasicMaterial({ color: hdr(COL.gold, 2.6) })), 10);
+    this.pulses = new THREE4.InstancedMesh(new THREE4.SphereGeometry(0.11, 12, 8), this.m(new THREE4.MeshBasicMaterial({ color: hdr(COL.gold, 2.6) })), 10);
     this.pulses.frustumCulled = false;
     this.add(this.pulses);
-    this.M = new THREE6.Matrix4();
-    this.a = new THREE6.Vector3();
-    this.b = new THREE6.Vector3();
-    this.c = new THREE6.Vector3();
-    this.p = new THREE6.Vector3();
+    this.M = new THREE4.Matrix4();
+    this.a = new THREE4.Vector3();
+    this.b = new THREE4.Vector3();
+    this.c = new THREE4.Vector3();
+    this.p = new THREE4.Vector3();
     this.lMain = this.label('<span class="t">国内主业</span>', [-0.2, 3.3, -0.4], "up", this.i1);
     this.lSea = this.label('<span class="c">海面起伏 = 国内经济周期</span>', [-1.2, 0.9, 6.2], "mid");
     this.lI2 = this.label('<span class="t blue">全球资产</span><span class="c">美股指数</span>', [-0.5, 3.4, 0], "up", this.i2);
@@ -2331,23 +2086,23 @@ var Islands = class extends Piece {
 var Bet = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [0, 0, 8, 1] });
-    const ped = new THREE6.Mesh(rbox(7.4, 0.3, 3.8, 0.08), this.m(new THREE6.MeshStandardMaterial({ color: 1579294, metalness: 0.7, roughness: 0.35 })));
+    const ped = new THREE4.Mesh(rbox(7.4, 0.3, 3.8, 0.08), this.m(new THREE4.MeshStandardMaterial({ color: 1579294, metalness: 0.7, roughness: 0.35 })));
     ped.position.y = 0.15;
     this.add(ped);
-    const geo = new THREE6.BoxGeometry(2.2, 1, 2.2);
+    const geo = new THREE4.BoxGeometry(2.2, 1, 2.2);
     geo.translate(0, 0.5, 0);
     const col = (color, em, x, body) => {
-      const g = new THREE6.Group();
+      const g = new THREE4.Group();
       g.position.set(x, 0.3, 0);
       this.add(g);
-      const m = new THREE6.Mesh(
+      const m = new THREE4.Mesh(
         geo,
-        this.m(new THREE6.MeshPhysicalMaterial({ color: body, emissive: color, emissiveIntensity: em, roughness: 0.16, metalness: 0.1, transparent: true, opacity: 0.94, clearcoat: 1 }))
+        this.m(new THREE4.MeshPhysicalMaterial({ color: body, emissive: color, emissiveIntensity: em, roughness: 0.16, metalness: 0.1, transparent: true, opacity: 0.94, clearcoat: 1 }))
       );
       g.add(m);
       const e = edges(this, geo, color, 0.85);
       g.add(e);
-      const cap = new THREE6.Mesh(new THREE6.BoxGeometry(2.22, 0.05, 2.22), this.m(new THREE6.MeshBasicMaterial({ color: hdr(color, 2) })));
+      const cap = new THREE4.Mesh(new THREE4.BoxGeometry(2.22, 0.05, 2.22), this.m(new THREE4.MeshBasicMaterial({ color: hdr(color, 2) })));
       this.add(cap);
       return { g, cap };
     };
@@ -2384,6 +2139,641 @@ var Bet = class extends Piece {
     this.lYear.target = t > 0.8 ? 1 : 0;
   }
 };
+
+// src/pieces/act1.js
+var Stairs = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [0, 0, 10, 1.15] });
+    const data = [
+      ["2011 年", 5.5, "5.50%", "11 万"],
+      ["2015 年", 2.75, "2.75%", "5.5 万"],
+      ["如今", 1.3, "1.30%", "2.6 万"]
+    ];
+    const W = 3.1;
+    const D = 3.2;
+    this.steps = data.map(([yr, r, txt, per200], i) => {
+      const g = new THREE5.Group();
+      g.position.x = (i - 1) * (W + 0.1);
+      this.add(g);
+      const h = r * 0.95;
+      const geo = rbox(W, h, D, 0.06, 3);
+      const body = new THREE5.Mesh(
+        geo,
+        this.m(new THREE5.MeshPhysicalMaterial({ color: 1513501, roughness: 0.3, metalness: 0.25, clearcoat: 1, clearcoatRoughness: 0.3 }))
+      );
+      body.position.y = h / 2;
+      g.add(body);
+      const top = new THREE5.Mesh(
+        new THREE5.BoxGeometry(W - 0.14, 0.03, D - 0.14),
+        this.m(new THREE5.MeshStandardMaterial({ color: 2755594, emissive: COL.rmb, emissiveIntensity: lerp(0.32, 0.14, i / 2), roughness: 0.25, metalness: 0.2 }))
+      );
+      top.position.y = h + 0.012;
+      g.add(top);
+      const edge = new THREE5.Mesh(new THREE5.BoxGeometry(W - 0.12, 0.035, 0.035), this.m(new THREE5.MeshBasicMaterial({ color: hdr(COL.rmb, lerp(3.2, 1.6, i / 2)) })));
+      edge.position.set(0, h + 0.02, D / 2 - 0.06);
+      g.add(edge);
+      const e = edges(this, geo, 16777215, 0.12);
+      e.position.y = h / 2;
+      g.add(e);
+      const lab = this.label(`<span class="c">${yr}</span><span class="v">${txt}</span><span class="c">200 万一年利息 ${per200}</span>`, [g.position.x, h + 0.2, D / 2 - 0.3]);
+      return { g, h, lab };
+    });
+    this.add(blob(this, 14, 7, 0.85));
+    this.coin = new THREE5.Mesh(
+      new THREE5.CylinderGeometry(0.44, 0.44, 0.09, 48),
+      this.m(new THREE5.MeshStandardMaterial({ color: COL.gold, metalness: 1, roughness: 0.22 }))
+    );
+    this.add(this.coin);
+    this.cap = this.label('<span class="c">国有大行 5 年期定期存款挂牌利率</span>', [0, 0, D / 2 + 0.5], "down");
+  }
+  update(dt, time) {
+    const t = this.t;
+    this.steps.forEach((s, i) => {
+      const k = eOut(seg(t, 0.15 + i * 0.25, 1.15 + i * 0.25));
+      s.g.scale.y = Math.max(1e-3, k);
+      s.lab.pos.y = s.h * k + 0.2;
+      s.lab.target = k > 0.85 ? 1 : 0;
+    });
+    this.cap.target = t > 1.2 ? 1 : 0;
+    const xs = this.steps.map((s) => s.g.position.x);
+    const tops = this.steps.map((s) => s.h + 0.065);
+    const c = this.coin;
+    const t0 = 2.1;
+    const L = 5.4;
+    if (t < t0) {
+      c.visible = false;
+      return;
+    }
+    const u = (t - t0) % L;
+    const hop = (a, b, ya, yb, H2, s) => [lerp(a, b, s), lerp(ya, yb, s) + 4 * H2 * s * (1 - s)];
+    let x;
+    let y;
+    let rz = 0;
+    let sc = 1;
+    c.visible = true;
+    if (u < 0.5) {
+      x = xs[0];
+      y = lerp(tops[0] + 3.5, tops[0], eIn(u / 0.5));
+    } else if (u < 0.95) {
+      const b = (u - 0.5) / 0.45;
+      x = xs[0];
+      y = tops[0] + Math.max(0, Math.sin(b * Math.PI * 2) * 0.12 * (1 - b));
+    } else if (u < 1.55) {
+      const s = (u - 0.95) / 0.6;
+      [x, y] = hop(xs[0], xs[1], tops[0], tops[1], 0.9, s);
+      rz = -s * Math.PI * 2;
+    } else if (u < 1.95) {
+      x = xs[1];
+      y = tops[1];
+    } else if (u < 2.55) {
+      const s = (u - 1.95) / 0.6;
+      [x, y] = hop(xs[1], xs[2], tops[1], tops[2], 0.8, s);
+      rz = -s * Math.PI * 2;
+    } else if (u < 3) {
+      x = xs[2];
+      y = tops[2];
+    } else if (u < 3.75) {
+      const s = (u - 3) / 0.75;
+      [x, y] = hop(xs[2], xs[2] + 3.2, tops[2], 0.05, 0.7, s);
+      rz = -s * Math.PI * 3;
+    } else if (u < 4.6) {
+      const s = (u - 3.75) / 0.85;
+      x = xs[2] + 3.2 + eOut(s) * 1.4;
+      y = 0.05;
+      sc = 1 - ss(0.4, 1, s);
+    } else {
+      c.visible = false;
+      return;
+    }
+    c.position.set(x, y, 0.4);
+    c.rotation.set(0, 0, rz);
+    c.scale.setScalar(Math.max(1e-3, sc));
+  }
+};
+var W_BLUE = new THREE5.Color(2060272);
+var W_EM = new THREE5.Color(801434);
+var S_BLUE = new THREE5.Color(4888063);
+var S_EM = new THREE5.Color(1922756);
+var W_DULL = new THREE5.Color(2900560);
+var W_DEM = new THREE5.Color(660763);
+var S_DULL = new THREE5.Color(3888483);
+var S_DEM = new THREE5.Color(924192);
+var LIT = hdr(16767392, 1.7);
+var UNLIT = new THREE5.Color(1381914);
+var TRAY_ON = hdr(4164863, 1.1);
+var TRAY_OFF = new THREE5.Color(725536);
+var RW = 1.25;
+var PAD = 0.24;
+function waterWheel(piece, wood, steel) {
+  const g = new THREE5.Group();
+  const rot = new THREE5.Group();
+  g.add(rot);
+  for (const z of [-0.23, 0.23]) {
+    const rim = new THREE5.Mesh(new THREE5.TorusGeometry(RW, 0.045, 8, 40), wood);
+    rim.position.z = z;
+    rot.add(rim);
+    for (let k = 0; k < 4; k++) {
+      const sp = new THREE5.Mesh(new THREE5.BoxGeometry(RW * 2, 0.06, 0.04), wood);
+      sp.position.z = z;
+      sp.rotation.z = k * Math.PI / 4;
+      rot.add(sp);
+    }
+  }
+  for (let k = 0; k < 10; k++) {
+    const a = k / 10 * Math.PI * 2;
+    const pd = new THREE5.Mesh(new THREE5.BoxGeometry(0.42, 0.05, 0.56), wood);
+    pd.position.set(Math.cos(a) * (RW - 0.06), Math.sin(a) * (RW - 0.06), 0);
+    pd.rotation.z = a + 0.5;
+    rot.add(pd);
+  }
+  const hub = new THREE5.Mesh(new THREE5.CylinderGeometry(0.15, 0.15, 0.96, 16), steel);
+  hub.rotation.x = Math.PI / 2;
+  g.add(hub);
+  const yc = RW + 0.23;
+  const len = Math.hypot(0.6, yc);
+  for (const z of [-0.43, 0.43])
+    for (const sx of [-1, 1]) {
+      const leg = new THREE5.Mesh(new THREE5.BoxGeometry(0.07, len, 0.07), steel);
+      leg.position.set(sx * 0.3, -yc / 2, z);
+      leg.rotation.z = sx * Math.atan2(0.6, yc);
+      g.add(leg);
+    }
+  g.rot = rot;
+  g.yc = yc;
+  return g;
+}
+function shopModel(piece, wall, trim, win) {
+  const g = new THREE5.Group();
+  const body = new THREE5.Mesh(rbox(2, 1.3, 1.4, 0.04), wall);
+  body.position.y = 0.65;
+  g.add(body);
+  const roof = new THREE5.Mesh(rbox(2.16, 0.12, 1.56, 0.03), wall);
+  roof.position.y = 1.37;
+  g.add(roof);
+  const sign = new THREE5.Mesh(rbox(1.2, 0.36, 0.08, 0.02), trim);
+  sign.position.set(0, 1.62, 0.6);
+  g.add(sign);
+  const awn = new THREE5.Mesh(new THREE5.BoxGeometry(2, 0.05, 0.62), trim);
+  awn.position.set(0, 1.12, 0.96);
+  awn.rotation.x = 0.5;
+  g.add(awn);
+  const w = new THREE5.Mesh(new THREE5.BoxGeometry(1.05, 0.5, 0.02), win);
+  w.position.set(-0.32, 0.56, 0.71);
+  g.add(w);
+  const door = new THREE5.Mesh(new THREE5.BoxGeometry(0.38, 0.82, 0.02), win);
+  door.position.set(0.62, 0.42, 0.71);
+  g.add(door);
+  return g;
+}
+var Tank = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [3.5, 0, 15, 1] });
+    const W = 8.2;
+    const H2 = 6.4;
+    const D = 4.6;
+    const B = 0.36;
+    const HI3 = H2 - 1.05;
+    Object.assign(this, { W, H: H2, D, B, HI: HI3 });
+    const base = new THREE5.Mesh(rbox(W + 0.7, B, D + 0.7, 0.08), this.m(new THREE5.MeshStandardMaterial({ color: 1710880, metalness: 0.7, roughness: 0.35 })));
+    base.position.y = B / 2;
+    this.add(base);
+    const wgeo = new THREE5.BoxGeometry(W - 0.16, 1, D - 0.16);
+    wgeo.translate(0, 0.5, 0);
+    this.wMat = this.m(
+      new THREE5.MeshStandardMaterial({ color: W_BLUE.clone(), emissive: W_EM.clone(), emissiveIntensity: 0.7, roughness: 0.25, transparent: true, opacity: 0.55, depthWrite: false })
+    );
+    this.water = new THREE5.Mesh(wgeo, this.wMat);
+    this.water.position.y = B;
+    this.water.renderOrder = 2;
+    this.add(this.water);
+    const sgeo = new THREE5.PlaneGeometry(W - 0.16, D - 0.16, 60, 34);
+    sgeo.rotateX(-Math.PI / 2);
+    this.sBase = sgeo.attributes.position.array.slice();
+    this.sMat = this.m(
+      new THREE5.MeshStandardMaterial({
+        color: S_BLUE.clone(),
+        emissive: S_EM.clone(),
+        emissiveIntensity: 0.8,
+        roughness: 0.06,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        side: THREE5.DoubleSide
+      })
+    );
+    this.surf = new THREE5.Mesh(sgeo, this.sMat);
+    this.surf.renderOrder = 3;
+    this.add(this.surf);
+    const ggeo = new THREE5.BoxGeometry(W, H2, D);
+    ggeo.translate(0, H2 / 2 + B + 0.012, 0);
+    const glass = new THREE5.Mesh(
+      ggeo,
+      this.m(
+        new THREE5.MeshPhysicalMaterial({ color: 14215423, roughness: 0.04, metalness: 0, transparent: true, opacity: 0.07, depthWrite: false, side: THREE5.DoubleSide, envMapIntensity: 1.6, clearcoat: 1 })
+      )
+    );
+    glass.renderOrder = 6;
+    this.add(glass);
+    const ed = edges(this, ggeo, 14083839, 0.45);
+    ed.renderOrder = 7;
+    this.add(ed);
+    this.Y19 = B + HI3 * (81.3 / 173);
+    const markMat = this.m(new THREE5.MeshBasicMaterial({ color: hdr(16777215, 1.1), transparent: true, opacity: 0.85, depthWrite: false }));
+    this.marks = [this.Y19, B + HI3].map((y) => {
+      const mk = new THREE5.Mesh(new THREE5.BoxGeometry(W + 0.5, 0.03, 0.03), markMat);
+      mk.position.set(0.25, y, D / 2 + 0.03);
+      mk.renderOrder = 8;
+      this.add(mk);
+      return mk;
+    });
+    const mouth = new THREE5.Vector3(-1.3, B + H2 + 1.25, 0.2);
+    this.mouth = mouth;
+    const steel = this.m(new THREE5.MeshStandardMaterial({ color: 10133674, metalness: 1, roughness: 0.28 }));
+    const path = new THREE5.CatmullRomCurve3([
+      new THREE5.Vector3(-1.3, B + H2 + 2.5, -8),
+      new THREE5.Vector3(-1.3, B + H2 + 2.5, -1.3),
+      new THREE5.Vector3(-1.3, B + H2 + 2.25, -0.3),
+      new THREE5.Vector3(-1.3, B + H2 + 1.6, 0.15),
+      new THREE5.Vector3(-1.3, B + H2 + 1.3, 0.2)
+    ]);
+    this.add(new THREE5.Mesh(new THREE5.TubeGeometry(path, 80, 0.3, 20, false), steel));
+    const ring = new THREE5.Mesh(new THREE5.TorusGeometry(0.33, 0.07, 10, 32), steel);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.copy(mouth).setY(mouth.y + 0.05);
+    this.add(ring);
+    const cg = new THREE5.CylinderGeometry(0.17, 0.25, 1, 20, 1, true);
+    cg.translate(0, -0.5, 0);
+    const colMat = () => this.m(new THREE5.MeshBasicMaterial({ color: hdr(5939967, 1.2), transparent: true, opacity: 0.42, blending: THREE5.AdditiveBlending, depthWrite: false }));
+    this.col = new THREE5.Mesh(cg, colMat());
+    this.col.position.copy(mouth);
+    this.col.renderOrder = 4;
+    this.add(this.col);
+    this.NP = 240;
+    this.drops = new THREE5.InstancedMesh(new THREE5.SphereGeometry(0.07, 8, 6), this.m(new THREE5.MeshBasicMaterial({ color: hdr(8042751, 1.8) })), this.NP);
+    this.drops.frustumCulled = false;
+    this.drops.instanceMatrix.setUsage(THREE5.DynamicDrawUsage);
+    this.add(this.drops);
+    this.P = new Float32Array(this.NP * 7);
+    this.alive = new Uint8Array(this.NP);
+    this.cursor = 0;
+    this.acc = 0;
+    this.M = new THREE5.Matrix4();
+    this.zero = new THREE5.Matrix4().makeScale(0, 0, 0);
+    this.add(blob(this, 15, 8, 0.8));
+    const dn = new THREE5.Group();
+    dn.position.set(W / 2, 0, 0.8);
+    this.add(dn);
+    this.dn = dn;
+    const padM = new THREE5.Mesh(rbox(12.6, PAD, 4.4, 0.08), this.m(new THREE5.MeshStandardMaterial({ color: 1710880, metalness: 0.6, roughness: 0.4 })));
+    padM.position.set(7.4, PAD / 2, -0.35);
+    dn.add(padM);
+    const wood = this.m(new THREE5.MeshStandardMaterial({ color: 11898211, roughness: 0.7, metalness: 0.05 }));
+    const stone = this.m(new THREE5.MeshStandardMaterial({ color: 11709859, roughness: 0.6, metalness: 0.05 }));
+    const thin = this.m(new THREE5.MeshStandardMaterial({ color: 9146779, metalness: 1, roughness: 0.32 }));
+    const red = this.m(new THREE5.MeshStandardMaterial({ color: 14239803, roughness: 0.45, metalness: 0.2 }));
+    const YC = PAD + RW + 0.23;
+    const TOP = YC + RW;
+    const lay = [
+      { y: B + 3.8, wx: 2.6, bx: 5.45, s: 1.3 },
+      { y: B + 4.9, wx: 8.65, bx: 11.85, s: 1.1 }
+    ];
+    this.outs = lay.map((o, j) => {
+      const mx = o.wx + 0.15;
+      const my = TOP + 0.34;
+      const pts = [new THREE5.Vector3(-0.1, o.y, 0), new THREE5.Vector3(mx - 0.65, o.y, 0), new THREE5.Vector3(mx - 0.1, o.y - 0.35, 0), new THREE5.Vector3(mx, o.y - 0.8, 0)];
+      if (o.y - 0.8 > my + 0.3) pts.push(new THREE5.Vector3(mx, (o.y - 0.8 + my) / 2, 0));
+      pts.push(new THREE5.Vector3(mx, my, 0));
+      dn.add(new THREE5.Mesh(new THREE5.TubeGeometry(new THREE5.CatmullRomCurve3(pts), 60, 0.15, 14), thin));
+      const body = new THREE5.Mesh(new THREE5.CylinderGeometry(0.21, 0.21, 0.36, 18), thin);
+      body.rotation.z = Math.PI / 2;
+      body.position.set(0.8, o.y, 0);
+      dn.add(body);
+      const stem = new THREE5.Mesh(new THREE5.CylinderGeometry(0.035, 0.035, 0.42, 8), thin);
+      stem.position.set(0.8, o.y + 0.36, 0);
+      dn.add(stem);
+      const hand = new THREE5.Group();
+      hand.position.set(0.8, o.y + 0.58, 0);
+      const tor = new THREE5.Mesh(new THREE5.TorusGeometry(0.27, 0.045, 8, 28), red);
+      tor.rotation.x = Math.PI / 2;
+      hand.add(tor);
+      for (let k = 0; k < 2; k++) {
+        const bar = new THREE5.Mesh(new THREE5.BoxGeometry(0.54, 0.04, 0.05), red);
+        bar.rotation.y = k * Math.PI / 2;
+        hand.add(bar);
+      }
+      dn.add(hand);
+      const wheel = waterWheel(this, wood, steel);
+      wheel.position.set(o.wx, YC, 0);
+      dn.add(wheel);
+      const tray = new THREE5.Mesh(new THREE5.CylinderGeometry(1.45, 1.45, 0.035, 40), this.m(new THREE5.MeshBasicMaterial({ color: TRAY_OFF.clone() })));
+      tray.position.set(o.wx + 0.3, PAD + 0.03, 0);
+      dn.add(tray);
+      const col = new THREE5.Mesh(cg, colMat());
+      col.position.set(mx, my, 0);
+      col.renderOrder = 4;
+      dn.add(col);
+      const win = this.m(new THREE5.MeshBasicMaterial({ color: UNLIT.clone() }));
+      const b = j === 0 ? shopModel(this, stone, red, win) : factory(this, stone, win);
+      b.scale.setScalar(o.s);
+      b.position.set(o.bx, PAD, -0.45);
+      dn.add(b);
+      return { ...o, mx, my, hand, wheel, tray, col, win, ang: 0 };
+    });
+    this.TOP = TOP;
+    this.YC = YC;
+    this.NF = 16;
+    this.flow = new THREE5.InstancedMesh(new THREE5.SphereGeometry(0.065, 8, 6), this.m(new THREE5.MeshBasicMaterial({ color: hdr(8042751, 1.6) })), this.NF * 2);
+    this.flow.frustumCulled = false;
+    this.flow.instanceMatrix.setUsage(THREE5.DynamicDrawUsage);
+    dn.add(this.flow);
+    this.NS = 5;
+    this.smoke = new THREE5.InstancedMesh(
+      new THREE5.SphereGeometry(0.2, 10, 8),
+      this.m(new THREE5.MeshBasicMaterial({ color: 9344675, transparent: true, opacity: 0.4, depthWrite: false })),
+      this.NS
+    );
+    this.smoke.frustumCulled = false;
+    this.smoke.instanceMatrix.setUsage(THREE5.DynamicDrawUsage);
+    dn.add(this.smoke);
+    this.chim = new THREE5.Vector3(lay[1].bx - 1 * lay[1].s, PAD + 2.85 * lay[1].s, -0.45 - 0.55 * lay[1].s);
+    const sh = blob(this, 16, 7, 0.7);
+    sh.position.set(7.4, 0.015, -0.3);
+    dn.add(sh);
+    this.lTap = this.label('<span class="t">央行放水</span><span class="c">钱一直在往里放</span>', [-1.85, B + H2 + 1.75, 0.2], "left");
+    this.lDep = this.label("", [0.4, B + 2.3, D / 2 + 0.05], "mid");
+    this.lM19 = this.label('<span class="t">2019 年底：81 万亿</span>', [W / 2 + 0.55, this.Y19, D / 2], "right");
+    this.lM26 = this.label('<span class="t">2026 年 6 月：超 170 万亿</span>', [W / 2 + 0.55, B + HI3, D / 2], "right");
+    this.lShop = this.label("", [lay[0].bx, PAD + 2.55, -0.45], "up", dn);
+    this.lFac = this.label("", [lay[1].bx + 0.9, PAD + 2.85 * lay[1].s + 0.1, -0.45], "up", dn);
+    this.lMsg = this.label("", [8.3, B + H2 + 0.15, 0], "up", dn);
+    this.level = 0.45;
+    this.kDown = 0;
+    this.f = 0;
+    this.om = 0;
+    this.sg = 0;
+  }
+  enter(st, prev, fresh) {
+    this.alive.fill(0);
+    const step = st.step || "fill";
+    if (fresh) {
+      this.level = step === "fill" ? 0.45 : this.HI;
+      this.kDown = step === "fill" ? 0 : 1;
+      this.f = step === "stuck" ? 1 : 0;
+      this.om = this.f;
+      this.sg = 0;
+    }
+  }
+  update(dt, time) {
+    const t = this.t;
+    const { B, H: H2, HI: HI3 } = this;
+    const step = this.st.step || "fill";
+    const fill = step === "fill";
+    const stuck = step === "stuck";
+    this.level = damp(this.level, fill ? lerp(0.45, HI3, eInOut(seg(t, 0.6, 4.8))) : HI3, 6, dt);
+    const level = this.level;
+    const top = B + level;
+    this.water.scale.y = level;
+    this.sg = damp(this.sg, stuck && t > 2 ? 1 : 0, 1.3, dt);
+    const sg = this.sg;
+    this.wMat.color.copy(W_BLUE).lerp(W_DULL, sg);
+    this.wMat.emissive.copy(W_EM).lerp(W_DEM, sg);
+    this.sMat.color.copy(S_BLUE).lerp(S_DULL, sg);
+    this.sMat.emissive.copy(S_EM).lerp(S_DEM, sg);
+    const pos = this.surf.geometry.attributes.position;
+    const a = pos.array;
+    const b0 = this.sBase;
+    const A = lerp(0.1, 0.01, sg);
+    const R = lerp(0.13, 0.02, sg);
+    const ix = this.mouth.x;
+    const iz = this.mouth.z;
+    for (let k = 0; k < a.length; k += 3) {
+      const x = b0[k];
+      const z = b0[k + 2];
+      const d = Math.hypot(x - ix, z - iz);
+      a[k + 1] = A * (Math.sin(x * 1.25 + time * 2) * 0.55 + Math.sin(z * 2 - time * 1.6 + x * 0.3) * 0.45) + R * Math.sin(d * 5.5 - time * 7.5) * Math.exp(-d * 0.7);
+    }
+    pos.needsUpdate = true;
+    this.surf.geometry.computeVertexNormals();
+    this.surf.position.y = top;
+    const pouring = t > 0.35 || !fill;
+    this.col.scale.set(1, pouring ? Math.max(0.01, (this.mouth.y - top) * (fill ? ss(0.35, 0.8, t) : 1)) : 1e-3, 1);
+    const P = this.P;
+    if (pouring) this.acc += dt * 100;
+    while (this.acc >= 1) {
+      this.acc -= 1;
+      const i = this.cursor;
+      this.cursor = (this.cursor + 1) % this.NP;
+      const o = i * 7;
+      const ang = Math.random() * Math.PI * 2;
+      const rr = Math.random() * 0.16;
+      P[o] = this.mouth.x + Math.cos(ang) * rr;
+      P[o + 1] = this.mouth.y - 0.1;
+      P[o + 2] = this.mouth.z + Math.sin(ang) * rr;
+      P[o + 3] = (Math.random() - 0.5) * 0.5;
+      P[o + 4] = -2 - Math.random() * 0.8;
+      P[o + 5] = (Math.random() - 0.5) * 0.5;
+      P[o + 6] = 0;
+      this.alive[i] = 1;
+    }
+    for (let i = 0; i < this.NP; i++) {
+      if (!this.alive[i]) {
+        this.drops.setMatrixAt(i, this.zero);
+        continue;
+      }
+      const o = i * 7;
+      P[o + 4] -= 14 * dt;
+      P[o] += P[o + 3] * dt;
+      P[o + 1] += P[o + 4] * dt;
+      P[o + 2] += P[o + 5] * dt;
+      if (P[o + 1] < top) {
+        if (P[o + 6] === 0 && Math.random() < 0.35 * (1 - sg * 0.8)) {
+          P[o + 1] = top;
+          P[o + 4] = 1.1 + Math.random() * 1.6;
+          P[o + 3] *= 3;
+          P[o + 5] *= 3;
+          P[o + 6] = 1;
+        } else {
+          this.alive[i] = 0;
+          this.drops.setMatrixAt(i, this.zero);
+          continue;
+        }
+      }
+      this.M.makeTranslation(P[o], P[o + 1], P[o + 2]);
+      this.drops.setMatrixAt(i, this.M);
+    }
+    this.drops.instanceMatrix.needsUpdate = true;
+    this.kDown = damp(this.kDown, fill ? 0 : 1, 3.2, dt);
+    const kd = this.kDown;
+    this.dn.visible = kd > 0.01;
+    this.dn.scale.setScalar(Math.max(1e-3, kd));
+    const fT = fill ? 0 : stuck ? t > 1 ? 0 : 1 : t > 0.9 ? 1 : 0;
+    this.f = damp(this.f, fT, stuck ? 1.6 : 2.4, dt);
+    const f = this.f;
+    this.om = damp(this.om, f, 1.1, dt);
+    const run = ss(0.12, 0.75, this.om);
+    const TOP = this.TOP;
+    this.outs.forEach((o, j) => {
+      o.hand.rotation.y = f * 5.5 + j;
+      o.ang -= this.om * 1.9 * dt;
+      o.wheel.rot.rotation.z = o.ang + j * 0.3;
+      o.win.color.copy(UNLIT).lerp(LIT, run);
+      o.tray.material.color.copy(TRAY_OFF).lerp(TRAY_ON, ss(0.15, 0.8, f));
+      o.col.scale.set(0.55 * Math.max(0.02, f), Math.max(0.01, (o.my - TOP) * ss(0.02, 0.3, f)), 0.55 * Math.max(0.02, f));
+      o.col.visible = f > 0.03;
+      for (let i = 0; i < this.NF; i++) {
+        const idx = j * this.NF + i;
+        let show = false;
+        if (i < 10) {
+          if (f > 0.12) {
+            const u = (time * 1.5 + i / 10 + j * 0.37) % 1;
+            show = i / 10 < f + 0.05;
+            this.M.makeTranslation(o.mx + Math.sin(i * 12.9) * 0.05, o.my - u * u * (o.my - TOP), Math.cos(i * 7.3) * 0.05);
+          } else if (i === 0 && stuck) {
+            const per = 3.1 + j * 0.9;
+            const u = (t + j * 1.3) % per / 0.55;
+            show = u < 1;
+            this.M.makeTranslation(o.mx, o.my - u * u * (o.my - TOP), 0);
+          }
+        } else if (f > 0.12) {
+          const u = (time * 1.2 + (i - 10) / 6 + j * 0.21) % 1;
+          show = (i - 10) / 6 < f;
+          this.M.makeTranslation(o.wx + RW * 0.8 + u * 0.3, this.YC - 0.1 - u * u * (this.YC - 0.1 - PAD), Math.sin(i * 5.1) * 0.2);
+        }
+        this.flow.setMatrixAt(idx, show ? this.M : this.zero);
+      }
+    });
+    this.flow.instanceMatrix.needsUpdate = true;
+    for (let i = 0; i < this.NS; i++) {
+      const u = (time * 0.28 + i / this.NS) % 1;
+      const s = Math.sin(Math.PI * u) * (0.6 + u) * run;
+      if (s < 0.02) {
+        this.smoke.setMatrixAt(i, this.zero);
+        continue;
+      }
+      this.M.makeScale(s, s, s).setPosition(this.chim.x + u * 0.7 + Math.sin(i * 3.3 + time) * 0.06, this.chim.y + u * 1.5, this.chim.z);
+      this.smoke.setMatrixAt(i, this.M);
+    }
+    this.smoke.instanceMatrix.needsUpdate = true;
+    const on = (c) => c ? 1 : 0;
+    this.lTap.target = on(t > 0.5 || !fill);
+    this.lDep.set(
+      fill ? '<span class="c">居民在银行的存款</span><span class="v">六年半，翻了一倍多</span>' : stuck ? `<span class="c">居民存款</span><span class="v">超 170 万亿</span>${t > 3 ? '<span class="t muted">成了一池“死水”</span>' : ""}` : '<span class="t">银行里的存款</span>'
+    );
+    this.lDep.pos.y = fill ? (this.Y19 + B + HI3) / 2 : B + 2.3;
+    const nar = this.app.ui.narrow();
+    const { W, D } = this;
+    this.lM19.el.className = this.lM26.el.className = nar ? "lbl left" : "lbl right";
+    this.lM19.pos.set(nar ? W / 2 - 0.3 : W / 2 + 0.55, this.Y19 + (nar ? 0.5 : 0), D / 2);
+    this.lM26.pos.set(nar ? W / 2 - 0.3 : W / 2 + 0.55, B + HI3 - (nar ? 0.55 : 0), D / 2);
+    this.lDep.target = on(fill ? t > 4.6 && !nar : true);
+    this.marks[0].visible = fill && level > this.Y19 - B - 0.02;
+    this.marks[1].visible = fill && level > HI3 - 0.06;
+    this.lM19.target = on(this.marks[0].visible);
+    this.lM26.target = on(this.marks[1].visible);
+    const live = !fill && kd > 0.9;
+    this.lShop.set(stuck ? '<span class="t red">消费：不敢花</span><span class="c">房价跌了，收入没底</span>' : '<span class="t">消费</span><span class="c">有人花钱，店里有生意</span>');
+    this.lFac.set(stuck ? '<span class="t red">投资：不敢投</span><span class="c">货卖不动，不敢扩张</span>' : '<span class="t">投资</span><span class="c">有人扩张，工厂有活干</span>');
+    this.lMsg.set(stuck ? '<span class="v sm red">钱流不出去</span><span class="c">市面上钱没变多，东西也就没涨价</span>' : '<span class="v sm blue">钱流到市面上</span><span class="c">生意就转起来</span>');
+    this.lShop.target = this.lFac.target = on(live && t > 2.2);
+    this.lMsg.target = on(live && (stuck ? t > 3.2 : t > 3));
+  }
+};
+function containerTex() {
+  return canvasTex(512, 256, (g, w, h) => {
+    g.fillStyle = "#3b7cae";
+    g.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x += 18) {
+      const gr = g.createLinearGradient(x, 0, x + 18, 0);
+      gr.addColorStop(0, "rgba(0,0,0,0.28)");
+      gr.addColorStop(0.45, "rgba(255,255,255,0.10)");
+      gr.addColorStop(1, "rgba(0,0,0,0.28)");
+      g.fillStyle = gr;
+      g.fillRect(x, 14, 18, h - 28);
+    }
+    g.fillStyle = "rgba(0,0,0,0.35)";
+    g.fillRect(0, 0, w, 14);
+    g.fillRect(0, h - 14, w, 14);
+  });
+}
+
+// src/pieces/macro.js
+import * as THREE7 from "three";
+
+// src/pieces/kit.js
+import * as THREE6 from "three";
+function bundleSet(piece, n, { w = BW, h = BH, d = BD } = {}) {
+  const mat = piece.m(new THREE6.MeshStandardMaterial({ color: 16777215, map: noteTex(), roughness: 0.5, metalness: 0.05 }));
+  const mesh = new THREE6.InstancedMesh(rbox(w, h, d, 0.035, 2), mat, n);
+  mesh.instanceMatrix.setUsage(THREE6.DynamicDrawUsage);
+  mesh.instanceColor = new THREE6.InstancedBufferAttribute(new Float32Array(n * 3), 3);
+  mesh.instanceColor.setUsage(THREE6.DynamicDrawUsage);
+  mesh.frustumCulled = false;
+  const band = new THREE6.InstancedMesh(
+    new THREE6.BoxGeometry(w * 0.19, h + 0.014, d + 0.016),
+    piece.m(new THREE6.MeshStandardMaterial({ color: 13483935, roughness: 0.78 })),
+    n
+  );
+  band.instanceMatrix.setUsage(THREE6.DynamicDrawUsage);
+  band.frustumCulled = false;
+  const M3 = new THREE6.Matrix4();
+  const Q = new THREE6.Quaternion();
+  const E2 = new THREE6.Euler();
+  const P = new THREE6.Vector3();
+  const S = new THREE6.Vector3();
+  const Z = new THREE6.Matrix4().makeScale(0, 0, 0);
+  for (let i = 0; i < n; i++) {
+    mesh.setMatrixAt(i, Z);
+    band.setMatrixAt(i, Z);
+  }
+  return {
+    mesh,
+    band,
+    h,
+    set(i, x, y, z, s = 1, color = null, rotY = 0, rotZ = 0) {
+      if (s <= 1e-3) {
+        mesh.setMatrixAt(i, Z);
+        band.setMatrixAt(i, Z);
+        return;
+      }
+      E2.set(0, rotY, rotZ);
+      Q.setFromEuler(E2);
+      M3.compose(P.set(x, y, z), Q, S.setScalar(s));
+      mesh.setMatrixAt(i, M3);
+      band.setMatrixAt(i, M3);
+      if (color) mesh.setColorAt(i, color);
+    },
+    hide(i) {
+      mesh.setMatrixAt(i, Z);
+      band.setMatrixAt(i, Z);
+    },
+    commit() {
+      mesh.instanceMatrix.needsUpdate = true;
+      band.instanceMatrix.needsUpdate = true;
+      mesh.instanceColor.needsUpdate = true;
+    }
+  };
+}
+function glowTower(piece, color, { w = 1.3, d = 1.3, em = 0.35 } = {}) {
+  const g = new THREE6.Group();
+  const geo = new THREE6.BoxGeometry(w, 1, d);
+  geo.translate(0, 0.5, 0);
+  const bm = piece.m(
+    new THREE6.MeshPhysicalMaterial({ color: 726566, emissive: new THREE6.Color(color), emissiveIntensity: em, roughness: 0.22, metalness: 0.35, clearcoat: 1, clearcoatRoughness: 0.25 })
+  );
+  const body = new THREE6.Mesh(geo, bm);
+  g.add(body);
+  const cm = piece.m(new THREE6.MeshBasicMaterial({ color: new THREE6.Color(color).multiplyScalar(2) }));
+  const cap = new THREE6.Mesh(new THREE6.BoxGeometry(w + 0.02, 0.06, d + 0.02), cm);
+  g.add(cap);
+  const t = { g, body, cap, bm, cm, h: 1 };
+  t.setH = (h) => {
+    t.h = h;
+    body.scale.y = Math.max(1e-3, h);
+    cap.position.y = h;
+  };
+  return t;
+}
 
 // src/pieces/macro.js
 var RED = new THREE7.Color(11739178);
@@ -3580,15 +3970,15 @@ var City = class extends Piece {
     if (fresh) this.ndxV = 0;
   }
   setTowers(mesh, towers, grow, drop, jitter, t, time) {
-    const M = this.M;
+    const M3 = this.M;
     for (let i = 0; i < towers.length; i++) {
       const tw = towers[i];
       const k = eOut(seg(grow, 0.1 + tw.d / 26, 1.1 + tw.d / 26));
       const h = Math.max(1e-3, tw.h * k * (1 - drop * (0.85 + 0.3 * (i * 0.618 % 1))));
       const jx = jitter ? Math.sin(time * 37 + i) * jitter : 0;
       const jz = jitter ? Math.cos(time * 41 + i * 1.7) * jitter : 0;
-      M.makeScale(tw.f, h, tw.f).setPosition(tw.x + jx, 0.12, tw.z + jz);
-      mesh.setMatrixAt(i, M);
+      M3.makeScale(tw.f, h, tw.f).setPosition(tw.x + jx, 0.12, tw.z + jz);
+      mesh.setMatrixAt(i, M3);
     }
     mesh.instanceMatrix.needsUpdate = true;
   }
@@ -4940,10 +5330,10 @@ var Paths = class extends Piece {
     );
     const hues = [208, 196, 222, 186, 232, 214, 200];
     const city = cityMesh(this, mini.towers, (tw, c) => c.setHSL(hues[tw.sector] / 360, 0.85, 0.55, THREE16.SRGBColorSpace), this.glow);
-    const M = new THREE16.Matrix4();
+    const M3 = new THREE16.Matrix4();
     mini.towers.forEach((tw, i) => {
-      M.makeScale(tw.f, tw.h, tw.f).setPosition(tw.x, 0, tw.z);
-      city.setMatrixAt(i, M);
+      M3.makeScale(tw.f, tw.h, tw.f).setPosition(tw.x, 0, tw.z);
+      city.setMatrixAt(i, M3);
     });
     city.position.set(14.6, 0.4, 0);
     this.add(city);
@@ -5610,10 +6000,10 @@ var Horizon = class extends Piece {
   constructor(app2, name, origin) {
     super(app2, name, origin, { spot: [1, 0, 13, 1] });
     this.add(slab(this, 24, 2.2));
-    const Y02 = 0.75;
+    const Y03 = 0.75;
     const row = (i) => 5.75 - i * 0.74;
     const axis = new THREE19.Mesh(new THREE19.BoxGeometry(HX2(26) - HX2(0), 0.04, 0.04), this.m(new THREE19.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
-    axis.position.set((HX2(0) + HX2(26)) / 2, Y02, 0);
+    axis.position.set((HX2(0) + HX2(26)) / 2, Y03, 0);
     this.add(axis);
     const geo = new THREE19.BoxGeometry(1, 0.4, 0.3);
     geo.translate(0.5, 0, 0);
@@ -5628,13 +6018,13 @@ var Horizon = class extends Piece {
     });
     this.ticks = [0, 5, 10, 15, 20, 25].map((y) => {
       const tk = new THREE19.Mesh(new THREE19.BoxGeometry(0.04, 0.22, 0.04), this.m(new THREE19.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
-      tk.position.set(HX2(y), Y02 - 0.11, 0);
+      tk.position.set(HX2(y), Y03 - 0.11, 0);
       this.add(tk);
-      return this.label(`<span class="c">${y === 0 ? "0" : y + " 年"}</span>`, [HX2(y), Y02 - 0.2, 0], "down");
+      return this.label(`<span class="c">${y === 0 ? "0" : y + " 年"}</span>`, [HX2(y), Y03 - 0.2, 0], "down");
     });
     this.lCap = this.label('<span class="c">买在最高点 → 涨回这个高点（标普 500 点位）</span>', [HX2(19), row(6) + 0.5, 0.2]);
-    this.marker = new THREE19.Mesh(new THREE19.BoxGeometry(0.07, row(0) - Y02 + 0.9, 0.07), this.m(new THREE19.MeshBasicMaterial({ color: hdr(COL.gold, 2) })));
-    this.markerY = (row(0) + 0.9 + Y02) / 2;
+    this.marker = new THREE19.Mesh(new THREE19.BoxGeometry(0.07, row(0) - Y03 + 0.9, 0.07), this.m(new THREE19.MeshBasicMaterial({ color: hdr(COL.gold, 2) })));
+    this.markerY = (row(0) + 0.9 + Y03) / 2;
     this.add(this.marker);
     this.lMark = this.label("", [0, row(0) + 0.95, 0.2]);
     this.H = 0;
@@ -5736,6 +6126,426 @@ var Withdraw = class extends Piece {
   }
 };
 
+// src/pieces/calc.js
+import * as THREE20 from "three";
+
+// src/pieces/spxdata.js
+var SPX_ASOF = [2026, 11, 24];
+var SPX_M = [1.1242, 1.1242, 1.1242, 1.1226, 1.0988, 1.1306, 1.107, 1.083, 1.1264, 1.2408, 1.1095, 1.2365, 1.2753, 1.2169, 1.271, 1.2957, 1.2501, 1.3198, 1.2444, 1.1882, 1.3003, 1.2677, 1.2158, 1.2665, 1.3661, 1.2481, 1.3616, 1.3883, 1.3694, 1.4028, 1.4283, 1.3863, 1.4448, 1.6043, 1.4461, 1.5996, 1.6136, 1.4741, 1.6089, 1.7104, 1.6016, 1.7057, 1.7053, 1.6181, 1.7171, 1.7062, 1.6226, 1.7379, 1.7385, 1.646, 1.7336, 1.6692, 1.6219, 1.7673, 1.8477, 1.6987, 1.8426, 1.952, 1.872, 1.9468, 2.1485, 1.9182, 2.1432, 2.0488, 2.0434, 2.1586, 1.6459, 1.3878, 2.0929, 1.4312, 1.2036, 1.5593, 1.473, 1.3792, 1.5441, 1.5706, 1.4544, 1.565, 1.6099, 1.5602, 1.6098, 1.6757, 1.6154, 1.7185, 1.7333, 1.7159, 1.7985, 1.7105, 1.5997, 1.7104, 1.4347, 1.3543, 1.7042, 1.493, 1.3905, 1.53, 1.5099, 1.3993, 1.5148, 1.3193, 1.3135, 1.5446, 1.208, 1.1993, 1.3782, 1.1738, 1.1081, 1.2265, 1.1052, 1.0348, 1.2154, 1.1722, 1.0872, 1.183, 1.3112, 1.17, 1.3156, 1.2194, 1.2116, 1.3134, 1.1082, 1.0499, 1.2216, 0.96175, 0.95616, 1.1339, 1.101, 0.90118, 1.1339, 1.0248, 1.0193, 1.1329, 1.0399, 1.0114, 1.0666, 0.73394, 0.72856, 1.0444, 0.79369, 0.66667, 0.82842, 0.72821, 0.70847, 0.87664, 0.62766, 0.59176, 0.71901, 0.61886, 0.5836, 0.6895, 0.65112, 0.58457, 0.68901, 0.57899, 0.57415, 0.70531, 0.46648, 0.46177, 0.5687, 0.36224, 0.35766, 0.48728, 0.36345, 0.35656, 0.41491, 0.49905, 0.36181, 0.49472, 0.69855, 0.48581, 0.71009, 0.67677, 0.61113, 0.77515, 0.58682, 0.53773, 0.67509, 0.55595, 0.54635, 0.64752, 0.59089, 0.54916, 0.60433, 0.59612, 0.58321, 0.62676, 0.48968, 0.47501, 0.58066, 0.50962, 0.48882, 0.59956, 0.68559, 0.51136, 0.68907, 0.84754, 0.73024, 0.85633, 0.96264, 0.85633, 0.96535, 0.88135, 0.85146, 1.0765, 0.98572, 0.89021, 0.99916, 0.86732, 0.85773, 0.99817, 0.80285, 0.76828, 0.92086, 0.88861, 0.81719, 0.91665, 0.90001, 0.85893, 0.92729, 1.0116, 0.88105, 1.0228, 0.97785, 0.96817, 1.0705, 0.96848, 0.94695, 1.006, 0.95725, 0.95389, 1.0177, 0.88285, 0.86482, 0.95725, 0.90463, 0.86172, 0.95267, 0.80386, 0.77092, 0.92123, 0.85083, 0.80478, 0.88165, 0.84779, 0.78574, 0.85641, 0.82607, 0.81791, 0.85806, 0.89803, 0.82232, 0.89452, 0.89779, 0.84908, 0.89991, 0.86353, 0.84676, 0.90535, 0.83293, 0.82937, 0.88631, 0.80887, 0.76812, 0.83769, 0.89188, 0.78685, 0.90363, 0.92426, 0.87939, 0.9678, 0.99148, 0.93295, 1.0101, 1.0764, 0.99535, 1.0728, 1.0955, 1.0317, 1.1337, 1.1331, 1.0925, 1.1617, 1.2219, 1.0852, 1.2182, 1.2727, 1.2366, 1.3199, 1.3247, 1.254, 1.3209, 1.4155, 1.3218, 1.4116, 1.4482, 1.4165, 1.4709, 1.4841, 1.4125, 1.4978, 1.374, 1.3458, 1.5428, 1.4413, 1.379, 1.4418, 1.4899, 1.4133, 1.5174, 1.5961, 1.4869, 1.6214, 1.6151, 1.5427, 1.6313, 1.6223, 1.5151, 1.6454, 1.7514, 1.6253, 1.7459, 1.7622, 1.7168, 1.7981, 1.7582, 1.698, 1.7663, 1.8248, 1.7326, 1.838, 1.8609, 1.834, 1.8864, 1.8529, 1.7743, 1.9237, 1.7056, 1.6533, 1.8312, 1.6949, 1.6215, 1.7367, 1.6126, 1.5761, 1.697, 1.7631, 1.6199, 1.7864, 1.6933, 1.6696, 1.8157, 1.4594, 1.3935, 1.648, 1.3168, 1.1412, 1.4552, 1.1916, 1.0843, 1.288, 1.1387, 1.1058, 1.2248, 1.1609, 1.1354, 1.2898, 1.2386, 1.1229, 1.2684, 0.93552, 0.92842, 1.2517, 1.0834, 0.98064, 1.1501, 1.0339, 1.0269, 1.1776, 1.2962, 1.0506, 1.3071, 1.3892, 1.3152, 1.4352, 1.3652, 1.3351, 1.4342, 1.3918, 1.2441, 1.4048, 1.5033, 1.4191, 1.5817, 1.4584, 1.412, 1.5741, 1.5103, 1.4115, 1.5054, 1.4186, 1.3252, 1.5206, 1.4697, 1.3979, 1.4648, 1.2757, 1.2707, 1.516, 1.275, 1.2106, 1.3082, 1.3582, 1.2668, 1.3589, 1.2768, 1.2634, 1.3817, 1.4208, 1.2932, 1.4319, 1.3247, 1.2815, 1.4349, 1.521, 1.3389, 1.5605, 1.5315, 1.5139, 1.5709, 1.4623, 1.4563, 1.5458, 1.4996, 1.4611, 1.4934, 1.4565, 1.4503, 1.5369, 1.4725, 1.4553, 1.4952, 1.485, 1.4567, 1.4895, 1.4926, 1.4679, 1.5349, 1.1417, 1.1192, 1.4841, 1.2358, 1.1072, 1.2439, 1.2809, 1.2197, 1.2791, 1.314, 1.2249, 1.3071, 1.341, 1.2889, 1.3678, 1.4008, 1.3171, 1.3938, 1.3434, 1.3351, 1.44, 1.3518, 1.3193, 1.3587, 1.2938, 1.2828, 1.3875, 1.2817, 1.2244, 1.3092, 1.2942, 1.2611, 1.305, 1.2172, 1.2098, 1.3202, 1.2338, 1.2159, 1.2499, 1.3032, 1.2312, 1.3088, 1.3823, 1.2992, 1.3852, 1.3754, 1.3344, 1.3783, 1.3725, 1.35, 1.4008, 1.2862, 1.2783, 1.3684, 1.2427, 1.2347, 1.3078, 1.1922, 1.1405, 1.2781, 1.2222, 1.2086, 1.247, 1.1943, 1.1683, 1.2387, 1.1216, 1.1095, 1.1957, 1.0806, 1.046, 1.1482, 1.1575, 1.0876, 1.1539, 1.1867, 1.1618, 1.2115, 1.2315, 1.1767, 1.2624, 1.2478, 1.2172, 1.256, 1.2885, 1.2362, 1.2883, 1.3702, 1.2987, 1.3803, 1.3673, 1.3599, 1.4185, 1.4451, 1.3658, 1.4379, 1.5515, 1.4629, 1.5443, 1.6376, 1.55, 1.6303, 1.736, 1.6182, 1.7302, 1.7449, 1.67, 1.763, 1.8215, 1.7614, 1.8141, 1.8743, 1.7958, 1.8669, 1.8059, 1.7984, 1.9183, 1.8059, 1.748, 1.8166, 1.8564, 1.8028, 1.8732, 1.838, 1.7934, 1.8579, 1.7084, 1.696, 1.8395, 1.8171, 1.7255, 1.8123, 1.8531, 1.8155, 1.8591, 1.8564, 1.8077, 1.8593, 1.8959, 1.8643, 1.9334, 1.8805, 1.8407, 1.9023, 1.9648, 1.8932, 1.9565, 2.0734, 1.9457, 2.0714, 2.0387, 2.0287, 2.1197, 2.0648, 2.0226, 2.0916, 2.0605, 1.9891, 2.0713, 2.0756, 2.0589, 2.1139, 2.0924, 2.0578, 2.1081, 2.1745, 2.0875, 2.1658, 2.2144, 2.163, 2.2416, 2.3597, 2.2193, 2.3508, 2.2548, 2.2095, 2.3729, 2.4675, 2.2647, 2.4586, 2.5048, 2.431, 2.5124, 2.4905, 2.4814, 2.5649, 2.4644, 2.4084, 2.529, 2.6165, 2.4207, 2.6073, 2.7169, 2.6165, 2.7076, 2.8278, 2.7592, 2.8303, 2.9288, 2.8617, 2.9331, 2.9672, 2.8862, 3.0123, 3.1835, 2.9449, 3.1911, 2.9719, 2.8817, 3.2058, 3.1124, 2.9393, 3.1078, 3.2464, 3.1158, 3.2608, 3.3289, 3.1599, 3.3312, 3.2085, 3.1293, 3.3063, 3.1366, 3.0275, 3.2277, 2.9178, 2.9078, 3.1838, 2.6318, 2.5113, 2.8022, 2.6209, 2.484, 2.6916, 2.6029, 2.4955, 2.7074, 2.7234, 2.5604, 2.7483, 2.798, 2.629, 2.7875, 2.7676, 2.7337, 2.8838, 2.7317, 2.651, 2.8071, 2.6365, 2.5373, 2.7425, 2.6242, 2.49, 2.6853, 2.7738, 2.597, 2.7677, 2.8858, 2.8157, 2.9397, 2.8171, 2.7869, 2.8931, 2.7906, 2.7307, 2.8263, 2.8621, 2.7998, 2.9162, 2.7914, 2.7786, 2.8677, 2.864, 2.7261, 2.851, 2.7611, 2.6806, 2.8715, 2.6333, 2.605, 2.7668, 2.8641, 2.6163, 2.8507, 2.9535, 2.8717, 2.9971, 3.1979, 2.9574, 3.1844, 3.2211, 3.1692, 3.2688, 3.0636, 3.0248, 3.2557, 3.1007, 3.0288, 3.1215, 3.0215, 2.9492, 3.1744, 3.233, 3.0567, 3.24, 2.905, 2.8901, 3.2722, 3.0089, 2.9542, 3.0192, 3.0285, 2.9594, 3.09, 2.925, 2.8613, 3.0543, 3.0294, 2.931, 3.0451, 2.9757, 2.953, 3.0314, 2.8874, 2.8705, 3.0384, 2.8986, 2.7572, 2.8813, 3.0963, 2.9191, 3.0829, 3.1511, 3.1128, 3.193, 3.2435, 3.1449, 3.2587, 3.3579, 3.2477, 3.3622, 3.3814, 3.2972, 3.4186, 3.5551, 3.4004, 3.5351, 3.6305, 3.5276, 3.6187, 3.6873, 3.6177, 3.688, 3.7231, 3.6551, 3.7601, 3.8886, 3.7748, 3.8868, 4.0876, 3.921, 4.0661, 3.8721, 3.7959, 4.2225, 3.9276, 3.651, 3.9203, 4.0789, 3.9518, 4.1434, 4.3315, 4.1055, 4.307, 4.3749, 4.3494, 4.4807, 4.397, 4.3368, 4.5519, 4.6319, 4.2821, 4.6043, 4.9389, 4.6909, 4.9289, 4.9994, 4.9617, 5.062, 4.955, 4.8733, 5.0338, 5.2037, 4.9043, 5.1742, 5.0225, 4.8789, 5.2918, 4.9221, 4.8918, 5.1462, 5.2905, 4.955, 5.3143, 5.5285, 5.3165, 5.4984, 5.5539, 5.5238, 5.6307, 5.507, 5.4106, 5.6948, 5.5215, 5.3774, 5.5454, 5.7647, 5.5529, 5.7363, 5.883, 5.7574, 5.9805, 5.6973, 5.6271, 5.9219, 5.9981, 5.7046, 5.9691, 5.769, 5.7397, 5.9514, 5.9323, 5.7319, 5.9224, 6.2358, 5.9124, 6.2058, 6.376, 6.1984, 6.3458, 6.3134, 6.2329, 6.4136, 6.2203, 6.1671, 6.3689, 6.2456, 6.0327, 6.2304, 6.5662, 6.2659, 6.5359, 6.8291, 6.5534, 6.8041, 6.8104, 6.6466, 6.8522, 6.7169, 6.5781, 6.8518, 6.5891, 6.5587, 6.8284, 6.4453, 6.3025, 6.5787, 6.4552, 6.4034, 6.5604, 6.3811, 6.1922, 6.371, 6.5737, 6.3626, 6.5424, 6.2253, 6.1938, 6.5976, 6.2649, 6.0624, 6.3134, 6.6161, 6.2756, 6.5949, 6.7078, 6.5379, 6.6754, 6.7541, 6.6509, 6.7701, 7.1329, 6.7514, 7.1025, 7.1854, 7.059, 7.193, 7.4361, 7.2128, 7.4024, 7.8341, 7.4554, 7.8004, 8.1256, 7.8202, 8.0919, 8.1648, 7.8361, 8.1924, 8.6655, 8.1648, 8.6316, 8.4051, 8.3708, 8.7581, 9.1384, 8.4642, 9.2109, 8.9954, 8.9602, 9.2656, 9.7581, 9.0266, 9.8103, 10.291, 9.6869, 10.254, 10.513, 9.8902, 10.511, 10.588, 10.459, 10.663, 10.573, 10.069, 10.807, 11.01, 10.646, 11.076, 11.033, 10.723, 11.033, 11.979, 11.048, 11.941, 12.745, 12.026, 12.777, 12.685, 12.224, 12.646, 12.868, 12.517, 13.404, 12.516, 12.023, 12.668, 13.494, 12.499, 13.719, 13.525, 13.328, 13.606, 13.073, 12.82, 13.43, 13.569, 12.954, 13.553, 14.552, 13.629, 14.625, 14.565, 14.134, 14.663, 13.653, 13.277, 14.604, 14.232, 13.634, 14.236, 15.012, 14.22, 14.993, 14.486, 14.267, 15.088, 13.875, 13.828, 14.666, 13.991, 13.676, 14.379, 13.883, 13.623, 14.611, 14.417, 14.117, 14.486, 13.86, 13.716, 14.414, 13.452, 13.137, 13.829, 13.761, 13.601, 13.753, 14.314, 13.77, 14.269, 14.888, 14.402, 14.843, 14.915, 14.684, 15.143, 15.131, 14.934, 15.469, 14.327, 13.861, 15.093, 13.486, 13.44, 14.397, 13.101, 12.393, 13.715, 13.359, 12.584, 13.311, 12.853, 12.61, 13.301, 13.45, 12.962, 13.46, 13.22, 13.098, 13.695, 13.676, 13.314, 13.784, 14.159, 13.426, 14.111, 14.418, 14.055, 14.371, 14.841, 14.49, 14.827, 15.528, 14.799, 15.481, 15.76, 15.538, 15.847, 16.57, 15.833, 16.522, 17.038, 16.543, 17.086, 17.468, 16.935, 17.672, 18.425, 17.462, 18.377, 18.554, 18.319, 18.702, 18.59, 17.929, 18.578, 18.65, 18.6, 19.013, 19.423, 18.734, 19.568, 19.84, 19.183, 19.79, 19.82, 19.056, 19.824, 20.562, 19.969, 20.549, 20.304, 19.801, 20.63, 19.429, 18.785, 20.072, 19.699, 19.128, 19.647, 20.011, 19.254, 19.959, 20.617, 20.121, 20.564, 19.197, 19.143, 20.789, 19.428, 18.893, 19.614, 19.214, 18.51, 19.39, 18.933, 18.877, 19.648, 19.498, 18.849, 19.441, 19.935, 19.519, 20.256, 19.498, 18.972, 20.096, 20.065, 19.221, 20.398, 18.91, 18.487, 20.111, 18.922, 18.444, 19.384, 19.741, 19.117, 19.999, 20.713, 19.656, 20.655, 22.079, 20.52, 22.088, 22.73, 21.85, 22.672, 23.368, 22.708, 23.31, 23.516, 23.131, 24.668, 24.024, 23.465, 24.265, 23.389, 23.27, 24.212, 24.215, 23.306, 24.157, 24.749, 24.281, 24.825, 24.322, 23.913, 24.891, 25.071, 24.322, 25.011, 26.118, 25.111, 26.251, 26.264, 25.95, 26.601, 25.331, 24.924, 26.11, 25.806, 25.486, 26.03, 25.717, 25.654, 26.211, 24.186, 24.123, 25.651, 22.17, 20.576, 24.665, 20.42, 19.452, 22.077, 21.782, 20.834, 21.717, 22.179, 21.456, 22.361, 21.175, 20.922, 22.164, 21.335, 20.129, 21.551, 23.568, 21.561, 23.558, 23.953, 23.447, 23.886, 25.198, 23.798, 25.145, 24.539, 24.471, 25.319, 25.477, 24.466, 25.451, 26.783, 25.581, 26.713, 27.236, 26.644, 27.166, 26.756, 26.571, 27.198, 26.735, 26.189, 27.084, 28.109, 26.711, 28.038, 27.87, 27.799, 28.419, 28.841, 27.936, 28.951, 28.61, 27.126, 28.77, 29.383, 28.762, 29.309, 30.25, 29.544, 30.202, 30.624, 30.136, 30.576, 31.165, 30.691, 31.246, 31.431, 31.267, 31.784, 31.869, 31.712, 32.104, 32.471, 31.183, 32.392, 33.143, 32.702, 33.393, 32.685, 32.402, 33.071, 33.705, 32.825, 33.664, 34.06, 33.665, 34.13, 33.966, 33.883, 34.629, 34.183, 33.483, 34.099, 35.4, 33.973, 35.316, 35.433, 34.584, 35.429, 35.005, 34.866, 35.421, 36.29, 35.07, 36.203, 36.097, 35.773, 36.763, 34.43, 33.313, 36.22, 34.983, 34.32, 35.147, 35.861, 35.052, 35.787, 37.1, 35.861, 37.292, 38.206, 37.075, 38.151, 37.965, 37.872, 38.293, 38.398, 37.542, 38.304, 38.68, 38.294, 39.03, 38.085, 37.851, 39.172, 37.35, 36.469, 37.6, 38.214, 37.648, 38.686, 36.244, 35.096, 38.147, 35.758, 35.659, 36.639, 35.377, 35.277, 36.969, 32.728, 31.539, 35.546, 32.601, 32.282, 33.993, 34.253, 31.17, 34.168, 34.462, 34.027, 35.18, 34.513, 34.304, 35.554, 37.314, 34.535, 37.233, 37.491, 37.237, 38.03, 39.073, 37.88, 39.289, 40.828, 38.224, 40.724, 38.792, 38.687, 41.076, 39.577, 38.509, 40.334, 41.477, 39.695, 41.371, 41.098, 40.554, 41.95, 42.552, 41.115, 42.831, 41.158, 41.051, 42.904, 41.575, 40.206, 41.683, 42.775, 41.796, 42.667, 41.007, 40.899, 42.886, 39.836, 39.598, 41.15, 40.32, 39.105, 40.224, 43.676, 41.339, 43.793, 44.334, 43.223, 44.325, 44.85, 44.738, 45.672, 44.134, 43.981, 46.115, 44.753, 43.633, 44.703, 46.592, 44.961, 46.478, 47.043, 46.678, 47.645, 49.415, 46.884, 49.299, 47.475, 47.331, 49.301, 47.204, 45.912, 47.535, 45.086, 44.899, 47.525, 46.758, 45.026, 46.639, 47.881, 46.011, 47.762, 47.895, 47.683, 49.022, 45.354, 44.548, 47.654, 42.746, 41.534, 46.236, 44.581, 43.118, 44.65, 43.588, 43.269, 44.637, 45.583, 43.307, 45.928, 44.153, 43.621, 46.151, 43.453, 41.983, 43.875, 40.255, 40.13, 44.114, 42.501, 40.6, 42.376, 42.688, 41.271, 42.848, 38.951, 38.23, 42.898, 36.703, 33.108, 38.913, 34.994, 34.867, 37.648, 37.686, 34.277, 37.568, 39.49, 36.098, 39.526, 40.966, 39.214, 40.837, 40.584, 40.392, 42.224, 42.638, 40.36, 42.509, 45.186, 42.77, 45.117, 47.143, 44.696, 47.015, 47.699, 47.064, 48.51, 49.581, 47.797, 49.897, 51.509, 49.621, 51.786, 49.496, 49.254, 51.429, 49.162, 48.483, 50.326, 47.737, 47.608, 50.218, 49.589, 46.713, 50.184, 49.372, 48.883, 50.745, 47.438, 47.088, 50.216, 47.446, 45.389, 47.78, 51.664, 48.178, 51.595, 52.73, 51.451, 52.712, 54.194, 52.765, 54.064, 54.644, 54.153, 55.409, 55.014, 54.486, 56.163, 56.095, 53.517, 56.542, 55.002, 54.707, 56.198, 55.262, 54.319, 55.978, 57.298, 55.782, 57.917, 57.152, 55.73, 57.515, 57.818, 55.198, 57.684, 60.591, 58.383, 60.766, 61.444, 59.78, 61.863, 60.529, 60.288, 62.583, 58.397, 57.853, 60.92, 58.452, 56.912, 60.123, 56.206, 56.067, 59.06, 55.285, 53.978, 58.455, 55.063, 53.863, 57.044, 57.297, 53.489, 58.015, 55.338, 53.225, 56.561, 57.702, 54.707, 57.902, 57.774, 57.585, 59.304, 51.344, 51.057, 57.454, 52.346, 49.311, 52.409, 51.972, 49.577, 53.553, 51.937, 48.791, 51.881, 50.883, 50.728, 53.837, 49.052, 48.495, 51.316, 47.564, 47.194, 50.491, 47.025, 46.866, 50.735, 43.528, 43.367, 47.036, 39.761, 38.413, 45.361, 35.181, 35.016, 39.359, 41.083, 34.483, 41.144, 39.065, 37.747, 41.811, 38.445, 36.296, 38.278, 43.336, 39.275, 43.324, 46.102, 43.69, 46.511, 47.275, 46.006, 48.6, 49.684, 45.568, 49.51, 52.05, 50.139, 52.512, 54.534, 51.439, 54.357, 51.021, 50.523, 54.774, 50.124, 47.756, 50.584, 48.566, 47.36, 49.732, 51.738, 48.021, 52.833, 53.195, 51.186, 53.144, 52.762, 50.618, 52.863, 59.183, 53.177, 59.004, 58.689, 58.121, 59.911, 60.671, 58.224, 60.872, 60.186, 59.154, 61.108, 59.506, 58.824, 61.051, 62.128, 58.585, 61.942, 61.815, 61.323, 63.123, 61.689, 60.519, 62.628, 63.278, 62.294, 64.638, 62.067, 60.103, 62.635, 61.785, 59.6, 62.218, 65.233, 61.797, 65.028, 62.144, 61.791, 64.953, 61.008, 60.591, 62.454, 60.366, 60.152, 62.444, 60.595, 59.562, 61.973, 59.388, 59.167, 61.74, 62.306, 59.771, 62.52, 61.523, 61.165, 63.118, 60.459, 59.786, 61.691, 60.544, 59.378, 61.234, 58.154, 57.075, 60.675, 59.964, 57.127, 60.893, 60.381, 58.491, 60.135, 56.916, 56.241, 59.568, 55.759, 55.507, 57.924, 57.406, 55.67, 58.181, 62.569, 56.923, 62.309, 63.096, 61.968, 64.359, 62.252, 61.383, 65.095, 65.877, 61.431, 65.608, 67.856, 65.863, 68.756, 67.638, 66.785, 70.287, 61.721, 61.444, 69.518, 63.027, 61.284, 64.173, 64.247, 62.189, 64.904, 67.085, 64.661, 68.09, 64.923, 64.534, 67.105, 68.796, 65.341, 69.104, 69.207, 68.329, 69.981, 67.685, 66.691, 69.241, 70.605, 67.746, 70.301, 71.531, 69.699, 71.675, 75.641, 71.69, 75.328, 75.959, 73.621, 76.464, 71.069, 69.483, 77.314, 74.424, 69.708, 74.552, 76.002, 74.193, 76.647, 80.716, 74.087, 81.114, 80.702, 79.437, 83.743, 72.83, 69.739, 80.077, 76.174, 71.196, 75.826, 80.073, 75.049, 80.309, 82.589, 79.548, 84.018, 88.321, 83.088, 88.568, 89.201, 87.646, 91.478, 91.814, 89.879, 95.046, 93.657, 92.422, 97.845, 103.62, 94.715, 103.25, 100.49, 93.917, 101.18, 96.275, 95.893, 102.24, 97.94, 94.068, 97.554, 101.86, 96.881, 102.3, 99.865, 99.373, 102.29, 100.1, 97.534, 100.59, 99.457, 98.61, 100.97, 99.644, 96.365, 99.238, 93.867, 93.456, 101.87, 89.229, 86.207, 94.402, 94.034, 89.92, 93.937, 97.899, 92.761, 97.475, 95.383, 94.273, 97.829, 94.141, 89.413, 95.531, 88.877, 87.19, 92.273, 88.414, 84.343, 89.223, 92.396, 89.859, 94.178, 89.225, 88.777, 94.8, 87.868, 85.493, 89.353, 86.303, 85.848, 89.415, 96.772, 82.54, 96.313, 97.971, 95.752, 101.12, 109.26, 98.858, 113.27, 113.65, 108.61, 116.85, 115.85, 110.95, 117.09, 120.17, 113.96, 120.91, 122.92, 118.23, 123.84, 127.47, 124.19, 127.58, 137.51, 125.87, 137.03, 136.29, 135.47, 139, 141.18, 135.42, 143.5, 137.39, 136.9, 143.61, 139.43, 134.53, 139.69, 141.35, 139.29, 144.24, 139.7, 139.05, 146.95, 142.64, 138.17, 143.42, 141.88, 138.57, 142.71, 141.09, 140.11, 145.62, 136.12, 133.21, 141.04, 138.47, 133.77, 138.56, 139.75, 134.84, 139.45, 131.99, 131.23, 141.37, 134.83, 130.65, 136.04, 133.15, 130.11, 135.28, 147.85, 136.17, 148.32, 147.88, 145.7, 149.79, 148.42, 143.93, 149.66, 146.73, 145.74, 152.28, 150.58, 145.15, 150.8, 162.3, 147.37, 161.74, 164.28, 161.4, 165.66, 164.38, 160.06, 166.14, 164.21, 161.99, 166.91, 173.68, 162.88, 173.24, 176.37, 169.81, 175.78, 176.11, 174.31, 179.87, 174.6, 171.67, 177.21, 169.14, 167.22, 174.25, 176.94, 168.95, 176.57, 189.07, 178.28, 188.8, 198.2, 187.47, 198.28, 199.29, 190.89, 200.57, 214.16, 200.24, 213.54, 226.1, 211.73, 225.54, 223.54, 216.38, 231.63, 235.4, 220.92, 235.36, 239.37, 228.01, 238.73, 225.97, 222.97, 241.14, 242.71, 224.81, 242.41, 222.63, 220.62, 243.57, 235.48, 224.82, 234.82, 241.2, 228.53, 240.53, 235.04, 234.38, 245.82, 266.69, 239.2, 267.3, 277.21, 267.65, 277.87, 285.2, 276.04, 294.22, 282.62, 272.94, 295.22, 285.02, 272.67, 289.59, 299.37, 283.4, 304.22, 314.51, 298.33, 313.81, 326.21, 312.11, 332.38, 319.04, 307.16, 319.88, 250.33, 222.89, 325.24, 229.69, 228.96, 254.27, 247.16, 223.33, 252.49, 257.47, 242.87, 261.21, 269.48, 250.1, 269.48, 261.15, 260.28, 273.27, 264.04, 258.41, 274.11, 266.32, 254.58, 266.32, 278.54, 269.56, 280.46, 277.49, 267.76, 281.05, 268.07, 263.18, 278.68, 279.49, 264.85, 280.18, 287.27, 278.35, 291.87, 283.18, 272.6, 287.71, 288.12, 281.31, 289.81, 309.21, 285.65, 309.21, 301.51, 299.56, 311.93, 308.54, 299.77, 313.03, 324.56, 309.21, 324.56, 337.69, 320.74, 338.92, 335.78, 335.78, 346.72, 366.1, 337.19, 366.1, 373.25, 361.47, 373.85, 371.74, 364.83, 375.78, 363.11, 355.49, 383.34, 370.51, 355.19, 370.51, 379.41, 367.27, 379.41, 353.94, 347.38, 386.16, 358.5, 349.9, 361.23, 368, 359.46, 371.56, 358.82, 356.88, 373.61, 393.8, 360.48, 393.8, 391.14, 384.52, 400.64, 389.89, 386.7, 403.46, 354.65, 337.22, 389.22, 337.39, 331.79, 356.75, 335.95, 326.08, 347.6, 357.67, 338.81, 357.67, 367.63, 360, 368.91, 383.64, 347.02, 383.64, 411.08, 382.68, 413.24, 421.03, 411.08, 422.23, 422.03, 416.74, 438.65, 440.24, 415.43, 440.24, 420.07, 419.36, 438.38, 439.65, 422.71, 439.65, 450.06, 428.01, 451.3, 442.53, 437.03, 446.39, 448.48, 430.22, 449.05, 430.41, 430.41, 455.25, 479.63, 433.22, 479.63, 470.7, 470.7, 484.2, 476.79, 470.32, 481.35, 467.52, 466.7, 477.28, 481.25, 457.16, 482.5, 483.6, 476.94, 486.35, 476.41, 467.59, 486.04, 495.87, 477.87, 495.87, 485.72, 481.49, 497.05, 491.43, 486.46, 499.61, 493.13, 473.94, 495.69, 509.92, 491.7, 509.92, 516.18, 508.44, 522.38, 520.49, 508.61, 521.87, 527.59, 513.59, 533.89, 538.72, 526.07, 543.73, 525.7, 517.68, 537.09, 539.76, 525.68, 543.54, 541.34, 532.14, 544.41, 539.16, 530.74, 541.7, 559.62, 539.65, 559.62, 555.33, 547.7, 559.2, 566.82, 555.97, 568.57, 561.41, 554.82, 568.49, 568.2, 561.58, 573.6, 587.52, 567.1, 587.52, 571.57, 567.91, 588.19, 546.65, 546.36, 577.23, 553.66, 538.37, 555.77, 562.75, 543.2, 563.76, 548.96, 546.85, 570.68, 566.98, 551.47, 566.98, 590.23, 566.07, 590.93, 575.8, 571.53, 590.08, 588.73, 563.28, 590.38, 567.29, 562.23, 583.98, 575.71, 557.33, 579.53, 590.64, 575.52, 590.64, 613.65, 590.65, 614.4, 631.76, 607.48, 635.72, 650.36, 633.33, 650.36, 676.36, 649.95, 676.36, 692.07, 669.8, 699.63, 715.02, 695.08, 718.95, 716.82, 707.14, 716.82, 747.07, 719.34, 749.66, 744.4, 738.11, 755.83, 777.07, 748.01, 779.98, 792.04, 778.69, 798.76, 819, 770.11, 819, 826.59, 818.97, 852.47, 834.55, 818.19, 846.66, 846.85, 816.7, 848.21, 868.69, 826.63, 880.46, 872.01, 860.4, 881.09, 833.48, 815.77, 878.97, 851.06, 846.77, 875.01, 898.97, 848.15, 898.97, 923.76, 901.29, 930.55, 993.58, 921.91, 993.58, 973.9, 947.23, 994.85, 1034.7, 969.05, 1034.7, 1042.8, 1024.7, 1075.8, 1e3, 1e3, 1073.6, 1059.7, 974.94, 1059.7, 1124.2, 1056.1, 1125.7, 1174.6, 1113.7, 1192.2, 1268.1, 1182.6, 1268.1, 1197, 1197, 1276.2, 1262.6, 1215.4, 1272.9, 1220.4, 1169.7, 1310.6, 1276.9, 1209.8, 1286.7, 1298.8, 1247.8, 1315.3, 1313.2, 1242.1, 1320.2, 1407.9, 1341.3, 1407.9, 1480, 1389.3, 1484.9, 1494.9, 1458.7, 1519.6, 1469.2, 1469.2, 1508.8, 1528.9, 1451.7, 1535, 1512.6, 1512.6, 1601.1, 1293.9, 1293.9, 1501.5, 1376.8, 1316.8, 1442.7, 1488.8, 1299.4, 1488.8, 1579, 1505.3, 1617.9, 1670, 1549.6, 1687, 1739.8, 1647.6, 1739.8, 1685.8, 1654.2, 1731.3, 1753.2, 1668.4, 1793.8, 1821.1, 1758.2, 1858.3, 1778.1, 1750.2, 1866.9, 1876.8, 1767.8, 1876.8, 1818.2, 1818.2, 1940.8, 1809.2, 1754.3, 1892.9, 1759.6, 1739.9, 1860.2, 1870.9, 1711.8, 1870.9, 1909, 1850.1, 1957.9, 2021.4, 1921.5, 2021.4, 1919.8, 1872.6, 2016.6, 1883.5, 1837.7, 1985.5, 2067.8, 1869.3, 2107.3, 2005.6, 1872.6, 2092.9, 1964.4, 1898.9, 2027.4, 2012.8, 1994.3, 2055.8, 1981.4, 1966.2, 2091.1, 2104.4, 1991.4, 2104.4, 1993.3, 1979.3, 2108.8, 1984.9, 1846.1, 1993.7, 1828.4, 1828.4, 1989.2, 1837.4, 1759.6, 1919.7, 1902.6, 1785.9, 1913.1, 1729.1, 1729.1, 1913.1, 1619.5, 1559.7, 1764.4, 1745.4, 1540.2, 1751, 1757.1, 1741.3, 1836, 1714.3, 1691.6, 1796, 1697.4, 1641.8, 1731.5, 1591.2, 1584.8, 1711.2, 1462.7, 1356.6, 1590.3, 1490.6, 1459.3, 1553.3, 1604.9, 1525, 1629.8, 1619, 1577.6, 1649, 1595.3, 1553.2, 1653.7, 1564.6, 1525.3, 1584.1, 1623.4, 1600, 1655.4, 1525, 1508.8, 1622.2, 1513.8, 1486.6, 1569.2, 1405.9, 1382.8, 1489.9, 1296.3, 1134, 1405.2, 1304.9, 1187.1, 1370.8, 1163, 1163, 1296.2, 1265.4, 1108.9, 1284.7, 1339.9, 1252.4, 1343.5, 1261.2, 1254.7, 1337.3, 1228.1, 1212.2, 1336.2, 1209.7, 1174.4, 1234.8, 1221.5, 1152.2, 1289.7, 1322.1, 1236.3, 1324.7, 1391.7, 1321.4, 1391.7, 1409.5, 1396.7, 1462.5, 1434.3, 1416.9, 1458.5, 1462.3, 1398.4, 1462.3, 1446.8, 1446.8, 1509.5, 1528.6, 1479.2, 1528.6, 1542.1, 1505.8, 1542.4, 1622.9, 1544.3, 1622.9, 1652.7, 1618.1, 1687.4, 1675.7, 1646.3, 1693, 1650.4, 1598.8, 1693.8, 1624.5, 1624.5, 1686.2, 1646.8, 1592.2, 1647.7, 1678.8, 1641.4, 1682.8, 1623.3, 1596.5, 1661.5, 1629.8, 1567.9, 1634.8, 1647.5, 1630.7, 1668.4, 1672.7, 1619.5, 1688.8, 1740.3, 1673.1, 1754.3, 1799.6, 1745.8, 1802, 1755.7, 1729.3, 1785, 1792.6, 1762.8, 1804.2, 1760.9, 1737.9, 1825.7, 1727.5, 1697.7, 1777.3, 1782.5, 1725.2, 1793.3, 1785, 1783.4, 1822.3, 1851.4, 1789.8, 1865.6, 1834.5, 1810.5, 1868.1, 1849.3, 1820.5, 1866.7, 1818.5, 1772.4, 1846.2, 1887.3, 1812.1, 1914.4, 1887.9, 1887.9, 1923.4, 1937.9, 1909.3, 1958.6, 1943.2, 1900.6, 1963.6, 1967.4, 1931.7, 1985.7, 1993.8, 1954.2, 1994.2, 1936.4, 1914.4, 2017.3, 1939, 1866.9, 1964.1, 1951, 1885.8, 1954.5, 1997.4, 1936.3, 1998.1, 2048.9, 1982.9, 2053.9, 2115.6, 2042, 2132.4, 2155.9, 2095.7, 2162.6, 2186.1, 2149.9, 2199.1, 2219.2, 2173.3, 2221.6, 2175.8, 2163.1, 2255.5, 2200.1, 2125.3, 2225.3, 2297.6, 2205.9, 2317.5, 2377.8, 2303.7, 2377.8, 2338.2, 2316.6, 2391.1, 2265.8, 2265.8, 2417.5, 2299.7, 2193.4, 2333.2, 2385.7, 2266.5, 2392.9, 2423.7, 2346.8, 2447, 2322.3, 2205.5, 2379.1, 2306.2, 2269.2, 2378.6, 2167.9, 2060.1, 2273.4, 2097.5, 2087.1, 2194.4, 2088.4, 2008.7, 2135.5, 2190.1, 2098.9, 2209.2, 2218.5, 2179.1, 2258.7, 2031.5, 2028.9, 2225.7, 2014.4, 1929.8, 2040.8, 2043.5, 1985.2, 2076.6, 1861.4, 1765.7, 2035.2, 1548.8, 1356.8, 1853.3, 1437.7, 1206, 1608, 1453, 1309.4, 1466.9, 1330.5, 1296.6, 1503.9, 1188.8, 1188.8, 1403.2, 1293, 1095, 1349.4, 1416.7, 1314.6, 1418, 1496, 1424.4, 1509.1, 1498.9, 1455.5, 1541.7, 1612.3, 1434.5, 1612.3, 1670.5, 1602.1, 1687.2, 1732.9, 1628.7, 1756, 1700.7, 1680.7, 1801.1, 1802.7, 1711.7, 1826.7, 1837.5, 1797.3, 1857.9, 1771.4, 1771.4, 1896.7, 1826.3, 1744.4, 1833.1, 1936.5, 1844.9, 1943.7, 1967.1, 1950.9, 2017.2, 1810, 1773.7, 1992.9, 1715.2, 1715.2, 1858.7, 1835.4, 1701.9, 1857.3, 1752.6, 1748.1, 1880.1, 1908.9, 1804.5, 1920.8, 1981.6, 1902.2, 1985.1, 1981.8, 1976.3, 2053.8, 2114.3, 2025, 2117.8, 2164.4, 2135.5, 2186.9, 2238.6, 2194.9, 2263.8, 2239.4, 2121.9, 2245.3, 2305.8, 2206.1, 2305.8, 2279.7, 2229.5, 2301.7, 2241.7, 2146.4, 2241.7, 2196.1, 2196.1, 2298.3, 2076.8, 1903.5, 2187, 1930.8, 1926.8, 2074.1, 2141.8, 1875.9, 2196.1, 2137.1, 1984.5, 2182.6, 2158.9, 2067.7, 2171.7, 2255.7, 2192.4, 2278.8, 2353.2, 2276.2, 2364, 2430.7, 2315.2, 2443.6, 2415.4, 2346.3, 2449.1, 2270.2, 2242.2, 2429.1, 2363.8, 2214.4, 2363.8, 2396.6, 2318.1, 2408.1, 2450.6, 2372.3, 2469, 2513.9, 2445.8, 2556.1, 2467.5, 2461.2, 2552.1, 2481.8, 2369.3, 2496.5, 2504.4, 2462.7, 2538.7, 2634.2, 2560.2, 2650.4, 2669.9, 2621.5, 2696.3, 2770.1, 2676.2, 2770.1, 2823.4, 2723.7, 2823.4, 2889.5, 2797.3, 2955.7, 2850.7, 2790.7, 2929.8, 2995.7, 2865.5, 3012.3, 2909, 2903.3, 3038.6, 3000.2, 2921.2, 3076.8, 3138.1, 2955.4, 3165.1, 3233.7, 3124.1, 3236.1, 3315.6, 3182.1, 3315.6, 3200.9, 3185.7, 3317.8, 3347.4, 3127.9, 3347.4, 3375.5, 3317.8, 3382.6, 3400.5, 3276, 3409.8, 3480.3, 3371.7, 3480.3, 3552.2, 3482, 3555.6, 3503.2, 3503.2, 3606.1, 3643.3, 3467.1, 3643.3, 3592.2, 3579.6, 3661.7, 3680, 3395, 3680, 3779, 3669.2, 3788.4, 3769.4, 3609.1, 3826.9, 3656.3, 3650.7, 3780.5, 3866.4, 3703.8, 3885.3, 3805.3, 3751.2, 3890.3, 3841.8, 3790.7, 3900.2, 3891.2, 3833.7, 3932.9, 3815.9, 3805.5, 3927.2, 3895.8, 3787.7, 3939.4, 3660.8, 3465.2, 3899.4, 3570.2, 3498.6, 3707.6, 3871.3, 3577.5, 3891.3, 3882.8, 3771.6, 3928.1, 3821.6, 3747.6, 3924.6, 3632, 3479.8, 3771.6, 3627.1, 3429, 3662.8, 3873.1, 3713.7, 3881, 3888.1, 3842, 3957.2, 3957.9, 3848, 3961.7, 3968.2, 3781, 4002, 4114.5, 3949.7, 4116.5, 4120.3, 4083.2, 4151.7, 4121.1, 4037.8, 4150.5, 4045.9, 4045.1, 4115.1, 4195.7, 3970, 4221, 4278.7, 4181.1, 4337.9, 4359.8, 4315.1, 4396.6, 4532.9, 4362.1, 4544.5, 4538.2, 4496.5, 4595.7, 4584.8, 4477.1, 4593.6, 4649.3, 4540.6, 4655.6, 4678.4, 4669.3, 4734.5, 4774.6, 4655, 4788.4, 4789.2, 4696.2, 4797.1, 4888, 4762.8, 4888, 5002, 4906.9, 5012.8, 5155.4, 4988, 5155.4, 5212.8, 5120.5, 5242.3, 5511.2, 5256.3, 5606.1, 5308.1, 5040.1, 5508.7, 5173.2, 5069, 5454, 5193, 5057.7, 5310.3, 5318.1, 5157.7, 5370, 5350.8, 5312.9, 5481.1, 5550, 5340.9, 5608, 5730.8, 5544.2, 5754, 5763.4, 5674.6, 5794.7, 5369.5, 5229.3, 5786.5, 5478.9, 5222.4, 5573.1, 4984.2, 4672.7, 5538.9, 5383.6, 4868.3, 5383.6, 5556.5, 5389.2, 5577.1, 5664.5, 5476.4, 5703.3, 5893.8, 5730, 5893.8, 5519.3, 5519.3, 5894.3, 5908.2, 5504, 5931.7, 5993.2, 5953.6, 6083.8, 5898.2, 5719.3, 5939.8, 6008.6, 5858, 6070.2, 6138.7, 5828.9, 6156.9, 6361.6, 6198.6, 6385.8, 6553.6, 6265.2, 6571, 6551, 6551, 6759.5, 6011.7, 6011.7, 6886.5, 5269.2, 4559.5, 6370.4, 5944.7, 5036.6, 5999.7, 6227.8, 5761.7, 6227.8, 6351.7, 6145.3, 6615.4, 6709.8, 6383.8, 6717.3, 7192.1, 6758.2, 7207.1, 6918.8, 6657.8, 7358.5, 6734.8, 6734.8, 7275.4, 7472.1, 6817.9, 7505.4, 7759.4, 7530.9, 7759.4, 7681, 7645.3, 7970.9, 7892.8, 7804.3, 8142.8, 8238.5, 7806.5, 8240.4, 8678.2, 8335.9, 8740.3, 8738.8, 8437.2, 8787.8, 8942.8, 8667.8, 8942.8, 9155.2, 8867.1, 9209.6, 9433.6, 9138.4, 9445.2, 8994.8, 8994.8, 9465.5, 9625, 8980.6, 9625, 9558.3, 9558.3, 9842.3, 9986.7, 9446.2, 10042, 9469.9, 9072.2, 10050, 9186.4, 8872, 9624.9, 9527.5, 8762.1, 9738.6, 8696.7, 8696.7, 9637.4, 8712.6, 8221, 9050.9, 7993.4, 7739.4, 8809.2, 8730.5, 8008.7, 8730.5, 8374.4, 8374.4, 9107.9, 7603.1, 7603.1, 8708.2, 8218.7, 7588.9, 8280.1, 8678, 7897, 8678, 8178, 8056.6, 8671.9, 8691.9, 8113.1, 8691.9, 8479.8, 8477.7, 8912.3, 8791.1, 8241.4, 8791.1, 8928.3, 8684.2, 8928.3, 8967.2, 8697.7, 9020.4, 9559.7, 9057.2, 9559.7, 9866.8, 9453.1, 9866.8, 9709.7, 9406.5, 9840.7, 9246.7, 9213.7, 9727.6, 9052.3, 8885.9, 9443.1, 9879, 9147.5, 9879, 10328, 9840.7, 10357, 10501, 10154, 10678, 11062, 10633, 11062, 11418, 11025, 11418, 10952, 10801, 11395, 11495, 10914, 11587, 11907, 11509, 11962, 12052, 11782, 12365, 12344, 11320, 12344, 12608, 11824, 12608, 12494, 12466, 12840, 13227, 12511, 13227, 12912, 12875, 13358, 13271, 12797, 13441, 13098, 12892, 13510, 12360, 12153, 12869, 12276, 10978, 12491, 13049, 12354, 13159, 13713, 13104, 13713, 14020, 13698, 14131, 14305, 13797, 14396, 14827, 14208, 14836, 15174, 14531, 15285, 15211, 14519, 15211, 15220, 14940, 15410, 15441, 15122, 15528, 15324, 15129, 15525, 14561, 14147, 15331, 16089, 14666, 16089, 16935, 16071, 16935, 16774, 16245, 17004, 16763, 16374, 16950, 17220, 17012, 17461, 17160, 16932, 17412, 17011, 17011, 17539, 16176, 15522, 17256];
+
+// src/pieces/calc.js
+var NM = SPX_M.length / 3;
+var E = (i) => SPX_M[i * 3];
+var LO2 = (i) => SPX_M[i * 3 + 1];
+var HI2 = (i) => SPX_M[i * 3 + 2];
+var Y_MIN = 1928;
+var Y_MAX = SPX_ASOF[0] - 1;
+var T_END2 = NM - 2 + SPX_ASOF[2] / 30;
+var ymOf = (i) => [Y_MIN + Math.floor((i - 1) / 12), (i - 1) % 12 + 1];
+function simulate(y0, mode, total) {
+  const s = (y0 - Y_MIN) * 12;
+  const nPay = mode === "year" ? SPX_ASOF[0] - y0 + 1 : 1;
+  const per = total / nPay;
+  const n = NM - 1 - s;
+  const val = new Float64Array(n + 1);
+  const inv = new Float64Array(n + 1);
+  const top = new Float64Array(n + 1);
+  const invB = new Float64Array(n + 1);
+  const flows = [];
+  let units = 0;
+  let invested = 0;
+  let hw = 0;
+  let worst = { dd: 0, j: 0, i: s, v: per, hw: per, inv: per };
+  for (let i = s; i < NM; i++) {
+    const j = i - s;
+    if (j > 0) {
+      const lo = units * LO2(i);
+      top[j] = units * HI2(i);
+      invB[j] = invested;
+      const dd = 1 - lo / hw;
+      if (dd > worst.dd) worst = { dd, j, i, v: lo, hw, inv: invested };
+      if (top[j] > hw) hw = top[j];
+    }
+    if (j === 0 || mode === "year" && i % 12 === 0 && flows.length < nPay) {
+      units += per / E(i);
+      invested += per;
+      hw += per;
+      flows.push(i);
+    }
+    val[j] = units * E(i);
+    inv[j] = invested;
+  }
+  let rec = -1;
+  for (let j = worst.j + 1; j <= n; j++) {
+    if (top[j] >= worst.hw + (invB[j] - worst.inv)) {
+      rec = j;
+      break;
+    }
+  }
+  const now = val[n];
+  const f = (r) => flows.reduce((a2, i) => a2 + per * (1 + r) ** ((T_END2 - i) / 12), 0) - now;
+  let a = -0.95;
+  let b = 1.5;
+  for (let k = 0; k < 60; k++) {
+    const m = (a + b) / 2;
+    if (f(m) > 0) b = m;
+    else a = m;
+  }
+  return { s, n, nPay, per, val, inv, now, total, rate: (a + b) / 2, worst, rec, when: ymOf(worst.i), recMonths: rec < 0 ? -1 : rec - worst.j };
+}
+var sep = (x) => Math.round(x).toLocaleString("en-US");
+function wan(v) {
+  if (v >= 99999.5) return `${v >= 9999950 ? sep(v / 1e4) : (v / 1e4).toFixed(v >= 999950 ? 1 : 2)} 亿`;
+  return `${v < 9.95 ? v.toFixed(1) : sep(v)} 万`;
+}
+var span = (m) => m < 12 ? `${m} 个月` : m % 12 === 0 ? `${m / 12} 年` : `${Math.floor(m / 12)} 年 ${m % 12} 个月`;
+var M = 320;
+var X0 = -6;
+var CW = 12;
+var Y02 = 0.5;
+var CH = 9;
+var LW = 0.075;
+var HARD = [1929, 1973, 2e3, 2008];
+var Calc = class extends Piece {
+  constructor(app2, name, origin) {
+    super(app2, name, origin, { spot: [1.2, 0, 14, 0.95] });
+    this.p = { year: 2e3, mode: "lump", total: 200 };
+    this.cur = new Float32Array(M + 1);
+    this.tgt = new Float32Array(M + 1);
+    this.curI = new Float32Array(M + 1);
+    this.tgtI = new Float32Array(M + 1);
+    this.mk = { wx: 0, wy: 0, hy: 0, ey: 0, iy: 0 };
+    this.mkT = { ...this.mk };
+    const lp = new Float32Array((M + 1) * 6);
+    const lidx = [];
+    for (let k = 0; k < M; k++) {
+      const a = k * 2;
+      lidx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+    }
+    this.lineGeo = new THREE20.BufferGeometry();
+    this.lineGeo.setAttribute("position", new THREE20.BufferAttribute(lp, 3).setUsage(THREE20.DynamicDrawUsage));
+    this.lineGeo.setIndex(lidx);
+    const line = new THREE20.Mesh(this.lineGeo, this.m(new THREE20.MeshBasicMaterial({ color: hdr(11130111, 1.35), side: THREE20.DoubleSide })));
+    line.frustumCulled = false;
+    line.position.z = 0.02;
+    this.add(line);
+    const ap = new Float32Array((M + 1) * 6);
+    const at = new Float32Array((M + 1) * 2);
+    for (let k = 0; k <= M; k++) at[k * 2 + 1] = 1;
+    this.areaGeo = new THREE20.BufferGeometry();
+    this.areaGeo.setAttribute("position", new THREE20.BufferAttribute(ap, 3).setUsage(THREE20.DynamicDrawUsage));
+    this.areaGeo.setAttribute("aT", new THREE20.BufferAttribute(at, 1));
+    this.areaGeo.setIndex(lidx);
+    const area = new THREE20.Mesh(
+      this.areaGeo,
+      new THREE20.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        side: THREE20.DoubleSide,
+        uniforms: { uFade: this.fade, uH: { value: CH } },
+        vertexShader: "attribute float aT; varying float vT; varying float vY; void main(){ vT = aT; vY = position.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+        fragmentShader: (
+          /* glsl */
+          `
+          uniform float uFade; uniform float uH;
+          varying float vT; varying float vY;
+          void main(){
+            float h = clamp((vY - ${Y02.toFixed(2)}) / uH, 0.0, 1.0);
+            float a = (0.10 + 0.34 * h) * uFade;
+            gl_FragColor = vec4(vec3(0.16, 0.59, 1.0), a);
+          }`
+        )
+      })
+    );
+    area.frustumCulled = false;
+    this.add(area);
+    const ip = new Float32Array((M + 1) * 3);
+    this.invGeo = new THREE20.BufferGeometry();
+    this.invGeo.setAttribute("position", new THREE20.BufferAttribute(ip, 3).setUsage(THREE20.DynamicDrawUsage));
+    this.invGeo.setAttribute("lineDistance", new THREE20.BufferAttribute(new Float32Array(M + 1), 1).setUsage(THREE20.DynamicDrawUsage));
+    this.invLine = new THREE20.Line(this.invGeo, this.m(new THREE20.LineDashedMaterial({ color: 16777215, transparent: true, opacity: 0.75, dashSize: 0.2, gapSize: 0.14, depthWrite: false })));
+    this.invLine.frustumCulled = false;
+    this.invLine.position.z = 0.04;
+    this.add(this.invLine);
+    const axis = new THREE20.Mesh(new THREE20.BoxGeometry(CW + 0.3, 0.04, 0.04), this.m(new THREE20.MeshBasicMaterial({ color: hdr(14674431, 0.9) })));
+    axis.position.set(X0 + CW / 2, Y02, 0);
+    this.add(axis);
+    const gm = this.m(new THREE20.MeshBasicMaterial({ color: 16777215, transparent: true, opacity: 0.13, depthWrite: false }));
+    this.grid = Array.from({ length: 5 }, () => {
+      const g = new THREE20.Mesh(new THREE20.BoxGeometry(CW, 0.02, 0.02), gm);
+      g.position.set(X0 + CW / 2, Y02, -0.03);
+      this.add(g);
+      return { g, y: 0, yT: 0, lab: this.label("", [X0 - 0.25, Y02, 0], "left") };
+    });
+    this.ticks = Array.from({ length: 9 }, () => this.label("", [X0, Y02 - 0.12, 0], "down"));
+    this.dotW = new THREE20.Mesh(new THREE20.SphereGeometry(0.19, 20, 14), this.m(new THREE20.MeshBasicMaterial({ color: hdr(COL.risk, 2) })));
+    this.add(this.dotW);
+    this.drop = new THREE20.Mesh(new THREE20.BoxGeometry(0.05, 1, 0.05), this.m(new THREE20.MeshBasicMaterial({ color: hdr(COL.risk, 1.5) })));
+    this.add(this.drop);
+    this.dotE = new THREE20.Mesh(new THREE20.SphereGeometry(0.19, 20, 14), this.m(new THREE20.MeshBasicMaterial({ color: hdr(COL.spx, 2.2) })));
+    this.add(this.dotE);
+    this.add(blob(this, 18, 5, 0.55));
+    this.lEnd = this.label("", [X0 + CW + 0.35, Y02, 0.1], "right");
+    this.lInv = this.label("", [X0 + CW + 0.35, Y02, 0.1], "right");
+    this.lWorst = this.label("", [X0, Y02, 0.1], "up");
+    this.buildPanel();
+    this.recompute();
+    this.cur.fill(0);
+    this.curI.fill(0);
+  }
+  /* ---------- the control panel (HTML; it is moved into the slide's text block when the page is shown) ---------- */
+  buildPanel() {
+    const el = document.createElement("div");
+    el.className = "calc";
+    el.innerHTML = `
+      <div class="calc-row">
+        <span class="calc-k">哪年开始</span>
+        <div class="calc-year">
+          <button type="button" class="calc-step" data-step="-1" aria-label="早一年">−</button>
+          <input type="range" min="${Y_MIN}" max="${Y_MAX}" step="1" value="${this.p.year}" aria-label="开始投资的年份">
+          <button type="button" class="calc-step" data-step="1" aria-label="晚一年">+</button>
+          <output>${this.p.year} 年</output>
+        </div>
+      </div>
+      <div class="calc-row">
+        <span class="calc-k"></span>
+        <div class="calc-chips"><span>试试最倒霉的年份</span>${HARD.map((y) => `<button type="button" data-year="${y}">${y}</button>`).join("")}</div>
+      </div>
+      <div class="calc-row">
+        <span class="calc-k">怎么投</span>
+        <div class="calc-seg" role="group" aria-label="怎么投">
+          <button type="button" data-mode="lump">一次性投入</button><button type="button" data-mode="year">每年投一笔</button>
+        </div>
+      </div>
+      <div class="calc-row">
+        <span class="calc-k">一共投</span>
+        <div class="calc-amt">
+          <input type="number" inputmode="numeric" min="1" max="100000" step="10" value="${this.p.total}" aria-label="一共投多少万元"><span>万</span>
+          <div class="calc-chips">${[100, 200, 500].map((v) => `<button type="button" data-amt="${v}">${v} 万</button>`).join("")}</div>
+        </div>
+      </div>
+      <div class="calc-out">
+        <div class="calc-res"><span class="k" data-o="k1"></span><b class="blue" data-o="v1"></b><span class="d" data-o="d1"></span></div>
+        <div class="calc-res"><span class="k">最难熬的时候</span><b class="red" data-o="v2"></b><span class="d" data-o="d2"></span></div>
+      </div>
+      <p class="calc-foot">按美元算、含分红；没算汇率和基金费用。历史不代表未来。</p>`;
+    this.panel = el;
+    this.range = el.querySelector("input[type=range]");
+    this.amt = el.querySelector("input[type=number]");
+    this.yearOut = el.querySelector("output");
+    this.o = {};
+    el.querySelectorAll("[data-o]").forEach((n) => this.o[n.dataset.o] = n);
+    const stop = (e) => e.stopPropagation();
+    for (const t of ["click", "touchstart", "touchend", "pointerdown"]) el.addEventListener(t, stop);
+    el.addEventListener("keydown", (e) => {
+      if (e.target.tagName !== "INPUT") return;
+      e.stopPropagation();
+      if (e.key === "Enter" || e.key === "Escape") e.target.blur();
+    });
+    el.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      const d = b.dataset;
+      if (d.step) this.p.year = clamp(this.p.year + +d.step, Y_MIN, Y_MAX);
+      else if (d.year) this.p.year = +d.year;
+      else if (d.mode) this.p.mode = d.mode;
+      else if (d.amt) this.p.total = +d.amt;
+      b.blur();
+      this.recompute();
+    });
+    this.range.addEventListener("input", () => {
+      this.p.year = +this.range.value;
+      this.recompute();
+    });
+    this.range.addEventListener("change", () => this.range.blur());
+    this.amt.addEventListener("input", () => {
+      const v = +this.amt.value;
+      if (v >= 1 && v <= 1e5) {
+        this.p.total = v;
+        this.recompute(true);
+      }
+    });
+    this.amt.addEventListener("change", () => {
+      this.amt.value = this.p.total;
+    });
+  }
+  recompute(typing = false) {
+    const p = this.p;
+    const r = simulate(p.year, p.mode, p.total);
+    this.r = r;
+    this.range.value = p.year;
+    this.yearOut.textContent = `${p.year} 年`;
+    if (!typing) this.amt.value = p.total;
+    this.panel.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === p.mode));
+    this.panel.querySelectorAll("[data-year]").forEach((b) => b.classList.toggle("on", +b.dataset.year === p.year));
+    this.panel.querySelectorAll("[data-amt]").forEach((b) => b.classList.toggle("on", +b.dataset.amt === p.total));
+    const gain = r.now - r.total;
+    const how = p.mode === "year" ? `每年年初投 ${wan(r.per)}，投了 ${r.nPay} 年` : `${p.year} 年年初一次投入 ${wan(r.total)}`;
+    this.o.k1.textContent = `到今天（${SPX_ASOF[0]} 年 ${SPX_ASOF[1]} 月）`;
+    this.o.v1.textContent = `≈ ${wan(r.now)}`;
+    this.o.d1.textContent = `${how}。${gain >= 0 ? "赚了" : "亏了"} ${wan(Math.abs(gain))}，平均每年 ${r.rate >= 0 ? "+" : "−"}${Math.abs(r.rate * 100).toFixed(1)}%。`;
+    const w = r.worst;
+    const [wy, wm] = r.when;
+    this.o.v2.textContent = `${wy} 年 ${wm} 月`;
+    const left = w.v < w.inv ? p.mode === "year" ? `已经投进去 ${wan(w.inv)}，账户只剩 ${wan(w.v)}` : `${wan(w.inv)} 只剩 ${wan(w.v)}` : `账户从 ${wan(w.hw)} 跌到 ${wan(w.v)}`;
+    const back = r.recMonths < 0 ? "到今天还没涨回来" : `之后 ${span(r.recMonths)}涨回原来的高点`;
+    this.o.d2.textContent = `比之前的最高点跌了 ${Math.round(w.dd * 100)}%：${left}。${back}。`;
+    const n = r.n;
+    let vmax = r.total;
+    for (let j = 0; j <= n; j++) if (r.val[j] > vmax) vmax = r.val[j];
+    const raw = vmax / 4.5;
+    const pow = 10 ** Math.floor(Math.log10(raw));
+    const step = [1, 2, 5, 10].map((k) => k * pow).find((k) => k >= raw);
+    const ymax = Math.max(vmax * 1.04, step * Math.ceil(vmax * 0.98 / step));
+    const sy = (v) => v / ymax * CH;
+    const kw = Math.round(w.j / n * M);
+    for (let k = 0; k <= M; k++) {
+      const x = k / M * n;
+      const j0 = Math.floor(x);
+      const j1 = Math.min(n, j0 + 1);
+      const u = x - j0;
+      this.tgt[k] = sy(r.val[j0] * (1 - u) + r.val[j1] * u);
+      this.tgtI[k] = sy(r.inv[Math.min(n, Math.round(x))]);
+    }
+    if (w.dd > 0) this.tgt[kw] = sy(w.v);
+    this.kw = kw;
+    Object.assign(this.mkT, { wx: kw / M * CW, wy: sy(w.v), hy: sy(w.hw), ey: sy(r.now), iy: sy(r.total) });
+    this.grid.forEach((g, i) => {
+      const v = step * (i + 1);
+      g.on = v <= ymax * 1.001;
+      g.yT = sy(v);
+      g.lab.set(`<span class="c">${v >= 1e4 ? `${+(v / 1e4).toFixed(2)} 亿` : `${sep(v)} 万`}</span>`);
+    });
+    const yrs = n / 12;
+    const ts = yrs <= 7 ? 1 : yrs <= 16 ? 2 : yrs <= 36 ? 5 : yrs <= 70 ? 10 : 20;
+    let ty = Math.ceil(p.year / ts) * ts;
+    if (ty - p.year < ts * 0.7) ty += ts;
+    const list = [p.year];
+    for (; ty <= SPX_ASOF[0] && list.length < this.ticks.length; ty += ts) list.push(ty);
+    this.ticks.forEach((l, i) => {
+      l.use = i < list.length;
+      if (!l.use) return;
+      const j = (list[i] - p.year) * 12;
+      l.pos.x = X0 + j / n * CW;
+      l.set(`<span class="c">${list[i]}${i === 0 ? " 年初" : ""}</span>`);
+    });
+    this.lEnd.set(`<span class="v sm blue">≈ ${wan(r.now)}</span><span class="c">今天</span>`);
+    this.lInv.set(`<span class="t muted">本金 ${wan(r.total)}</span>`);
+    this.lWorst.set(`<span class="t red">最难熬：${wy} 年 ${wm} 月</span><span class="c">比最高点跌了 ${Math.round(w.dd * 100)}%</span>`);
+    this.dirty = true;
+  }
+  enter(st, prev, fresh) {
+    if (fresh) {
+      this.cur.fill(0);
+      this.curI.fill(0);
+      Object.assign(this.mk, this.mkT, { wy: 0, hy: 0, ey: 0, iy: 0 });
+      for (const g of this.grid) g.y = 0;
+      this.rebuild();
+      this.dirty = true;
+    }
+  }
+  update(dt) {
+    const t = this.t;
+    if (this.visT === 1) {
+      const slot = document.querySelector("#slides .slide:last-child .calc-slot");
+      if (slot && this.panel.parentNode !== slot) slot.appendChild(this.panel);
+    }
+    const go = t > 0.5;
+    if (go && this.dirty) {
+      let moving = false;
+      const k = 1 - Math.exp(-7 * dt);
+      for (let i = 0; i <= M; i++) {
+        const d = this.tgt[i] - this.cur[i];
+        const e = this.tgtI[i] - this.curI[i];
+        if (Math.abs(d) > 2e-3 || Math.abs(e) > 2e-3) moving = true;
+        this.cur[i] += d * k;
+        this.curI[i] += e * k;
+      }
+      for (const key in this.mk) this.mk[key] += (this.mkT[key] - this.mk[key]) * k;
+      for (const g of this.grid) g.y += (g.yT - g.y) * k;
+      if (!moving) {
+        this.cur.set(this.tgt);
+        this.curI.set(this.tgtI);
+        Object.assign(this.mk, this.mkT);
+        for (const g of this.grid) g.y = g.yT;
+        this.dirty = false;
+      }
+      this.rebuild();
+    }
+    const mk = this.mk;
+    const wx = X0 + mk.wx;
+    this.dotW.position.set(wx, Y02 + mk.wy, 0.08);
+    const dh = Math.max(1e-3, mk.hy - mk.wy);
+    this.drop.position.set(wx, Y02 + mk.wy + dh / 2, 0.06);
+    this.drop.scale.y = dh;
+    this.dotE.position.set(X0 + CW, Y02 + mk.ey, 0.08);
+    const shown = go && t > 1;
+    this.dotW.visible = this.drop.visible = this.dotE.visible = shown;
+    for (const g of this.grid) {
+      g.g.position.y = Y02 + g.y;
+      g.g.visible = g.on && go;
+      g.lab.pos.y = Y02 + g.y;
+      g.lab.target = g.on && shown ? 1 : 0;
+    }
+    for (const l of this.ticks) l.target = l.use && go ? 1 : 0;
+    const nar = this.app.ui.narrow();
+    this.lEnd.pos.y = Y02 + mk.ey;
+    let iy = mk.iy;
+    if (Math.abs(iy - mk.ey) < 0.75) iy = mk.ey - 0.75;
+    this.lInv.pos.y = Y02 + Math.max(0.25, iy);
+    this.lEnd.target = shown ? 1 : 0;
+    this.lInv.target = shown && !nar ? 1 : 0;
+    const late = mk.wx > CW * 0.72;
+    this.lWorst.el.className = late ? "lbl left" : "lbl up";
+    if (late) this.lWorst.pos.set(wx - 0.3, Y02 + mk.wy, 0.1);
+    else this.lWorst.pos.set(Math.max(X0 + 1.6, wx), Y02 + mk.hy + 0.15, 0.1);
+    this.lWorst.target = shown && this.r.worst.dd > 5e-3 ? 1 : 0;
+  }
+  rebuild() {
+    const lp = this.lineGeo.attributes.position.array;
+    const ap = this.areaGeo.attributes.position.array;
+    const ip = this.invGeo.attributes.position.array;
+    const dx = CW / M;
+    const c = this.cur;
+    for (let k = 0; k <= M; k++) {
+      const x = X0 + k * dx;
+      const y = Y02 + c[k];
+      const ya = c[Math.max(0, k - 1)];
+      const yb = c[Math.min(M, k + 1)];
+      let tx = k === 0 || k === M ? dx : 2 * dx;
+      let ty = yb - ya;
+      const len = Math.hypot(tx, ty);
+      tx /= len;
+      ty /= len;
+      const nx = -ty * LW / 2;
+      const ny = tx * LW / 2;
+      const o = k * 6;
+      lp[o] = x + nx;
+      lp[o + 1] = y + ny;
+      lp[o + 2] = 0;
+      lp[o + 3] = x - nx;
+      lp[o + 4] = y - ny;
+      lp[o + 5] = 0;
+      ap[o] = x;
+      ap[o + 1] = Y02;
+      ap[o + 2] = 0;
+      ap[o + 3] = x;
+      ap[o + 4] = y;
+      ap[o + 5] = 0;
+      ip[k * 3] = x;
+      ip[k * 3 + 1] = Y02 + this.curI[k];
+      ip[k * 3 + 2] = 0;
+    }
+    this.lineGeo.attributes.position.needsUpdate = true;
+    this.areaGeo.attributes.position.needsUpdate = true;
+    const ld = this.invGeo.attributes.lineDistance.array;
+    ld[0] = 0;
+    for (let k = 1; k <= M; k++) ld[k] = ld[k - 1] + Math.hypot(dx, this.curI[k] - this.curI[k - 1]);
+    this.invGeo.attributes.position.needsUpdate = true;
+    this.invGeo.attributes.lineDistance.needsUpdate = true;
+  }
+};
+
 // src/pieces/index.js
 function buildPieces(app2) {
   const list = [
@@ -5755,6 +6565,7 @@ function buildPieces(app2) {
     new Eras(app2, "eras", [1005, 0, 0]),
     new Bet(app2, "bet", [1060, 0, 0]),
     new TenYear(app2, "tenyear", [1150, 0, 0]),
+    new Calc(app2, "calc", [1240, 0, 0]),
     // 3 黄金
     new GoldFiat(app2, "goldfiat", [1330, 0, 0]),
     new GoldHistory(app2, "goldhist", [1400, 0, 0]),
@@ -5879,10 +6690,26 @@ var BEATS = [
   {
     act: 1,
     layout: "left",
-    h: "不是没钱，<br>是钱不敢动",
-    sub: "钱放出来了，大多趴在银行里：东西没涨价，生意也没好起来。",
-    cam: { at: "tank", p: [-3.5, 7.2, 22.5], t: [1, 4.2, 0], shift: [0.21, 0] },
-    pieces: { tank: {} }
+    h: "放出来的钱，<br>去哪儿了？",
+    sub: "大多存进了银行。",
+    cam: { at: "tank", p: [-2.4, 7.2, 23.5], t: [2.5, 4.2, 0], shift: [0.2, 0] },
+    pieces: { tank: { step: "fill" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "正常的时候：钱会从银行流出去",
+    sub: "有人花、有人投，生意才转得起来。",
+    cam: { at: "tank", p: [6.7, 6.2, 26.5], t: [6.7, 3.9, 0], shift: [0, 0.13] },
+    pieces: { tank: { step: "flow" } }
+  },
+  {
+    act: 1,
+    layout: "top",
+    h: "现在：不是没钱，是钱不敢动",
+    sub: "龙头都拧紧了：钱趴在银行里，生意转不起来。",
+    cam: { at: "tank", p: [6.7, 6.2, 26.5], t: [6.7, 3.9, 0], shift: [0, 0.13] },
+    pieces: { tank: { step: "stuck" } }
   },
   {
     act: 1,
@@ -5968,10 +6795,20 @@ var BEATS = [
   },
   {
     act: 2,
+    layout: "left calcpage",
+    h: "自己算一算",
+    sub: "换个年份、换种投法，看拿到今天会怎样。",
+    extra: '<div class="calc-slot"></div>',
+    // the Calc piece puts its control panel in here
+    cam: { at: "calc", p: [0.7, 5.3, 31], t: [0.7, 4.7, 0], shift: [0.222, 0.01], nsy: 0.3 },
+    pieces: { calc: {} }
+  },
+  {
+    act: 2,
     layout: "top",
     h: "为什么不买涨得更猛的<br>纳斯达克 100？",
     sub: "科技股扎堆：过去十年每年约 19%，但跌得更狠、回本更久。",
-    cam: { at: "city", p: [12, 22, 50], t: [12, 1, 0], shift: [0, 0.12] },
+    cam: { at: "city", p: [12, 22, 50], t: [12, 1, 0], shift: [0, 0.14] },
     pieces: { city: { step: "vs" } }
   },
   /* ---------- 第三幕：黄金 ---------- */
@@ -6302,7 +7139,7 @@ function boot() {
   const canvas = document.getElementById("gl");
   let renderer;
   try {
-    renderer = new THREE20.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: QA });
+    renderer = new THREE21.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: QA });
     if (!renderer.capabilities.isWebGL2) throw new Error("WebGL2 unavailable");
   } catch (err) {
     document.documentElement.classList.add("nogl");
@@ -6310,25 +7147,25 @@ function boot() {
     return;
   }
   renderer.setClearColor(0, 1);
-  renderer.toneMapping = THREE20.NeutralToneMapping;
+  renderer.toneMapping = THREE21.NeutralToneMapping;
   renderer.toneMappingExposure = 1;
-  renderer.outputColorSpace = THREE20.SRGBColorSpace;
+  renderer.outputColorSpace = THREE21.SRGBColorSpace;
   app.renderer = renderer;
-  const scene = new THREE20.Scene();
-  scene.background = new THREE20.Color(0);
-  scene.fog = new THREE20.FogExp2(0, FOG);
-  const pmrem = new THREE20.PMREMGenerator(renderer);
+  const scene = new THREE21.Scene();
+  scene.background = new THREE21.Color(0);
+  scene.fog = new THREE21.FogExp2(0, FOG);
+  const pmrem = new THREE21.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.42;
   app.scene = scene;
-  scene.add(new THREE20.HemisphereLight(10135752, 657936, 0.42));
-  const key = new THREE20.DirectionalLight(16773342, 2.5);
+  scene.add(new THREE21.HemisphereLight(10135752, 657936, 0.42));
+  const key = new THREE21.DirectionalLight(16773342, 2.5);
   key.position.set(-0.55, 1, 0.75);
   scene.add(key);
-  const rim = new THREE20.DirectionalLight(9418495, 1.9);
+  const rim = new THREE21.DirectionalLight(9418495, 1.9);
   rim.position.set(0.8, 0.55, -1);
   scene.add(rim);
-  const camera = new THREE20.PerspectiveCamera(34, 1, 0.1, 700);
+  const camera = new THREE21.PerspectiveCamera(34, 1, 0.1, 700);
   app.camera = camera;
   app.labels = new Labels(document.getElementById("labels"));
   app.floor = makeFloor(scene);
@@ -6336,7 +7173,7 @@ function boot() {
   const { list, map } = buildPieces(app);
   app.pieces = map;
   app.list = list;
-  const rt = new THREE20.WebGLRenderTarget(4, 4, { type: THREE20.HalfFloatType, samples: 4 });
+  const rt = new THREE21.WebGLRenderTarget(4, 4, { type: THREE21.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(
@@ -6346,31 +7183,53 @@ function boot() {
       fragmentShader: "uniform sampler2D tDiffuse; varying vec2 vUv; void main(){ vec4 c = texture2D(tDiffuse, vUv); bvec4 bad = bvec4(isnan(c.r) || isinf(c.r), isnan(c.g) || isinf(c.g), isnan(c.b) || isinf(c.b), isnan(c.a) || isinf(c.a)); if (any(bad)) c = vec4(0.0, 0.0, 0.0, 1.0); gl_FragColor = clamp(c, vec4(0.0), vec4(48.0)); }"
     })
   );
-  const bloom = new UnrealBloomPass(new THREE20.Vector2(256, 256), 0.55, 0.45, 1.35);
+  const bloom = new UnrealBloomPass(new THREE21.Vector2(256, 256), 0.55, 0.45, 1.35);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
   app.composer = composer;
   app.bloom = bloom;
   const ui = new UI(app, BEATS, ACTS);
   app.ui = ui;
-  let dprCap = Math.min(window.devicePixelRatio || 1, 2);
-  if (QA) dprCap = 1;
+  const quality = { budget: 23e5, scale: 1, msaa: 4, level: 0 };
+  app.quality = quality;
+  const ratio = () => {
+    if (QA) return quality.qaRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const fit = Math.sqrt(quality.budget / Math.max(1, window.innerWidth * window.innerHeight));
+    return clamp(Math.min(dpr, fit) * quality.scale, 0.5, 2);
+  };
   const resize = () => {
     app.W = window.innerWidth;
     app.H = window.innerHeight;
-    app.px = dprCap;
-    renderer.setPixelRatio(dprCap);
+    app.px = ratio();
+    renderer.setPixelRatio(app.px);
     renderer.setSize(app.W, app.H, false);
-    composer.setPixelRatio(dprCap);
+    composer.setPixelRatio(app.px);
     composer.setSize(app.W, app.H);
     camera.aspect = app.W / app.H;
     camera.updateProjectionMatrix();
     if (app.beat >= 0) camTo(BEATS[app.beat], false, true);
   };
+  const setMsaa = (n) => {
+    quality.msaa = n;
+    composer.renderTarget1.samples = n;
+    composer.renderTarget2.samples = n;
+    composer.renderTarget1.dispose();
+    composer.renderTarget2.dispose();
+  };
+  const lower = () => {
+    if (quality.scale > 0.6) quality.scale *= 0.8;
+    else if (quality.msaa > 0) setMsaa(0);
+    else if (bloom.enabled) bloom.enabled = false;
+    else return false;
+    quality.level++;
+    resize();
+    return true;
+  };
   window.addEventListener("resize", resize);
   const cs = {
-    pos: new THREE20.Vector3(-30, 14, 40),
-    tgt: new THREE20.Vector3(0, 1, 0),
+    pos: new THREE21.Vector3(-30, 14, 40),
+    tgt: new THREE21.Vector3(0, 1, 0),
     fov: 34,
     fovT: 34,
     sx: 0,
@@ -6379,15 +7238,15 @@ function boot() {
     syT: 0,
     tw: null
   };
-  const UP = new THREE20.Vector3(0, 1, 0);
-  const fwd = new THREE20.Vector3();
-  const right = new THREE20.Vector3();
-  const up2 = new THREE20.Vector3();
+  const UP = new THREE21.Vector3(0, 1, 0);
+  const fwd = new THREE21.Vector3();
+  const right = new THREE21.Vector3();
+  const up2 = new THREE21.Vector3();
   function camGoal(b) {
     const c = b.cam;
-    const o = map[c.at] ? map[c.at].origin : new THREE20.Vector3();
-    const P = new THREE20.Vector3(...c.p).add(o);
-    const T = new THREE20.Vector3(...c.t).add(o);
+    const o = map[c.at] ? map[c.at].origin : new THREE21.Vector3();
+    const P = new THREE21.Vector3(...c.p).add(o);
+    const T = new THREE21.Vector3(...c.t).add(o);
     const asp = app.W / app.H;
     const narrow = ui.narrow();
     let k = 1;
@@ -6479,8 +7338,8 @@ function boot() {
     } catch (e) {
     }
   };
-  const focus = new THREE20.Vector3();
-  const lastCam = new THREE20.Vector3();
+  const focus = new THREE21.Vector3();
+  const lastCam = new THREE21.Vector3();
   let boost = 0;
   function step(dt) {
     app.time += dt;
@@ -6506,14 +7365,48 @@ function boot() {
     composer.render();
   }
   resize();
-  for (const p of list) p.root.visible = true;
   camera.position.set(0, 10, 30);
   camera.lookAt(0, 0, 0);
   try {
-    renderer.compile(scene, camera);
+    const warm = new THREE21.WebGLRenderTarget(64, 64);
+    const flags = [];
+    scene.traverse((o) => {
+      flags.push([o, o.visible, o.frustumCulled]);
+      o.visible = true;
+      o.frustumCulled = false;
+    });
+    renderer.setRenderTarget(warm);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    for (const [o, v, f] of flags) {
+      o.visible = v;
+      o.frustumCulled = f;
+    }
+    warm.dispose();
   } catch (e) {
   }
   for (const p of list) p.root.visible = false;
+  if (!QA) {
+    try {
+      const gl = renderer.getContext();
+      const px = new Uint8Array(4);
+      const frame = () => {
+        composer.render();
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      };
+      frame();
+      frame();
+      const t0 = performance.now();
+      for (let k = 0; k < 4; k++) frame();
+      const ms = (performance.now() - t0) / 4;
+      quality.bootMs = ms;
+      if (ms < 4.6) {
+        quality.budget = ms < 2.6 ? 84e5 : 42e5;
+        resize();
+      }
+    } catch (e) {
+    }
+  }
   const m = /^#b(\d+)$/.exec(location.hash);
   const start = m ? clamp(parseInt(m[1], 10) - 1, 0, BEATS.length - 1) : 0;
   app.go(start, start !== 0);
@@ -6604,10 +7497,12 @@ function boot() {
   let last = performance.now();
   let frames = 0;
   let acc = 0;
+  let grace = 30;
   let firstFrame = true;
   function loop(now) {
     requestAnimationFrame(loop);
-    const dt = Math.min(0.05, (now - last) / 1e3);
+    const raw = (now - last) / 1e3;
+    const dt = Math.min(0.05, raw);
     last = now;
     step(dt);
     render();
@@ -6615,18 +7510,18 @@ function boot() {
       firstFrame = false;
       document.getElementById("loading").classList.add("gone");
     }
-    frames++;
-    acc += dt;
-    if (frames >= 90) {
-      const avg = acc / frames;
-      if (avg > 0.026 && dprCap > 1) {
-        dprCap = Math.max(1, dprCap - 0.25);
-        resize();
-      } else if (avg > 0.034 && dprCap <= 1 && bloom.enabled) {
-        bloom.enabled = false;
+    if (grace > 0) grace--;
+    else if (raw < 0.25) {
+      frames++;
+      acc += raw;
+      if (frames >= 50) {
+        if (acc / frames > 0.0215) {
+          lower();
+          grace = 30;
+        }
+        frames = 0;
+        acc = 0;
       }
-      frames = 0;
-      acc = 0;
     }
   }
   if (QA) {
@@ -6650,6 +7545,39 @@ function boot() {
         const steps = Math.round(sec * 30);
         for (let s = 0; s < steps; s++) step(1 / 30);
         render();
+      },
+      // frame cost of beat i at a given canvas pixel ratio: [ms of simulation, ms of rendering] per frame.
+      // from >= 0 measures the transition from that beat instead of the settled page.
+      bench(i, { ratio: r = 1, frames: n = 30, msaa = 4, bloom: bl = true, from = -1 } = {}) {
+        quality.qaRatio = r;
+        if (msaa !== quality.msaa) setMsaa(msaa);
+        bloom.enabled = bl;
+        resize();
+        const gl = renderer.getContext();
+        const px = new Uint8Array(4);
+        const sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        if (from >= 0) {
+          app.go(from, true);
+          for (let s = 0; s < 90; s++) step(1 / 30);
+          app.go(i);
+        } else {
+          app.go(i, true);
+          for (let s = 0; s < 90; s++) step(1 / 30);
+        }
+        render();
+        sync();
+        let a = 0;
+        let b = 0;
+        for (let s = 0; s < n; s++) {
+          const t0 = performance.now();
+          step(1 / 60);
+          const t1 = performance.now();
+          render();
+          sync();
+          a += t1 - t0;
+          b += performance.now() - t1;
+        }
+        return [a / n, b / n];
       }
     };
   } else requestAnimationFrame(loop);
